@@ -4,8 +4,8 @@ import DealRow from '../components/DealRow.js';
 import { norm } from '../match.js';
 import { ACCENT } from '../theme.js';
 
-const SORTS = ['end', 'price', 'name'];
-const SORT_KEY = { end: 'sortEnd', price: 'sortPrice', name: 'sortName' };
+const SORTS = ['end', 'price', 'store', 'name'];
+const SORT_KEY = { end: 'sortEnd', price: 'sortPrice', store: 'sortStore', name: 'sortName' };
 
 function Pill({ label, on, onPress, c }) {
   return (
@@ -26,6 +26,7 @@ export default function DealsScreen({ c, t, lang, deals, onAdd, refreshing, onRe
     const nq = norm(q);
     const f = deals.filter((d) => (!store || d.store === store) && (!nq || norm(`${d.name} ${d.description}`).includes(nq)));
     return f.sort((a, b) => sort === 'price' ? (a.price ?? Infinity) - (b.price ?? Infinity)
+      : sort === 'store' ? a.store.localeCompare(b.store) || (a.price ?? Infinity) - (b.price ?? Infinity)
       : sort === 'name' ? a.name.localeCompare(b.name)
       : (Date.parse(a.validUntil) || Infinity) - (Date.parse(b.validUntil) || Infinity));
   }, [deals, q, store, sort]);

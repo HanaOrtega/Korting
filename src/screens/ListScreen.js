@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import ByStoreView from '../components/ByStoreView.js';
 import DealRow from '../components/DealRow.js';
 import { dutchName, displayName, matchDeals, resolve, suggest } from '../match.js';
+import { planShopping } from '../plan.js';
+import { favoriteChains } from '../stores.js';
 import { translateToDutch } from '../translate.js';
 import { ACCENT } from '../theme.js';
 
@@ -18,7 +21,7 @@ function Chip({ label, onPress, selected, c }) {
   );
 }
 
-export default function ListScreen({ c, t, lang, items, setItems, deals, vocab }) {
+export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, view, setView, favorites }) {
   const [text, setText] = useState('');
   const [open, setOpen] = useState({});
   const [tr, setTr] = useState({}); // „język|tekst” -> tłumaczenie na holenderski (albo null)
@@ -41,6 +44,9 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab }
     const r = resolve(item.text, vocab, tr[trKey(item.text)] ?? null);
     return { item, r, hits: matchDeals(r.terms, deals) };
   }), [items, deals, vocab, tr, lang]);
+
+  const plan = useMemo(() => planShopping(rows, favoriteChains(favorites)), [rows, favorites]);
+  const toggleDone = (id) => setItems((prev) => prev.map((it) => (it.id === id ? { ...it, done: !it.done } : it)));
 
   // słowa spoza słownika tłumaczymy w tle na holenderski (raz na słowo; wynik zapamiętany w telefonie)
   useEffect(() => {
@@ -85,6 +91,13 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab }
         </View>
       )}
 
+      {rows.length > 0 && (
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Chip c={c} label={t('viewItems')} selected={view === 'items'} onPress={() => setView('items')} />
+          <Chip c={c} label={t('viewStores')} selected={view === 'stores'} onPress={() => setView('stores')} />
+        </View>
+      )}
+
       {rows.length === 0 && (
         <View style={{ alignItems: 'center', paddingVertical: 40, gap: 6 }}>
           <Text style={{ color: c.fg, fontSize: 18, fontWeight: '600' }}>{t('emptyTitle')}</Text>
@@ -92,7 +105,11 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab }
         </View>
       )}
 
-      {rows.map(({ item, r, hits }) => {
+      {view === 'stores' && rows.length > 0 && (
+        <ByStoreView plan={plan} c={c} t={t} lang={lang} favorites={favorites} onToggleDone={toggleDone} />
+      )}
+
+      {view === 'items' && rows.map(({ item, r, hits }) => {
         const expanded = !!open[item.id];
         const shown = expanded ? hits : hits.slice(0, PREVIEW);
         const choices = r.status === 'fuzzy' || r.status === 'ambiguous'

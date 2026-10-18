@@ -5,10 +5,12 @@ import { fetchWithTimeout } from './util.js';
 // powinno działać. Korzysta z nieoficjalnego API mobilnego AH (anonimowy token + wyszukiwarka).
 // Jeśli AH zmieni API, błąd pokaże się przy tym sklepie, a reszta nadal działa.
 const API = 'https://api.ah.nl';
-const QUERIES = ['', 'melk', 'vlees', 'kip', 'vis', 'groente', 'fruit', 'kaas', 'brood', 'drinken',
-  'snoep', 'chips', 'koffie', 'bier', 'wijn', 'diepvries', 'pasta', 'schoonmaak'];
+const QUERIES = ['melk', 'vlees', 'kip', 'vis', 'groente', 'fruit', 'kaas', 'brood', 'drinken',
+  'snoep', 'chips', 'koffie', 'bier', 'wijn', 'diepvries', 'pasta', 'schoonmaak', 'ontbijt'];
+// Parametry wyszukiwania sprawdzane po kolei (serwer AH wywala się na nieznanych: np. „filters=bonus”
+// daje 500 „Index: 1, Size: 1”). Pierwszy zestaw, który zwróci 200, jest używany do reszty zapytań.
+const PARAM_SETS = ['sortOn=RELEVANCE&size=100&page=0', 'size=100&page=0', 'page=0&size=50', 'size=50'];
 
-// API mobilne AH przyjmuje tylko klienta „Appie” – UA przeglądarki dostaje odmowę.
 const APPIE_UA = 'Appie/8.22.3';
 const headers = (token) => ({
   'user-agent': APPIE_UA, 'x-application': 'AHWEBSHOP', 'content-type': 'application/json', accept: 'application/json',
@@ -21,23 +23,29 @@ async function failure(res, what) {
   return new Error(`AH ${what}: HTTP ${res.status}${body ? ` – ${body}` : ''}`);
 }
 
+// Pola z nieoficjalnego API; kilka nazw zapasowych, bo odpowiedzi AH bywają różne.
+const priceOf = (p) => p.currentPrice ?? p.price?.now ?? p.priceNow ?? null;
+const endOf = (p) => p.bonusEndDate ?? p.promotion?.endDate ?? null;
+
 export function parseAh(json) {
   return (json?.products ?? [])
-    .filter((p) => p.isBonus && p.bonusEndDate && p.currentPrice != null)
+    .filter((p) => (p.isBonus || p.bonusMechanism) && priceOf(p) != null)
     .map((p) => ({
-      id: `ah-${p.webshopId}`,
+      id: `ah-${p.webshopId ?? p.id}`,
       store: 'Albert Heijn',
       name: p.title,
       description: p.priceBeforeBonus != null ? `Was €${String(p.priceBeforeBonus).replace('.', ',')}` : '',
       unit: p.salesUnitSize ?? '',
-      price: p.currentPrice,
+      price: priceOf(p),
       promoText: p.bonusMechanism ?? '',
       validFrom: p.bonusStartDate ?? null,
-      validUntil: p.bonusEndDate,
+      validUntil: endOf(p),
       image: p.images?.[0]?.url ?? null,
-      url: `https://www.ah.nl/producten/product/wi${p.webshopId}`,
+      url: `https://www.ah.nl/producten/product/wi${p.webshopId ?? p.id}`,
     }));
 }
+
+const searchUrl = (q, params) => `${API}/mobile-services/product/search/v2?query=${encodeURIComponent(q)}&${params}`;
 
 export default {
   name: 'Albert Heijn',
@@ -49,15 +57,33 @@ export default {
     const { access_token: token } = await auth.json();
     if (!token) throw new Error('AH: odpowiedź bez access_token (zmieniło się API?)');
 
-    const pages = await Promise.allSettled(QUERIES.map(async (q) => {
-      const res = await fetchWithTimeout(
-        `${API}/mobile-services/product/search/v2?query=${encodeURIComponent(q)}&sortOn=RELEVANCE&size=1000&page=0&filters=bonus`,
-        { headers: headers(token) }, 20000);
-      if (!res.ok) throw await failure(res, 'wyszukiwanie');
-      return parseAh(await res.json());
+    const get = (q, params) => fetchWithTimeout(searchUrl(q, params), { headers: headers(token) }, 20000);
+
+    // 1. znajdź zestaw parametrów, który serwer przyjmuje
+    const tried = [];
+    let params = null;
+    let first = null;
+    for (const set of PARAM_SETS) {
+      const res = await get(QUERIES[0], set);
+      if (res.ok) { params = set; first = await res.json(); break; }
+      tried.push(`[${set}] ${(await failure(res, '')).message.replace(/^AH : /, '')}`);
+    }
+    if (!params) throw new Error(`AH wyszukiwanie: ${tried.join(' | ')}`);
+
+    // 2. reszta haseł tym samym zestawem; do bonusu zostają tylko produkty z isBonus
+    const results = [parseAh(first)];
+    const sample = first?.products?.[0];
+    await Promise.all(QUERIES.slice(1).map(async (q) => {
+      try {
+        const res = await get(q, params);
+        if (res.ok) results.push(parseAh(await res.json()));
+      } catch { /* pojedyncze hasło może zawieść */ }
     }));
-    const ok = pages.filter((p) => p.status === 'fulfilled');
-    if (!ok.length) throw pages[0].reason;
-    return [...new Map(ok.flatMap((p) => p.value).map((d) => [d.id, d])).values()];
+    const deals = [...new Map(results.flat().map((d) => [d.id, d])).values()];
+    if (!deals.length) {
+      const keys = sample ? Object.keys(sample).slice(0, 25).join(',') : 'brak produktów w odpowiedzi';
+      throw new Error(`AH: wyszukiwanie działa, ale brak produktów w bonusie (pola produktu: ${keys})`);
+    }
+    return deals;
   },
 };

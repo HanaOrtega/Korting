@@ -9,6 +9,7 @@ import { LANG_CODES, LANG_NAMES, makeT, pickLanguage } from './src/i18n.js';
 import { buildVocab } from './src/match.js';
 import DealsScreen from './src/screens/DealsScreen.js';
 import ListScreen from './src/screens/ListScreen.js';
+import StoresScreen from './src/screens/StoresScreen.js';
 import { ACCENT, dark, light } from './src/theme.js';
 
 const store = {
@@ -24,6 +25,8 @@ export default function App() {
   const [items, setItems] = useState([]);
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState('list');
+  const [view, setView] = useState('items'); // lista: 'items' | 'stores'
+  const [favorites, setFavorites] = useState([]);
   const [data, setData] = useState({ deals: [], errors: [], at: 0 });
   const [loading, setLoading] = useState(true);
   const [pickLang, setPickLang] = useState(false);
@@ -34,10 +37,14 @@ export default function App() {
       const savedLang = await store.get('korting.lang', null);
       if (savedLang && LANG_CODES.includes(savedLang)) setLang(savedLang);
       setItems(await store.get('korting.items', []));
+      setFavorites(await store.get('korting.favorites', []));
+      setView(await store.get('korting.view', 'items'));
       setReady(true);
     })();
   }, []);
   useEffect(() => { if (ready) store.set('korting.items', items); }, [items, ready]);
+  useEffect(() => { if (ready) store.set('korting.favorites', favorites); }, [favorites, ready]);
+  useEffect(() => { if (ready) store.set('korting.view', view); }, [view, ready]);
 
   const refresh = useCallback(async (force = false) => {
     setLoading(true);
@@ -74,7 +81,8 @@ export default function App() {
         </View>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           {tabBtn('list', t('tabList'))}
-          {tabBtn('deals', `${t('tabDeals')} (${data.deals.length})`)}
+          {tabBtn('deals', t('tabDeals'))}
+          {tabBtn('stores', t('tabStores'))}
         </View>
         {loading && <Text style={{ color: c.mut, fontSize: 13 }}>{t('loading')}</Text>}
         {!loading && data.errors.length > 0 && (
@@ -87,7 +95,10 @@ export default function App() {
       </View>
 
       {tab === 'list' ? (
-        <ListScreen c={c} t={t} lang={lang} items={items} setItems={setItems} deals={data.deals} vocab={vocab} />
+        <ListScreen c={c} t={t} lang={lang} items={items} setItems={setItems} deals={data.deals} vocab={vocab}
+          view={view} setView={setView} favorites={favorites} />
+      ) : tab === 'stores' ? (
+        <StoresScreen c={c} t={t} favorites={favorites} setFavorites={setFavorites} />
       ) : (
         <DealsScreen c={c} t={t} lang={lang} deals={data.deals} onAdd={addFromDeal} refreshing={loading} onRefresh={() => refresh(true)} />
       )}
