@@ -139,8 +139,8 @@ test('masło: bez croissantów z masłem i innych produktów, w których masło 
 });
 
 test('dodatki po „met / in / voor” nie liczą się jako produkt', () => {
-  const list = [{ name: 'Tonijn in olie', price: 1 }, { name: 'Olijfolie extra vierge', price: 5 }, { name: 'Hondenvoer met kip', price: 1 }];
-  assert.deepEqual(nm('olej', list), ['Olijfolie extra vierge']);
+  const list = [{ name: 'Tonijn in olie', price: 1 }, { name: 'Zonnebloemolie', price: 3 }, { name: 'Hondenvoer met kip', price: 1 }];
+  assert.deepEqual(nm('olej', list), ['Zonnebloemolie']);
   assert.deepEqual(nm('tuńczyk', list), ['Tonijn in olie']);
   assert.deepEqual(nm('kurczak', list), []);
 });
@@ -160,5 +160,64 @@ test('ilości na końcu nazwy nie zaburzają rozpoznania produktu', () => {
 test('fałszywe złożenia: granat to nie jabłko, folia to nie olej', () => {
   const list = [{ name: 'Granaatappel', price: 1 }, { name: 'Rasterfolie 3 x 4 m', price: 2 }, { name: 'Elstar appels', price: 2 }, { name: 'Olijfolie', price: 5 }];
   assert.deepEqual(nm('jabłka', list), ['Elstar appels']);
-  assert.deepEqual(nm('olej', list), ['Olijfolie']);
+  assert.deepEqual(nm('oliwa', list), ['Olijfolie']);
+});
+
+import { concepts } from '../src/match.js';
+
+test('słownik: pierwsza nazwa każdego produktu w każdym języku rozpoznaje właśnie ten produkt (z preferencją języka)', () => {
+  // inaczej użytkownik wpisujący słowo w swoim języku dostawałby inny produkt niż ten, który to słowo opisuje
+  const bad = [];
+  for (const c of concepts) {
+    for (const [lang, names] of Object.entries(c.names)) {
+      const r = resolve(names[0], undefined, null, lang);
+      if (r.ci !== c.id) bad.push(`${lang}:"${names[0]}" → ${r.ci == null ? r.status : dutchName(r.ci)} (miało być ${c.names.nl[0]})`);
+    }
+  }
+  assert.deepEqual(bad, []);
+});
+
+test('śmietana, śmietanka i inne „bliźniaki”: różne produkty, z wyborem gdy niejednoznaczne', () => {
+  const pl = (w) => resolve(w, undefined, null, 'pl');
+  assert.equal(dutchName(pl('śmietana').ci), 'zure room');
+  assert.equal(pl('śmietana').status, 'ambiguous');
+  assert.ok(pl('śmietana').alts.map(dutchName).includes('crème fraîche'));
+  assert.equal(dutchName(pl('śmietanka').ci), 'slagroom');
+  assert.deepEqual(pl('śmietanka').alts.map(dutchName).sort(), ['koffiemelk', 'kookroom']);
+  assert.equal(dutchName(pl('śmietana kwaśna').ci), 'zure room');
+  assert.equal(dutchName(pl('śmietanka do gotowania').ci), 'kookroom');
+  assert.equal(dutchName(pl('śmietanka do kawy').ci), 'koffiemelk');
+  assert.equal(dutchName(pl('szynka').ci), 'ham');
+  assert.equal(dutchName(pl('wędlina').ci), 'vleeswaren');
+  assert.equal(dutchName(pl('parówki').ci), 'knakworst');
+  assert.equal(dutchName(pl('oliwa').ci), 'olijfolie');
+  assert.equal(dutchName(pl('olej').ci), 'olie');
+  assert.equal(dutchName(pl('kefir').ci), 'kefir');
+  assert.equal(dutchName(pl('limonka').ci), 'limoen');
+});
+
+test('rozdzielone produkty nie mieszają ofert: śmietanka (slagroom) ≠ zure room, szynka ≠ wędlina', () => {
+  const deals = [{ name: 'Zure room 150 ml', price: 1 }, { name: 'Verse slagroom 250 ml', price: 2 }, { name: 'Kookroom 250 ml', price: 1 },
+    { name: 'Achterham', price: 2 }, { name: 'Voorverpakte vleeswaren', price: 2 }, { name: 'Crème fraîche', price: 2 }];
+  const names = (w) => { const r = resolve(w, undefined, null, 'pl'); return matchDeals(r.terms, deals, r.ci).map((d) => d.name); };
+  assert.deepEqual(names('śmietana kwaśna'), ['Zure room 150 ml']);
+  assert.deepEqual(names('śmietanka do ubijania'), ['Verse slagroom 250 ml']);
+  assert.deepEqual(names('śmietanka do gotowania'), ['Kookroom 250 ml']);
+  assert.deepEqual(names('szynka'), ['Achterham']);
+  assert.deepEqual(names('wędlina'), ['Voorverpakte vleeswaren']);
+});
+
+test('język użytkownika rozstrzyga słowa wspólne dla kilku języków („pasta”, „miel”)', () => {
+  assert.equal(dutchName(resolve('pasta', undefined, null, 'tr').ci), 'taart'); // po turecku: ciasto
+  assert.equal(dutchName(resolve('pasta', undefined, null, 'it').ci), 'pasta');
+  assert.equal(dutchName(resolve('miel', undefined, null, 'fr').ci), 'honing');
+  assert.equal(dutchName(resolve('miel', undefined, null, 'ro').ci), 'lamsvlees');
+  assert.equal(dutchName(resolve('pommes', undefined, null, 'de').ci), 'friet');
+  assert.equal(dutchName(resolve('pommes', undefined, null, 'fr').ci), 'appels');
+});
+
+test('wędlina nie łapie dojrzałego sera („belegen” to nie „beleg”)', () => {
+  const deals = [{ name: 'Goudse jong belegen kaas', price: 3 }, { name: 'Voorverpakte vleeswaren', price: 2 }];
+  const r = resolve('wędlina', undefined, null, 'pl');
+  assert.deepEqual(matchDeals(r.terms, deals, r.ci).map((d) => d.name), ['Voorverpakte vleeswaren']);
 });

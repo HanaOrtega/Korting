@@ -3,7 +3,7 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import ByStoreView from '../components/ByStoreView.js';
 import CompareView from '../components/CompareView.js';
 import DealRow from '../components/DealRow.js';
-import { dutchName, displayName, matchDeals, resolve, suggest } from '../match.js';
+import { dutchName, displayName, forConcept, matchDeals, resolve, suggest } from '../match.js';
 import { planShopping } from '../plan.js';
 import { bestUnitId } from '../pricing.js';
 import { lookupRegular, regularStores } from '../regular.js';
@@ -44,8 +44,9 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
   const remove = (id) => setItems((prev) => prev.filter((it) => it.id !== id));
 
   const rows = useMemo(() => items.map((item) => {
-    const r = resolve(item.text, vocab, tr[trKey(item.text)] ?? null);
-    return { item, r, hits: matchDeals(r.terms, deals, r.ci) };
+    const r0 = resolve(item.text, vocab, tr[trKey(item.text)] ?? null, lang);
+    const r = item.pick != null ? forConcept(item.pick, item.text) : r0; // r0 zostaje źródłem listy „czy chodziło o…”
+    return { item, r, r0, hits: matchDeals(r.terms, deals, r.ci) };
   }), [items, deals, vocab, tr, lang]);
 
   const chains = useMemo(() => favoriteChains(favorites), [favorites]);
@@ -142,13 +143,14 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
         <CompareView c={c} t={t} rows={rows} regular={regular} stores={chains} loading={regLoading} />
       )}
 
-      {view === 'items' && rows.map(({ item, r, hits }) => {
+      {view === 'items' && rows.map(({ item, r, r0, hits }) => {
         const expanded = !!open[item.id];
         const shown = expanded ? hits : hits.slice(0, PREVIEW);
         const bestId = bestUnitId(hits);
-        const choices = r.status === 'fuzzy' || r.status === 'ambiguous'
-          ? [r.ci, ...r.alts].map((ci) => ({ key: ci, label: displayName(ci, lang), apply: displayName(ci, lang) }))
+        const choices = r0.status === 'fuzzy' || r0.status === 'ambiguous'
+          ? [r0.ci, ...r0.alts].map((ci) => ({ key: ci, label: `${displayName(ci, lang)} → ${dutchName(ci)}`, apply: displayName(ci, lang), pick: ci }))
           : r.status === 'dutch-fuzzy' ? [{ key: r.word, label: r.word, apply: r.word }] : [];
+        const chosen = item.pick ?? r0.ci;
         return (
           <View key={item.id} style={{ backgroundColor: c.card, borderRadius: 14, borderWidth: 1, borderColor: c.border, padding: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -166,7 +168,10 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
                 <Text style={{ color: c.mut, fontSize: 13 }}>{t('didYouMean')}</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                   {choices.map((ch, i) => (
-                    <Chip key={ch.key} c={c} label={ch.label} selected={i === 0} onPress={() => update(item.id, { text: ch.apply })} />
+                    <Chip key={ch.key} c={c} label={ch.label} selected={ch.pick != null ? ch.pick === chosen : i === 0}
+                      onPress={() => update(item.id, ch.pick != null
+                        ? { pick: ch.pick, ...(r0.status === 'fuzzy' ? { text: ch.apply } : {}) } // literówkę poprawiamy w tekście
+                        : { text: ch.apply })} />
                   ))}
                 </View>
               </View>

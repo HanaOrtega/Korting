@@ -25,7 +25,8 @@ export const concepts = ROWS.map((row, id) => {
   return { id, names };
 });
 
-const termIndex = new Map(); // znormalizowany termin -> [id pojęcia]
+const termIndex = new Map(); // znormalizowany termin -> [id pojęcia] (w kolejności słownika)
+const termLangs = new Map(); // „termin|id” -> języki, w których to słowo opisuje to pojęcie
 const allTerms = []; // { t, ci, lang }
 concepts.forEach((c) => {
   for (const lang of LANGS) {
@@ -36,6 +37,8 @@ concepts.forEach((c) => {
       const list = termIndex.get(t) ?? [];
       if (!list.includes(c.id)) list.push(c.id);
       termIndex.set(t, list);
+      const key = `${t}|${c.id}`;
+      termLangs.set(key, (termLangs.get(key) ?? '') + `,${lang}`);
     }
   }
 });
@@ -115,7 +118,18 @@ export function buildVocab(deals) {
  * status: exact | ambiguous | fuzzy | dutch | dutch-fuzzy | unknown
  * ci – wybrane pojęcie, alts – inne możliwości („czy chodziło o…”), terms – szukane słowa po holendersku.
  */
-export function resolve(raw, vocab = new Set(), translated = null) {
+/** Pojęcia opisywane danym słowem; te, które to słowo ma w języku użytkownika, są pierwsze („pasta” po turecku to ciasto). */
+function candidates(term, lang) {
+  const list = termIndex.get(term);
+  if (!list || !lang) return list;
+  const mine = list.filter((ci) => termLangs.get(`${term}|${ci}`).includes(`,${lang}`));
+  return mine.length ? [...mine, ...list.filter((ci) => !mine.includes(ci))] : list;
+}
+
+/** Wynik dla ręcznie wybranego produktu (chip „czy chodziło o…”): bez zgadywania i bez zapętleń. */
+export const forConcept = (ci, raw = '') => ({ raw, status: 'exact', ci, alts: [], terms: nlTerms(ci) });
+
+export function resolve(raw, vocab = new Set(), translated = null, lang = null) {
   const tokens = norm(raw).split(' ').filter((t) => t && !isQty(t));
   const phrase = tokens.join(' ');
   const out = (status, ci, alts = [], extra = {}) =>
@@ -123,7 +137,7 @@ export function resolve(raw, vocab = new Set(), translated = null) {
   if (!phrase) return out('unknown', null);
 
   // 1. dokładnie (cała fraza, potem pojedyncze słowa)
-  const exact = termIndex.get(phrase) ?? tokens.map((t) => termIndex.get(t)).find(Boolean);
+  const exact = candidates(phrase, lang) ?? tokens.map((t) => candidates(t, lang)).find(Boolean);
   if (exact) return out(exact.length > 1 ? 'ambiguous' : 'exact', exact[0], exact.slice(1));
 
   // 2. odmieniona forma (końcówka inna niż w słowniku)
@@ -165,7 +179,7 @@ export function resolve(raw, vocab = new Set(), translated = null) {
 
   // 6. nic nie pasuje: jeśli mamy tłumaczenie na holenderski (translate.js), rozpoznajemy je
   if (translated) {
-    const r = resolve(translated, vocab);
+    const r = resolve(translated, vocab, null, 'nl');
     if (r.status !== 'unknown') return { ...r, raw, status: 'translated', word: norm(translated) };
     return { raw, status: 'translated', ci: null, alts: [], terms: norm(translated).split(' ').filter(Boolean), word: norm(translated) };
   }
@@ -219,7 +233,11 @@ function conceptOfWord(word) {
       if (t.length >= 4 && t.length > bestLen && !t.includes(' ') && word.endsWith(t)) { bestLen = t.length; ci = c; }
     }
   }
-  if (ci == null) ci = stemConcepts(word)[0]?.ci ?? null;
+  if (ci == null) { // odmieniona forma znanego słowa: tomaatjes, appels (nie: „room” jako początek „roomijs”)
+    for (const { t, ci: c } of allTerms) {
+      if (t.length >= 4 && !t.includes(' ') && word.startsWith(t) && DUTCH_ENDING.test(word.slice(t.length))) { ci = c; break; }
+    }
+  }
   headCache.set(word, ci);
   return ci;
 }

@@ -13,16 +13,23 @@ yoghurt|yogurt;yogurt|yoghurt;jogurt;joghurt;yaourt|yogourt;yogur;yogurt;iogurte
 kaas|plakken kaas;cheese;ser;käse;fromage;queso;formaggio;queijo;peynir;сир;brânză;сыр
 boter;butter;masło;butter;beurre;mantequilla;burro;manteiga;tereyağı;вершкове масло;unt;сливочное масло
 eieren|ei;eggs|egg;jajka|jajko|jaja|jajek|jajkiem;eier|ei;oeufs|oeuf|œufs;huevos|huevo;uova|uovo;ovos|ovo;yumurta;яйця|яйце;ouă|ou;яйца|яйцо
-slagroom|room|kookroom;cream|whipped cream;śmietana|śmietanka;sahne|schlagsahne;crème|creme fraîche;nata;panna;natas|nata;süt kreması|krema;вершки|сметана;smântână|frișcă;сливки|сметана
+# --- śmietana ≠ śmietanka: to różne produkty (zure room / slagroom / kookroom / koffiemelk / crème fraîche) ---
+zure room;sour cream;śmietana kwaśna|śmietana 18%|śmietana;saure sahne|schmand|sauerrahm;crème aigre;nata agria|crema agria;panna acida|crema acida;natas azedas|nata azeda;ekşi krema|ekşi kaymak;сметана;smântână;сметана
+slagroom|slagroom spuitbus|verse slagroom|opkloproom;whipping cream|heavy cream|double cream|whipped cream|cream;śmietanka do ubijania|śmietanka kremówka|śmietanka 30%|śmietanka 36%|bita śmietana|śmietanka;schlagsahne|schlagobers|sahne;crème fleurette|crème entière|crème liquide|chantilly|crème;nata para montar|nata líquida|nata;panna da montare|panna fresca|panna;natas para bater|natas;krem şanti|krema;вершки для збивання|вершки 33%|вершки;frișcă|frișcă lichidă;сливки для взбивания|сливки 33%|сливки
+kookroom|room om te koken|culinaire room|kookroom 15%;cooking cream|cream;śmietanka do gotowania|śmietanka kuchenna|śmietanka 18%|śmietanka|śmietana;kochsahne|kochcreme|sahne;crème de cuisine|crème légère|crème;nata para cocinar|nata;panna da cucina|panna;natas para culinária|natas;yemeklik krema|krema;вершки для приготування|вершки;smântână pentru gătit|smântână;сливки для готовки|сливки
+koffiemelk|koffieroom|koffiecreamer;coffee creamer|coffee cream|cream;śmietanka do kawy|mleczko do kawy|śmietanka;kaffeesahne|kaffeeweißer|sahne;crème à café|lait pour café|crème;nata para café|leche para café|nata;panna da caffè|latte per caffè|panna;natas para café|leite para café|natas;kahve kreması|kahve sütü|krema;вершки до кави|вершки;frișcă pentru cafea|lapte pentru cafea;сливки для кофе|сливки к кофе|сливки
+crème fraîche|creme fraiche;crème fraîche|creme fraiche;crème fraîche|śmietana kremowa|śmietana gęsta|śmietana;crème fraîche;crème fraîche;crème fraîche|crema fresca;crème fraîche|panna acidula;crème fraîche|creme fresco;krem fraş|crème fraîche;крем-фреш|сметана;crème fraîche|smântână grasă|smântână;крем-фреш|сметана
 kwark;quark|curd cheese;twaróg;quark|topfen;fromage blanc;requesón;ricotta|quark;requeijão|queijo fresco;süzme peynir|lor peyniri;кисломолочний сир;brânză de vaci;творог
 vla|pudding;custard|pudding;budyń|pudding;pudding|vanillepudding;crème dessert|flan;natillas|flan;budino;pudim;puding|muhallebi;пудинг;budincă;пудинг
 margarine;margarine;margaryna;margarine;margarine;margarina;margarina;margarina;margarin;маргарин;margarină;маргарин
 # --- mięso i ryby ---
 kipfilet|kip|kippenpoot|kippendij;chicken|chicken breast;kurczak|filet z kurczaka|pierś z kurczaka;hähnchen|hühnchen|hähnchenbrust;poulet|blanc de poulet;pollo|pechuga de pollo;pollo|petto di pollo;frango|peito de frango;tavuk|tavuk göğsü;курка|куряче філе|курятина;pui|piept de pui;курица|куриное филе|курятина
 gehakt|rundergehakt|half om half;minced meat|ground beef|mince;mięso mielone|mielone;hackfleisch|hack;viande hachée;carne picada;carne macinata|macinato;carne moída|carne picada;kıyma;фарш|м'ясний фарш;carne tocată;фарш|мясной фарш
-worst|rookworst|saucijs;sausage;kiełbasa|parówki;wurst|würstchen;saucisse;salchicha|chorizo;salsiccia;salsicha|chouriço;sosis;ковбаса|сосиски;cârnați|crenvurști;колбаса|сосиски
+worst|rookworst|saucijs|metworst|snijworst;sausage;kiełbasa|kiełbaski;wurst;saucisse|saucisson;salchicha|chorizo;salsiccia;salsicha|chouriço;sucuk|sosis;ковбаса;cârnați;колбаса
+knakworst|frankfurter|hotdogworst|hotdog;hot dogs|frankfurters;parówki|parówka|hot dogi;würstchen|wiener|frankfurter;saucisses de francfort|knacks|saucisses cocktail;salchichas tipo frankfurt|perritos calientes;wurstel|würstel;salsichas|salsichas de frankfurt;frankfurter sosisi|hot dog|sosis;сосиски;crenvurști;сосиски|сардельки
 spek|ontbijtspek;bacon;boczek|bekon;speck|bacon;bacon|lard;beicon|panceta;pancetta;bacon|toucinho;domuz pastırması;бекон|сало;bacon|slănină;бекон
-ham|achterham|vleeswaren|beleg;ham|cold cuts;szynka|wędlina;schinken|aufschnitt;jambon|charcuterie;jamón|embutido;prosciutto|affettato;fiambre|presunto;jambon|şarküteri;шинка|ковбасні вироби;șuncă|mezeluri;ветчина|колбасные изделия
+ham|achterham|beenham|gekookte ham;ham;szynka|szynka gotowana;schinken|kochschinken;jambon;jamón cocido|jamón york|jamón;prosciutto cotto|prosciutto;fiambre|presunto;jambon;шинка;șuncă;ветчина|окорок
+vleeswaren|vleesbeleg|broodbeleg;cold cuts|deli meat|lunch meat;wędlina|wędliny;aufschnitt|wurstaufschnitt;charcuterie;embutido|fiambres;affettato|salumi;enchidos|fiambres;şarküteri;ковбасні вироби|нарізка;mezeluri;колбасные изделия|нарезка
 biefstuk|runderlappen|rundvlees;steak|beef;stek|befsztyk|wołowina;steak|rindfleisch;bifteck|steak|bœuf;filete|bistec|ternera;bistecca|manzo;bife|carne de vaca;biftek|dana eti|sığır eti;стейк|яловичина|говядина;friptură|vită|carne de vită;стейк|говядина
 varkensvlees|varkenshaas|spareribs|karbonade;pork;wieprzowina|schab;schweinefleisch|schwein;porc|côtelette de porc;cerdo|carne de cerdo;maiale|carne di maiale;porco|carne de porco;domuz eti;свинина;carne de porc|porc;свинина
 lamsvlees|lam;lamb;jagnięcina|baranina;lamm|lammfleisch;agneau;cordero;agnello;cordeiro;kuzu|kuzu eti;баранина|ягнятина;miel|carne de miel;баранина|ягнёнок
@@ -61,6 +68,7 @@ bananen|banaan;bananas|banana;banany|banan;bananen|banane;bananes|banane;plátan
 sinaasappels|sinaasappel|sinaasappelen;oranges|orange;pomarańcze|pomarańcza;orangen|orange;oranges|orange;naranjas|naranja;arance|arancia;laranjas|laranja;portakal;апельсини|апельсин;portocale|portocală;апельсины|апельсин
 mandarijnen|mandarijn|clementines;tangerines|mandarins|clementines;mandarynki|mandarynka;mandarinen|klementinen;mandarines|clémentines;mandarinas|clementinas;mandarini|clementine;tangerinas|clementinas;mandalina;мандарини|мандарин;mandarine|clementine;мандарины|мандарин
 citroenen|citroen;lemons|lemon;cytryny|cytryna;zitronen|zitrone;citrons|citron;limones|limón;limoni|limone;limões|limão;limon;лимони|лимон;lămâi|lămâie;лимоны|лимон
+limoen|limoenen;lime|limes;limonka|limonki;limette|limetten;citron vert|citrons verts;lima|limas;lime|lime verdi;lima|limas;misket limonu;лайм;lămâie verde;лайм
 druiven|druif;grapes|grape;winogrona;trauben|weintrauben;raisins;uvas|uva;uva;uvas|uva;üzüm;виноград;struguri;виноград
 aardbeien|aardbei;strawberries|strawberry;truskawki|truskawka;erdbeeren|erdbeere;fraises|fraise;fresas|fresa;fragole|fragola;morangos|morango;çilek;полуниця|суниця;căpșuni|căpșună;клубника|земляника
 blauwe bessen|bosbessen;blueberries;borówki|jagody;heidelbeeren|blaubeeren;myrtilles;arándanos;mirtilli;mirtilos;yaban mersini;чорниця|лохина;afine;черника|голубика
@@ -74,17 +82,18 @@ fruit;fruit;owoce;obst;fruits;fruta;frutta;fruta;meyve;фрукти;fructe;фр�
 brood|volkorenbrood|witbrood|bruinbrood;bread;chleb|pieczywo;brot;pain;pan;pane;pão;ekmek;хліб;pâine;хлеб
 broodjes|broodje|pistolets;rolls|bread rolls|buns;bułki|bułka;brötchen|semmel;petits pains|pain au lait;panecillos|bollos;panini|panino;pãezinhos;küçük ekmek|sandviç ekmeği;булочки|булка;chifle|chiflă;булочки|булка
 croissant|croissants;croissant;rogalik|croissant;croissant;croissant;cruasán|croissant;cornetto|croissant;croissant;kruvasan;круасан;croissant;круассан
-crackers|beschuit|toast;crackers|crispbread|rusks;krakersy|sucharki;cracker|zwieback;crackers|biscottes;galletas saladas|tostadas;cracker|fette biscottate;bolachas|tostas;kraker|galeta;крекер|сухарики;biscuiți sărați|pesmeți;крекеры|сухари
-koekjes|koek|biscuit;cookies|biscuits;ciasteczka|herbatniki|ciastka;kekse|plätzchen;biscuits|gâteaux secs;galletas;biscotti;bolachas|biscoitos;kurabiye|bisküvi;печиво;biscuiți|fursecuri;печенье
-taart|gebak|cake;cake|pie|pastry;ciasto|tort;kuchen|torte;gâteau|tarte;pastel|tarta;torta|dolce;bolo|torta;kek|pasta;торт|пиріг;tort|prăjitură;торт|пирог
+crackers|beschuit|toast;crackers|crispbread|rusks;krakersy|sucharki;cracker|zwieback;crackers|biscottes;galletas saladas|tostadas;cracker|fette biscottate;bolachas de água e sal|tostas;kraker|galeta;крекер|сухарики;biscuiți sărați|pesmeți;крекеры|сухари
+koekjes|koek|biscuit;cookies|biscuits;ciasteczka|herbatniki|ciastka;kekse|plätzchen;biscuits|gâteaux secs;galletas;biscotti;biscoitos|bolachas doces;kurabiye|bisküvi;печиво;biscuiți|fursecuri;печенье
+taart|gebak|cake;cake|pie|pastry;ciasto|tort;kuchen|torte;gâteau|tarte;pastel|tarta;torta|dolce;bolo|torta;kek|pasta|yaş pasta;торт|пиріг;tort|prăjitură;торт|пирог
 # --- produkty suche i sosy ---
-pasta|spaghetti|macaroni|penne;pasta|spaghetti|noodles;makaron|spaghetti;nudeln|pasta|spaghetti;pâtes|spaghetti;pasta|espaguetis|macarrones;pasta|spaghetti;massa|esparguete|macarrão;makarna|spagetti;макарони|паста|спагеті;paste|spaghete|macaroane;макароны|паста|спагетти
+pasta|spaghetti|macaroni|penne;pasta|spaghetti|macaroni;makaron|spaghetti;nudeln|pasta|spaghetti;pâtes|spaghetti;pasta|espaguetis|macarrones;pasta|spaghetti;massa|esparguete|macarrão;makarna|spagetti;макарони|паста|спагеті;paste|spaghete|macaroane;макароны|паста|спагетти
 rijst;rice;ryż;reis;riz;arroz;riso;arroz;pirinç|pilav;рис;orez;рис
 bloem|meel|tarwebloem;flour;mąka;mehl;farine;harina;farina;farinha;un;борошно;făină;мука
 suiker;sugar;cukier;zucker;sucre;azúcar;zucchero;açúcar;şeker;цукор;zahăr;сахар
 zout;salt;sól;salz;sel;sal;sale;sal;tuz;сіль;sare;соль
 peper|zwarte peper;pepper|black pepper;pieprz;pfeffer;poivre;pimienta;pepe;pimenta;karabiber;перець;piper;перец
-olie|olijfolie|zonnebloemolie|bakolie;oil|olive oil|sunflower oil;olej|oliwa;öl|olivenöl|speiseöl;huile|huile d'olive;aceite|aceite de oliva;olio|olio d'oliva;óleo|azeite;yağ|zeytinyağı|ayçiçek yağı;олія|оливкова олія;ulei|ulei de măsline;масло растительное|оливковое масло|подсолнечное масло
+olie|zonnebloemolie|bakolie|koolzaadolie|slaolie;oil|vegetable oil|sunflower oil|cooking oil;olej|olej roślinny|olej słonecznikowy|olej rzepakowy;speiseöl|sonnenblumenöl|pflanzenöl|öl;huile|huile de tournesol|huile végétale;aceite|aceite de girasol|aceite vegetal;olio|olio di semi|olio di girasole;óleo|óleo vegetal|óleo de girassol;yağ|ayçiçek yağı|sıvı yağ;олія|соняшникова олія;ulei|ulei de floarea soarelui;масло растительное|подсолнечное масло|подсолнечное
+olijfolie|extra vierge olijfolie;olive oil|extra virgin olive oil;oliwa z oliwek|oliwa|oliwa extra virgin;olivenöl;huile d'olive;aceite de oliva;olio d'oliva|olio extravergine;azeite;zeytinyağı;оливкова олія;ulei de măsline;оливковое масло
 azijn;vinegar;ocet;essig;vinaigre;vinagre;aceto;vinagre;sirke;оцет;oțet;уксус
 mayonaise|mayo;mayonnaise;majonez;mayonnaise|mayo;mayonnaise;mayonesa;maionese;maionese;mayonez;майонез;maioneză;майонез
 ketchup|tomatenketchup;ketchup;keczup;ketchup;ketchup;kétchup|ketchup;ketchup;ketchup;ketçap;кетчуп;ketchup;кетчуп
@@ -150,7 +159,7 @@ olijven|olijf;olives|olive;oliwki;oliven|olive;olives|olive;aceitunas|olivas;oli
 # --- dodatkowe: mięso, ryby, nabiał ---
 salami;salami;salami;salami;salami;salami;salame;salame;salam;салямі;salam;салями
 leverworst|paté|smeerleverworst;liverwurst|pâté|liver sausage;pasztetowa|pasztet;leberwurst|pastete;pâté;paté;paté|patè;patê;ezme|ciğer ezmesi;паштет;pateu;паштет
-braadworst|bratwurst;bratwurst;kiełbasa biała|kiełbasa do smażenia;bratwurst;saucisse à rôtir|bratwurst;salchicha para asar|bratwurst;salsiccia|bratwurst;salsicha para assar|bratwurst;kızartmalık sosis|bratwurst;братвурст|ковбаски для смаження;bratwurst|cârnați pentru prăjit;братвурст|колбаски для жарки
+braadworst|bratwurst;bratwurst;kiełbasa biała|kiełbasa do smażenia;bratwurst;saucisse à rôtir|bratwurst;salchicha para asar|bratwurst;salsiccia fresca|bratwurst;salsicha para assar|bratwurst;kızartmalık sosis|bratwurst;братвурст|ковбаски для смаження;bratwurst|cârnați pentru prăjit;братвурст|колбаски для жарки
 gehaktballen|gehaktbal;meatballs|meatball;klopsiki|pulpety;frikadellen|hackbällchen;boulettes de viande|boulettes;albóndigas;polpette;almôndegas;köfte;фрикадельки|тефтелі;chifteluțe|chiftele;фрикадельки|тефтели
 schnitzel|schnitzels|kipschnitzel;schnitzel|cutlet;sznycel|kotlet schabowy;schnitzel;escalope;escalope|milanesa;cotoletta|scaloppina;escalope|panado;şnitzel;шніцель|відбивна;șnițel;шницель|отбивная
 kabeljauw;cod;dorsz;kabeljau|dorsch;cabillaud|morue;bacalao;merluzzo|baccalà;bacalhau;morina;тріска;cod|batog;треска
@@ -160,7 +169,8 @@ mosselen|mossel;mussels;małże|omułki;muscheln|miesmuscheln;moules;mejillones;
 roomkaas|smeerkaas;cream cheese;serek śmietankowy|serek do smarowania;frischkäse;fromage frais|fromage à tartiner;queso crema;formaggio spalmabile;queijo creme;krem peynir;вершковий сир;brânză cremă;сливочный сыр
 mozzarella;mozzarella;mozzarella;mozzarella;mozzarella;mozzarella;mozzarella;mozzarella;mozzarella;моцарела;mozzarella;моцарелла
 feta;feta|greek cheese;feta;feta|schafskäse;feta;queso feta|feta;feta;queijo feta|feta;beyaz peynir|feta;фета;feta;фета
-karnemelk;buttermilk;maślanka;buttermilch;babeurre|lait ribot;suero de leche|suero de mantequilla;latticello;leitelho;ayran|çalkanmış süt;маслянка|пахта;zară;пахта|маслянка
+karnemelk;buttermilk;maślanka;buttermilch;babeurre|lait ribot;suero de leche|suero de mantequilla;latticello;leitelho;çalkanmış süt;маслянка|пахта;zară;пахта|маслянка
+kefir;kefir;kefir;kefir;kéfir|kefir;kéfir;kefir;kefir;kefir;кефір;chefir|kefir;кефир
 drinkyoghurt|yoghurtdrank;drinking yoghurt|yogurt drink;jogurt pitny;trinkjoghurt;yaourt à boire;yogur líquido|yogur para beber;yogurt da bere;iogurte líquido;ayran|içilebilir yoğurt;питний йогурт;iaurt de băut;питьевой йогурт
 chocolademelk;chocolate milk;mleko czekoladowe;schokomilch|kakao;lait chocolaté;leche con chocolate|batido de chocolate;latte al cioccolato;leite com chocolate|chocolate frio;çikolatalı süt;шоколадне молоко;lapte cu ciocolată;шоколадное молоко
 # --- dodatkowe: pieczywo, słodkie, spiżarnia ---
@@ -175,7 +185,7 @@ tomatenpuree;tomato paste|tomato puree;koncentrat pomidorowy;tomatenmark;concent
 gepelde tomaten|tomatenblokjes|passata;canned tomatoes|chopped tomatoes|passata;pomidory w puszce|passata;dosentomaten|passata;tomates pelées|tomates concassées|passata;tomate triturado|tomate pelado|passata;pomodori pelati|polpa di pomodoro|passata;tomate pelado|polpa de tomate|passata;konserve domates|passata;консервовані помідори|пасата;roșii în conservă|passata;консервированные помидоры|пассата
 couscous;couscous;kuskus;couscous;couscous|semoule;cuscús;couscous;cuscuz;kuskus;кускус;cuscus;кускус
 quinoa;quinoa;komosa ryżowa|quinoa;quinoa;quinoa;quinoa;quinoa;quinoa;kinoa;кіноа;quinoa;киноа
-noedels|mie;noodles;makaron chiński|noodle;nudeln|asia-nudeln;nouilles;fideos chinos|noodles;noodles;talharim|noodles;erişte|noodle;локшина;tăiței|noodles;лапша
+noedels|mie;noodles;makaron chiński|noodle;asia-nudeln|glasnudeln;nouilles;fideos chinos|noodles;noodles;talharim|noodles;erişte|noodle;локшина;tăiței|noodles;лапша
 wraps|tortilla|tortilla's;wraps|tortillas;tortille|wrapy;wraps|tortillas;wraps|tortillas;tortillas|wraps;piadine|tortillas|wrap;tortilhas|wraps;dürüm|tortilla|lavaş;тортильї|лаваш;tortilla|wrap;тортильи|лаваш
 pesto;pesto;pesto;pesto;pesto;pesto;pesto;pesto;pesto;песто;pesto;песто
 appelmoes;apple sauce|applesauce;mus jabłkowy;apfelmus;compote de pommes;compota de manzana;composta di mele;compota de maçã;elma püresi;яблучне пюре;compot de mere;яблочное пюре
@@ -196,11 +206,13 @@ maandverband|tampons|inlegkruisjes;sanitary pads|tampons|panty liners;podpaski|t
 deodorant|deo;deodorant;dezodorant;deo|deodorant;déodorant;desodorante;deodorante;desodorizante|desodorante;deodorant;дезодорант;deodorant;дезодорант
 scheermesjes|scheerschuim|scheergel;razors|shaving foam|shaving gel;maszynki do golenia|pianka do golenia|żel do golenia;rasierer|rasierklingen|rasierschaum|rasiergel;rasoirs|mousse à raser|gel à raser;cuchillas de afeitar|espuma de afeitar|gel de afeitar;rasoi|schiuma da barba|gel da barba;lâminas de barbear|espuma de barbear|gel de barbear;tıraş bıçağı|tıraş köpüğü|tıraş jeli;леза для гоління|піна для гоління|гель для гоління;lame de ras|spumă de ras|gel de ras;лезвия для бритья|пена для бритья|гель для бритья
 aluminiumfolie|bakpapier|vershoudfolie;aluminium foil|baking paper|cling film;folia aluminiowa|papier do pieczenia|folia spożywcza;alufolie|backpapier|frischhaltefolie;papier aluminium|papier cuisson|film alimentaire;papel de aluminio|papel de horno|film transparente;carta stagnola|carta forno|pellicola trasparente;papel de alumínio|papel vegetal|película aderente;alüminyum folyo|yağlı kâğıt|streç film;алюмінієва фольга|пергамент для випічки|харчова плівка;folie de aluminiu|hârtie de copt|folie alimentară;алюминиевая фольга|пергамент для выпечки|пищевая пленка
-schoonmaakmiddel|allesreiniger|wc reiniger|schoonmaakmiddelen;cleaning product|all-purpose cleaner|toilet cleaner;środek czystości|płyn do czyszczenia|środek do wc;reiniger|allzweckreiniger|wc-reiniger;produit nettoyant|nettoyant multi-usage|nettoyant wc;producto de limpieza|limpiador multiusos|limpiador wc;detergente|multiuso|detergente wc;produto de limpeza|multiusos|limpa wc;temizlik ürünü|çok amaçlı temizleyici|tuvalet temizleyici;засіб для прибирання|універсальний очисник|засіб для wc;produs de curățenie|soluție universală|soluție wc;чистящее средство|универсальный очиститель|средство для туалета
+schoonmaakmiddel|allesreiniger|wc reiniger|schoonmaakmiddelen;cleaning product|all-purpose cleaner|toilet cleaner;środek czystości|płyn do czyszczenia|środek do wc;reiniger|allzweckreiniger|wc-reiniger;produit nettoyant|nettoyant multi-usage|nettoyant wc;producto de limpieza|limpiador multiusos|limpiador wc;detergente multiuso|multiuso|detergente wc;produto de limpeza|multiusos|limpa wc;temizlik ürünü|çok amaçlı temizleyici|tuvalet temizleyici;засіб для прибирання|універсальний очисник|засіб для wc;produs de curățenie|soluție universală|soluție wc;чистящее средство|универсальный очиститель|средство для туалета
 kokosmelk;coconut milk;mleko kokosowe;kokosmilch;lait de coco;leche de coco;latte di cocco;leite de coco;hindistan cevizi sütü;кокосове молоко;lapte de cocos;кокосовое молоко
 tofu;tofu;tofu;tofu;tofu;tofu;tofu;tofu;tofu;тофу;tofu;тофу
 hummus;hummus;hummus;hummus;houmous|hummus;hummus;hummus;húmus|hummus;humus;хумус;hummus;хумус
-boekweit|gort|gierst|grutten;buckwheat|barley|millet|groats;kasza|kasza gryczana|kasza jaglana;buchweizen|graupen|hirse|grütze;sarrasin|orge|millet|semoule;trigo sarraceno|cebada|mijo;grano saraceno|orzo|miglio;trigo sarraceno|cevada|milho miúdo;karabuğday|arpa|darı;гречка|крупа|пшоно;hrișcă|orz|mei;гречка|крупа|пшено
+boekweit;buckwheat;kasza gryczana|kasza;buchweizen;sarrasin;trigo sarraceno;grano saraceno;trigo sarraceno;karabuğday;гречка;hrișcă;гречка
+gierst;millet;kasza jaglana|kasza|proso;hirse;millet;mijo;miglio;milho miúdo;darı;пшоно;mei;пшено
+gort|parelgort|grutten;pearl barley|barley groats;kasza jęczmienna|pęczak|kasza;graupen|gerstengraupen;orge perlé;cebada perlada;orzo perlato;cevada;inci arpa;перлова крупа|ячна крупа;orz perlat;перловка|ячневая крупа
 puddingpoeder|gelatinepoeder;jelly dessert|pudding mix;kisiel|budyń w proszku;götterspeise|puddingpulver;gelée dessert|préparation pour flan;gelatina|preparado para flan;budino istantaneo|gelatina;gelatina|preparado para pudim;jöle|puding tozu;кисіль|пудинг у порошку;jeleu|budincă la plic;кисель|пудинг в порошке
 `;
 

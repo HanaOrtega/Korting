@@ -20,6 +20,10 @@ pobiera promocje ze stron sklepów i trzyma je w pamięci telefonu.
     z możliwością zmiany; podpowiedzi pojawiają się już podczas pisania;
   - słowa spoza słownika są tłumaczone w tle na holenderski (MyMemory, a w razie awarii Google Translate),
     a wynik zapamiętywany w telefonie – wymaga internetu tylko za pierwszym razem;
+  - **produkty o podobnych nazwach są rozdzielone** i przy niejednoznacznym słowie aplikacja pyta, o który chodzi
+    (z holenderską nazwą): „śmietana” → zure room / crème fraîche / kookroom, „śmietanka” → slagroom / kookroom /
+    koffiemelk; osobno szynka i wędlina, kiełbasa i parówki, olej i oliwa, kasze, kefir, limonka i cytryna;
+    słowa wspólne dla kilku języków („pasta”, „miel”, „pommes”) rozstrzyga język interfejsu;
   - rozpoznanie działa też dla produktów, których akurat nie ma w promocji („brak promocji w tym tygodniu”);
   - poprawiane są też holenderskie słowa z promocji (np. „spekulaas” → speculaas).
 - **Lista wg sklepów:** przełącznik „Produkty / Wg sklepów” dzieli listę na sklepy: do którego pojechać i co tam
