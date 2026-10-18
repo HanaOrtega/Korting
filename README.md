@@ -38,6 +38,11 @@ pobiera promocje ze stron sklepów i trzyma je w pamięci telefonu.
   zestawia sklepy: koszt tych samych produktów w każdym sklepie (przy znanej gramaturze – tej samej ilości) i zdanie typu
   „te same produkty kosztują o X% mniej w Lidlu niż w Jumbo”. Porównywane są tylko produkty z ceną w obu sklepach,
   a w tabeli widać, jaka oferta za tym stoi.
+- **Zakładka Słownik** (osobno, żeby nie zaśmiecać listy): kondycja słownika – ile rozpoznano z Twojej listy (z poprawką
+  literówki, przetłumaczonych online, nierozpoznanych), słowa niejednoznaczne, produkty bez ofert w tym tygodniu
+  i takie z podejrzanie dużo ofert (możliwe fałszywe trafienia), słowa wspólne dla kilku języków oraz nauczone
+  tłumaczenia. Słowa, z którymi słownik miał problem, zapisują się w telefonie, a przyciskiem „Wyślij listę słów” możesz
+  je komuś przekazać (np. żeby je dopisać do słownika).
 - Zakładka **Promocje**: wszystkie promocje, wyszukiwarka, filtr sklepu, sortowanie (koniec promocji, cena,
   sklep, nazwa), „＋” dodaje produkt do listy.
 - Dane są zapamiętywane na telefonie (lista, język, ulubione, ostatnie promocje – działa offline) i odświeżane

@@ -9,6 +9,7 @@ import { bestUnitId } from '../pricing.js';
 import { lookupRegular, regularStores } from '../regular.js';
 import { favoriteChains } from '../stores.js';
 import { translateToDutch } from '../translate.js';
+import { recordWord } from '../vocabLog.js';
 import { ACCENT } from '../theme.js';
 
 const PREVIEW = 3;
@@ -76,6 +77,19 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
     return () => { cancelled = true; setRegLoading(false); };
   }, [view, regKey]);
   const toggleDone = (id) => setItems((prev) => prev.map((it) => (it.id === id ? { ...it, done: !it.done } : it)));
+
+  // słowa, z którymi słownik miał problem, trafiają do dziennika (widać je w zakładce Słownik – nie na tej stronie)
+  const logged = useRef(new Set());
+  useEffect(() => {
+    for (const { item, r0 } of rows) {
+      const kind = r0.status === 'unknown' ? 'unknown' : r0.status === 'translated' ? 'translated'
+        : r0.status === 'fuzzy' || r0.status === 'dutch-fuzzy' ? 'fuzzy' : null;
+      const key = `${lang}|${item.text.trim().toLowerCase()}|${kind}`;
+      if (!kind || logged.current.has(key)) continue;
+      logged.current.add(key);
+      recordWord(lang, item.text, kind);
+    }
+  }, [rows]);
 
   // słowa spoza słownika tłumaczymy w tle na holenderski (raz na słowo; wynik zapamiętany w telefonie)
   useEffect(() => {

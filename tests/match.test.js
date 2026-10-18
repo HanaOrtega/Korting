@@ -221,3 +221,23 @@ test('wędlina nie łapie dojrzałego sera („belegen” to nie „beleg”)', 
   const r = resolve('wędlina', undefined, null, 'pl');
   assert.deepEqual(matchDeals(r.terms, deals, r.ci).map((d) => d.name), ['Voorverpakte vleeswaren']);
 });
+
+import { vocabHealth, listStats, MANY_DEALS } from '../src/health.js';
+
+test('kondycja słownika: produkty bez ofert, zbyt szerokie hasła, niejednoznaczne słowa', () => {
+  const many = Array.from({ length: MANY_DEALS }, (_, i) => ({ name: `Melk variant ${i} melk`, price: 1 }));
+  const h = vocabHealth([{ name: 'Campina roomboter', price: 2 }, ...many], 'pl');
+  const names = (arr) => arr.map((x) => x.name);
+  assert.ok(!names(h.noDeals).includes('boter'), 'boter ma ofertę');
+  assert.ok(names(h.noDeals).includes('kaas'), 'kaas nie ma oferty');
+  assert.ok(names(h.tooMany).includes('melk'), `melk powinien mieć ≥${MANY_DEALS} ofert`);
+  assert.ok(h.ambiguous.some((x) => x.term === 'smietana' && x.display === 'śmietana kwaśna'.slice(0, 8)), 'śmietana jest niejednoznaczna po polsku (z polskimi znakami)');
+  assert.ok(h.shared.some((x) => x.term === 'cream'), 'cream jest wspólne dla kilku produktów, ale nie po polsku');
+  assert.equal(h.missing.length, 0);
+  assert.equal(h.languages, 12);
+});
+
+test('listStats: statusy z listy zliczane do czterech grup', () => {
+  assert.deepEqual(listStats(['exact', 'stem', 'ambiguous', 'fuzzy', 'dutch-fuzzy', 'translated', 'unknown', 'dutch']),
+    { recognized: 4, fuzzy: 2, translated: 1, unknown: 1 });
+});

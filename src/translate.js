@@ -56,3 +56,17 @@ export async function translateToDutch(text, lang) {
   pending.set(key, job);
   return job;
 }
+
+/** Nauczone tłumaczenia (do zakładki Słownik): [{ lang, from, to }]. */
+export async function listTranslations() {
+  const store = await load();
+  return Object.entries(store).filter(([, to]) => to).map(([key, to]) => {
+    const [lang, ...rest] = key.split('|');
+    return { lang, from: rest.join('|'), to };
+  });
+}
+
+export async function clearTranslations() {
+  cache = {};
+  try { await AsyncStorage.removeItem(KEY); } catch {}
+}

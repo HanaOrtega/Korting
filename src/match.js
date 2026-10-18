@@ -45,7 +45,7 @@ concepts.forEach((c) => {
 
 export const displayName = (ci, lang) => concepts[ci].names[lang]?.[0] ?? concepts[ci].names.en[0];
 export const dutchName = (ci) => concepts[ci].names.nl[0];
-const nlTerms = (ci) => [...new Set(concepts[ci].names.nl.map(norm).filter(Boolean))];
+export const nlTerms = (ci) => [...new Set(concepts[ci].names.nl.map(norm).filter(Boolean))];
 
 // ---- odległość edycyjna (Damerau-Levenshtein, wariant OSA) ----
 export function distance(a, b, limit = 3) {

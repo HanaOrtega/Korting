@@ -11,6 +11,7 @@ import { favoriteChains } from './src/stores.js';
 import DealsScreen from './src/screens/DealsScreen.js';
 import ListScreen from './src/screens/ListScreen.js';
 import StoresScreen from './src/screens/StoresScreen.js';
+import VocabScreen from './src/screens/VocabScreen.js';
 import { ACCENT, dark, light } from './src/theme.js';
 
 const store = {
@@ -77,9 +78,9 @@ export default function App() {
 
   const top = Platform.OS === 'android' ? (RNStatusBar.currentHeight ?? 24) : 50;
   const tabBtn = (id, label) => (
-    <Pressable key={id} onPress={() => setTab(id)} style={{ flex: 1, padding: 10, borderRadius: 12, alignItems: 'center',
+    <Pressable key={id} onPress={() => setTab(id)} style={{ flex: 1, paddingVertical: 10, paddingHorizontal: 2, borderRadius: 12, alignItems: 'center',
       backgroundColor: tab === id ? ACCENT : c.chip }}>
-      <Text style={{ color: tab === id ? '#fff' : c.fg, fontWeight: '600' }}>{label}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit style={{ color: tab === id ? '#fff' : c.fg, fontWeight: '600', fontSize: 14 }}>{label}</Text>
     </Pressable>
   );
 
@@ -97,6 +98,7 @@ export default function App() {
           {tabBtn('list', t('tabList'))}
           {tabBtn('deals', t('tabDeals'))}
           {tabBtn('stores', t('tabStores'))}
+          {tabBtn('vocab', t('tabVocab'))}
         </View>
         {loading && !needStores && <Text style={{ color: c.mut, fontSize: 13 }}>{t('loading')}</Text>}
         {!loading && errors.length > 0 && (
@@ -108,7 +110,9 @@ export default function App() {
         )}
       </View>
 
-      {tab === 'stores' ? (
+      {tab === 'vocab' ? (
+        <VocabScreen c={c} t={t} lang={lang} items={items} deals={deals} vocab={vocab} />
+      ) : tab === 'stores' ? (
         <StoresScreen c={c} t={t} favorites={favorites} setFavorites={setFavorites} />
       ) : needStores ? (
         // najpierw wybór sklepów – dopiero potem lista i promocje
