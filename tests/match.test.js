@@ -120,3 +120,42 @@ test('ziemniak (aardappel) nie jest jabłkiem (appel)', () => {
   const d = [{ name: 'Aardappel Anders', price: 1 }, { name: 'Elstar appels', price: 2 }];
   assert.deepEqual(matchDeals(resolve('jabłka').terms, d).map((x) => x.name), ['Elstar appels']);
 });
+
+const nm = (input, list) => { const r = resolve(input); return matchDeals(r.terms, list, r.ci).map((d) => d.name); };
+
+test('masło: bez croissantów z masłem i innych produktów, w których masło to tylko dodatek', () => {
+  const list = [
+    { name: 'Campina roomboter', price: 2 },
+    { name: 'Roomboter croissants', price: 1 },
+    { name: 'Croissants met roomboter', price: 1 },
+    { name: 'Boterkoek met amandel', price: 3 },
+    { name: 'Pizza met kaas en boter', price: 3 },
+    { name: 'Blue Band boter', price: 2.5 },
+  ];
+  assert.deepEqual(nm('masło', list).sort(), ['Blue Band boter', 'Campina roomboter']);
+});
+
+test('dodatki po „met / in / voor” nie liczą się jako produkt', () => {
+  const list = [{ name: 'Tonijn in olie', price: 1 }, { name: 'Olijfolie extra vierge', price: 5 }, { name: 'Hondenvoer met kip', price: 1 }];
+  assert.deepEqual(nm('olej', list), ['Olijfolie extra vierge']);
+  assert.deepEqual(nm('tuńczyk', list), ['Tonijn in olie']);
+  assert.deepEqual(nm('kurczak', list), []);
+});
+
+test('osobne produkty ze słownika nie podszywają się pod siebie (mleko ≠ czekoladowe mleko, kawa ≠ kawa mrożona jest OK)', () => {
+  const list = [{ name: 'Halfvolle melk', price: 1 }, { name: 'Chocolademelk', price: 1 }, { name: 'Alle Douwe Egberts ijskoffie', price: 1 }];
+  assert.deepEqual(nm('mleko', list), ['Halfvolle melk']);
+  assert.deepEqual(nm('kawa', list), ['Alle Douwe Egberts ijskoffie']);
+});
+
+test('ilości na końcu nazwy nie zaburzają rozpoznania produktu', () => {
+  const list = [{ name: 'Verse kipfilet 500 g', price: 3 }, { name: 'Pils 6 pack', price: 4 }];
+  assert.deepEqual(nm('kurczak', list), ['Verse kipfilet 500 g']);
+  assert.deepEqual(nm('piwo', list), ['Pils 6 pack']);
+});
+
+test('fałszywe złożenia: granat to nie jabłko, folia to nie olej', () => {
+  const list = [{ name: 'Granaatappel', price: 1 }, { name: 'Rasterfolie 3 x 4 m', price: 2 }, { name: 'Elstar appels', price: 2 }, { name: 'Olijfolie', price: 5 }];
+  assert.deepEqual(nm('jabłka', list), ['Elstar appels']);
+  assert.deepEqual(nm('olej', list), ['Olijfolie']);
+});

@@ -189,39 +189,73 @@ export function suggest(input, lang, n = 6) {
 }
 
 // ---- dopasowanie do promocji ----
+// Po tych słowach zaczynają się dodatki, nie produkt: „Croissants MET roomboter”, „Tonijn IN olie”.
+const CONNECTORS = new Set(['met', 'voor', 'zonder', 'in', 'op', 'bij', 'gevuld', 'smaak']);
+
 const dealCache = new WeakMap();
 function tokensOf(deal) {
   let c = dealCache.get(deal);
-  if (!c) { const n = norm(deal.name); c = { n: ` ${n} `, tokens: n.split(' ') }; dealCache.set(deal, c); }
+  if (!c) {
+    const n = norm(deal.name);
+    const tokens = n.split(' ');
+    // nazwa produktu = słowa przed pierwszym łącznikiem, bez końcowych ilości („500 g”, „6 pack”)
+    const cut = tokens.findIndex((t, i) => i > 0 && CONNECTORS.has(t));
+    let head = (cut > 0 ? tokens.slice(0, cut) : tokens).filter((t, i, a) => !(isQty(t) && i > 0 && a.slice(i).every(isQty)));
+    if (!head.length) head = tokens;
+    c = { n: ` ${n} `, tokens, head, headText: ` ${head.join(' ')} ` };
+    dealCache.set(deal, c);
+  }
   return c;
+}
+
+// Jakie pojęcie ze słownika oznacza wyraz („croissants” → croissant, „ijskoffie” → koffie, „chocolademelk” → chocolademelk).
+const headCache = new Map();
+function conceptOfWord(word) {
+  if (headCache.has(word)) return headCache.get(word);
+  let ci = termIndex.get(word)?.[0] ?? null;
+  if (ci == null) { // złożenie: najdłuższy znany termin na końcu wyrazu
+    let bestLen = 0;
+    for (const { t, ci: c } of allTerms) {
+      if (t.length >= 4 && t.length > bestLen && !t.includes(' ') && word.endsWith(t)) { bestLen = t.length; ci = c; }
+    }
+  }
+  if (ci == null) ci = stemConcepts(word)[0]?.ci ?? null;
+  headCache.set(word, ci);
+  return ci;
 }
 
 // Karma dla zwierząt często zawiera nazwę mięsa („kip”, „rund”) – pomijamy ją, chyba że o nią chodzi.
 const PET = /^(honden|katten)/;
 
 // Holenderskie złożenia kończące się tak samo jak szukane słowo, ale znaczące co innego.
-const FALSE_COMPOUND = { appel: /aardappel/, appels: /aardappel/ };
+const FALSE_COMPOUND = { appel: /aardappel|granaatappel|dennenappel/, appels: /aardappel|granaatappel|dennenappel/, olie: /folie$/ };
 
-function scoreDeal(deal, terms) {
-  const { n, tokens } = tokensOf(deal);
+function scoreDeal(deal, terms, ci) {
+  const { tokens, head, headText } = tokensOf(deal);
   if (tokens.some((t) => PET.test(t)) && !terms.some((t) => PET.test(t))) return 0;
   let best = 0;
   for (const term of terms) {
-    if (term.includes(' ')) { if (n.includes(` ${term} `) || n.endsWith(` ${term} `)) best = Math.max(best, 3); continue; }
-    for (const tok of tokens) {
+    if (term.includes(' ')) { if (headText.includes(` ${term} `)) best = Math.max(best, 3); continue; }
+    for (const tok of head) {
       if (FALSE_COMPOUND[term]?.test(tok)) continue;
       if (tok === term) best = Math.max(best, 3);
       else if (term.length >= 4 && tok.endsWith(term)) best = Math.max(best, 2); // złożenia: „halfvolle”+„melk”
       else if (term.length >= 4 && tok.startsWith(term)) best = Math.max(best, 1);
     }
   }
+  // Ostatni wyraz nazwy mówi, czym produkt jest. Jeśli to inny produkt ze słownika
+  // („roomboter CROISSANTS”, „CHOCOLADEMELK”), szukane słowo to tylko dodatek – pomijamy.
+  if (best && ci != null) {
+    const hc = conceptOfWord(head[head.length - 1]);
+    if (hc != null && hc !== ci) return 0;
+  }
   return best;
 }
 
 /** Promocje pasujące do szukanych słów, od najtańszej. Słabe trafienia tylko gdy brak mocnych. */
-export function matchDeals(terms, deals) {
+export function matchDeals(terms, deals, ci = null) {
   const scored = [];
-  for (const d of deals) { const s = scoreDeal(d, terms); if (s) scored.push([d, s]); }
+  for (const d of deals) { const s = scoreDeal(d, terms, ci); if (s) scored.push([d, s]); }
   const strong = scored.filter(([, s]) => s >= 2);
   return (strong.length ? strong : scored)
     .map(([d]) => d)

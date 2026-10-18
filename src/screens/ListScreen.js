@@ -42,7 +42,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
 
   const rows = useMemo(() => items.map((item) => {
     const r = resolve(item.text, vocab, tr[trKey(item.text)] ?? null);
-    return { item, r, hits: matchDeals(r.terms, deals) };
+    return { item, r, hits: matchDeals(r.terms, deals, r.ci) };
   }), [items, deals, vocab, tr, lang]);
 
   const plan = useMemo(() => planShopping(rows, favoriteChains(favorites)), [rows, favorites]);
