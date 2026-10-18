@@ -63,9 +63,12 @@ test('dopasowanie: mocne trafienia wypierają słabe, sortowanie od najtańszej'
   assert.deepEqual(matchDeals(resolve('kurczak').terms, deals).map((d) => d.price), [3.99, 4.99]);
 });
 
-test('słabe trafienie (początek słowa) pokazujemy, gdy nie ma mocnych', () => {
-  assert.equal(matchDeals(['chocolade'], [deals[1]]).length, 1); // złożenie kończące się na „chocolade”
-  assert.equal(matchDeals(['melk'], [deals[1]]).length, 1);
+test('początek wyrazu to nie trafienie, ale liczba mnoga i zdrobnienie tak', () => {
+  assert.equal(matchDeals(['melk'], [{ name: 'Melkchocolade reep', price: 1 }]).length, 0);
+  assert.equal(matchDeals(['boter'], [{ name: 'Frisse boterhamspread', price: 1 }]).length, 0);
+  assert.equal(matchDeals(['tomaat'], [{ name: 'Snackgroente tomaatjes', price: 1 }]).length, 1);
+  assert.equal(matchDeals(['appel'], [{ name: 'Gala appels', price: 1 }]).length, 1);
+  assert.equal(matchDeals(['kaas'], [{ name: 'Kaasje', price: 1 }]).length, 1);
 });
 
 test('holenderskie słowa z promocji: dokładne i z literówką', () => {

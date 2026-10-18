@@ -6,7 +6,7 @@ import { ACCENT } from '../theme.js';
 
 const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
 
-export default function StoresScreen({ c, t, favorites, setFavorites }) {
+export default function StoresScreen({ c, t, favorites, setFavorites, intro = false, onContinue }) {
   const [state, setState] = useState({ status: 'idle', stores: [], error: '' });
   const isFav = (id) => favorites.some((f) => f.id === id);
   const toggleStore = (s) => setFavorites((prev) => (prev.some((f) => f.id === s.id)
@@ -16,6 +16,10 @@ export default function StoresScreen({ c, t, favorites, setFavorites }) {
   const toggleChain = (chain) => setFavorites((prev) => (prev.some((f) => f.chain === chain)
     ? prev.filter((f) => f.chain !== chain)
     : [...prev, { id: chainFavoriteId(chain), chain, name: chain }]));
+
+  const selectAll = () => setFavorites((prev) => [
+    ...prev, ...CHAINS.filter((ch) => !prev.some((f) => f.chain === ch.id)).map((ch) => ({ id: chainFavoriteId(ch.id), chain: ch.id, name: ch.id })),
+  ]);
 
   const find = async () => {
     setState({ status: 'loading', stores: [], error: '' });
@@ -41,7 +45,13 @@ export default function StoresScreen({ c, t, favorites, setFavorites }) {
   const h = { color: c.fg, fontSize: 16, fontWeight: '700', marginBottom: 8 };
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
+    <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }} keyboardShouldPersistTaps="handled">
+      {intro && (
+        <View style={{ gap: 6 }}>
+          <Text style={{ color: c.fg, fontSize: 22, fontWeight: '800' }}>{t('pickTitle')}</Text>
+          <Text style={{ color: c.mut }}>{t('pickHint')}</Text>
+        </View>
+      )}
       <View style={card}>
         <Text style={h}>{t('favChains')}</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -55,6 +65,9 @@ export default function StoresScreen({ c, t, favorites, setFavorites }) {
             );
           })}
         </View>
+        <Pressable onPress={selectAll} style={{ marginTop: 10 }}>
+          <Text style={{ color: ACCENT, fontWeight: '600' }}>{t('selectAll')}</Text>
+        </Pressable>
         {favorites.length === 0 && <Text style={{ color: c.mut, marginTop: 8 }}>{t('noFavs')}</Text>}
       </View>
 
@@ -98,6 +111,12 @@ export default function StoresScreen({ c, t, favorites, setFavorites }) {
             </View>
           ))}
         </View>
+      )}
+      {intro && (
+        <Pressable onPress={onContinue} disabled={favorites.length === 0}
+          style={{ backgroundColor: ACCENT, borderRadius: 14, padding: 14, alignItems: 'center', opacity: favorites.length === 0 ? 0.4 : 1 }}>
+          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>{t('continueBtn')}</Text>
+        </Pressable>
       )}
     </ScrollView>
   );

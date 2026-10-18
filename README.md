@@ -6,6 +6,9 @@ pobiera promocje ze stron sklepów i trzyma je w pamięci telefonu.
 
 ## Co robi
 
+- **Najpierw wybór sklepów.** Przy pierwszym uruchomieniu wybierasz sieci (albo „Znajdź sklepy w pobliżu”
+  po lokalizacji) i dopiero potem dostajesz listę. Promocje pokazywane są tylko z wybranych sklepów, a dane
+  z pozostałych nie są nawet pobierane (mniej transferu). Wybór zmienisz w zakładce Sklepy.
 - **Lista zakupów jest stroną główną.** Wpisujesz produkty w swoim języku (np. „mleko, chleb, kurczak”),
   a aplikacja szuka dla nich promocji po holendersku i pokazuje od najtańszej: nazwa, miniaturka, cena, sklep,
   do kiedy ważna promocja.
@@ -22,7 +25,7 @@ pobiera promocje ze stron sklepów i trzyma je w pamięci telefonu.
 - **Lista wg sklepów:** przełącznik „Produkty / Wg sklepów” dzieli listę na sklepy: do którego pojechać i co tam
   kupić (z ceną, sumą orientacyjną i przyciskiem „Nawiguj” do map). Produkt trafia tam, gdzie jest najtańszy,
   a jeśli masz ulubione sieci – najpierw do nich. Produkty bez żadnej promocji są w osobnej sekcji „Bez promocji”.
-- **Ulubione sklepy (zakładka Sklepy):** wybierasz sieci jednym dotknięciem albo „Znajdź sklepy w pobliżu” –
+- **Moje sklepy (zakładka Sklepy):** wybierasz sieci jednym dotknięciem albo „Znajdź sklepy w pobliżu” –
   aplikacja pobiera lokalizację (tylko wtedy, za zgodą) i szuka sklepów w OpenStreetMap; ulubiony konkretny sklep
   jest celem nawigacji.
 - Zakładka **Promocje**: wszystkie promocje, wyszukiwarka, filtr sklepu, sortowanie (koniec promocji, cena,

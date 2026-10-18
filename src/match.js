@@ -226,6 +226,7 @@ function conceptOfWord(word) {
 
 // Karma dla zwierząt często zawiera nazwę mięsa („kip”, „rund”) – pomijamy ją, chyba że o nią chodzi.
 const PET = /^(honden|katten)/;
+const DUTCH_ENDING = /^(s|n|e|en|es|je|jes|tje|tjes|etje|etjes|pje|pjes|kes)$/;
 
 // Holenderskie złożenia kończące się tak samo jak szukane słowo, ale znaczące co innego.
 const FALSE_COMPOUND = { appel: /aardappel|granaatappel|dennenappel/, appels: /aardappel|granaatappel|dennenappel/, olie: /folie$/ };
@@ -240,7 +241,8 @@ function scoreDeal(deal, terms, ci) {
       if (FALSE_COMPOUND[term]?.test(tok)) continue;
       if (tok === term) best = Math.max(best, 3);
       else if (term.length >= 4 && tok.endsWith(term)) best = Math.max(best, 2); // złożenia: „halfvolle”+„melk”
-      else if (term.length >= 4 && tok.startsWith(term)) best = Math.max(best, 1);
+      // liczba mnoga / zdrobnienie (tomaat → tomaatjes), ale nie „boter” → „boterham”, „melk” → „melkchocolade”
+      else if (term.length >= 4 && tok.startsWith(term) && DUTCH_ENDING.test(tok.slice(term.length))) best = Math.max(best, 2);
     }
   }
   // Ostatni wyraz nazwy mówi, czym produkt jest. Jeśli to inny produkt ze słownika
@@ -252,12 +254,11 @@ function scoreDeal(deal, terms, ci) {
   return best;
 }
 
-/** Promocje pasujące do szukanych słów, od najtańszej. Słabe trafienia tylko gdy brak mocnych. */
+/** Promocje pasujące do szukanych słów (tylko pewne trafienia), od najtańszej. */
 export function matchDeals(terms, deals, ci = null) {
   const scored = [];
   for (const d of deals) { const s = scoreDeal(d, terms, ci); if (s) scored.push([d, s]); }
-  const strong = scored.filter(([, s]) => s >= 2);
-  return (strong.length ? strong : scored)
+  return scored
     .map(([d]) => d)
     .sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity)
       || (Date.parse(a.validUntil) || Infinity) - (Date.parse(b.validUntil) || Infinity));

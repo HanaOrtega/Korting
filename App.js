@@ -7,6 +7,7 @@ import WebViewHost from './src/components/WebViewHost.js';
 import { loadDeals, readCache } from './src/deals.js';
 import { LANG_CODES, LANG_NAMES, makeT, pickLanguage } from './src/i18n.js';
 import { buildVocab } from './src/match.js';
+import { favoriteChains } from './src/stores.js';
 import DealsScreen from './src/screens/DealsScreen.js';
 import ListScreen from './src/screens/ListScreen.js';
 import StoresScreen from './src/screens/StoresScreen.js';
@@ -27,6 +28,7 @@ export default function App() {
   const [tab, setTab] = useState('list');
   const [view, setView] = useState('items'); // lista: 'items' | 'stores'
   const [favorites, setFavorites] = useState([]);
+  const [confirmed, setConfirmed] = useState(false); // wybór sklepów zatwierdzony
   const [data, setData] = useState({ deals: [], errors: [], at: 0 });
   const [loading, setLoading] = useState(true);
   const [pickLang, setPickLang] = useState(false);
@@ -37,7 +39,10 @@ export default function App() {
       const savedLang = await store.get('korting.lang', null);
       if (savedLang && LANG_CODES.includes(savedLang)) setLang(savedLang);
       setItems(await store.get('korting.items', []));
-      setFavorites(await store.get('korting.favorites', []));
+      const favs = await store.get('korting.favorites', []);
+      setFavorites(favs);
+      // kto miał już wybrane sklepy (starsza wersja), nie musi wybierać drugi raz
+      setConfirmed(await store.get('korting.confirmed', favs.length > 0));
       setView(await store.get('korting.view', 'items'));
       setReady(true);
     })();
@@ -45,16 +50,25 @@ export default function App() {
   useEffect(() => { if (ready) store.set('korting.items', items); }, [items, ready]);
   useEffect(() => { if (ready) store.set('korting.favorites', favorites); }, [favorites, ready]);
   useEffect(() => { if (ready) store.set('korting.view', view); }, [view, ready]);
+  useEffect(() => { if (ready) store.set('korting.confirmed', confirmed); }, [confirmed, ready]);
+
+  // Promocje tylko z wybranych sklepów – pozostałych nawet nie pobieramy.
+  const chains = useMemo(() => favoriteChains(favorites), [favorites]);
+  const chainsKey = chains.join('|');
+  const needStores = !confirmed || chains.length === 0;
+  const deals = useMemo(() => data.deals.filter((d) => chains.includes(d.store)), [data.deals, chainsKey]);
+  const errors = useMemo(() => data.errors.filter((e) => chains.includes(e.store)), [data.errors, chainsKey]);
 
   const refresh = useCallback(async (force = false) => {
+    if (needStores) { setLoading(false); return; }
     setLoading(true);
-    const cached = await readCache(); // pokaż od razu to, co mamy
-    if (cached) setData((d) => (d.deals.length ? d : { ...cached, errors: [] }));
-    try { setData(await loadDeals({ force })); } finally { setLoading(false); }
-  }, []);
-  useEffect(() => { refresh(false); }, [refresh]);
+    const cached = await readCache(chains); // pokaż od razu to, co mamy
+    if (cached) setData(cached);
+    try { setData(await loadDeals({ force, stores: chains })); } finally { setLoading(false); }
+  }, [needStores, chainsKey]);
+  useEffect(() => { if (ready) refresh(false); }, [ready, refresh]);
 
-  const vocab = useMemo(() => buildVocab(data.deals), [data.deals]);
+  const vocab = useMemo(() => buildVocab(deals), [deals]);
   const changeLang = (code) => { setLang(code); store.set('korting.lang', code); setPickLang(false); };
   const addFromDeal = (deal) => {
     setItems((prev) => [{ id: `${Date.now()}-${deal.id}`, text: deal.name, done: false }, ...prev]);
@@ -84,23 +98,26 @@ export default function App() {
           {tabBtn('deals', t('tabDeals'))}
           {tabBtn('stores', t('tabStores'))}
         </View>
-        {loading && <Text style={{ color: c.mut, fontSize: 13 }}>{t('loading')}</Text>}
-        {!loading && data.errors.length > 0 && (
-          <Pressable onPress={() => Alert.alert('Korting', data.errors.map((e) => `${e.store}: ${e.error}`).join('\n\n'))}>
+        {loading && !needStores && <Text style={{ color: c.mut, fontSize: 13 }}>{t('loading')}</Text>}
+        {!loading && errors.length > 0 && (
+          <Pressable onPress={() => Alert.alert('Korting', errors.map((e) => `${e.store}: ${e.error}`).join('\n\n'))}>
             <Text style={{ backgroundColor: c.warn, color: c.warnFg, padding: 8, borderRadius: 10, fontSize: 13 }}>
-              {t('failed', { stores: data.errors.map((e) => e.store).join(', ') })} · {t('details')}
+              {t('failed', { stores: errors.map((e) => e.store).join(', ') })} · {t('details')}
             </Text>
           </Pressable>
         )}
       </View>
 
-      {tab === 'list' ? (
-        <ListScreen c={c} t={t} lang={lang} items={items} setItems={setItems} deals={data.deals} vocab={vocab}
-          view={view} setView={setView} favorites={favorites} />
-      ) : tab === 'stores' ? (
+      {tab === 'stores' ? (
         <StoresScreen c={c} t={t} favorites={favorites} setFavorites={setFavorites} />
+      ) : needStores ? (
+        // najpierw wybór sklepów – dopiero potem lista i promocje
+        <StoresScreen c={c} t={t} favorites={favorites} setFavorites={setFavorites} intro onContinue={() => setConfirmed(true)} />
+      ) : tab === 'list' ? (
+        <ListScreen c={c} t={t} lang={lang} items={items} setItems={setItems} deals={deals} vocab={vocab}
+          view={view} setView={setView} favorites={favorites} />
       ) : (
-        <DealsScreen c={c} t={t} lang={lang} deals={data.deals} onAdd={addFromDeal} refreshing={loading} onRefresh={() => refresh(true)} />
+        <DealsScreen c={c} t={t} lang={lang} deals={deals} onAdd={addFromDeal} refreshing={loading} onRefresh={() => refresh(true)} />
       )}
 
       <Modal visible={pickLang} transparent animationType="fade" onRequestClose={() => setPickLang(false)}>
