@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e8590c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<link rel="stylesheet" href="style.css">
+<title>Korting</title>
+</head>
+<body>
+<header>
+  <h1>Korting <small id="count"></small></h1>
+  <input id="q" type="search" placeholder="Szukaj produktu…" autocomplete="off">
+  <div class="row">
+    <select id="store"><option value="">Wszystkie sklepy</option></select>
+    <select id="sort">
+      <option value="end">Kończą się najszybciej</option>
+      <option value="price">Cena rosnąco</option>
+      <option value="name">Nazwa A–Z</option>
+    </select>
+  </div>
+  <nav>
+    <button id="tab-all" class="on">Promocje</button>
+    <button id="tab-list">Moja lista <span id="listn">0</span></button>
+  </nav>
+</header>
+<p id="warn" hidden></p>
+<main id="items"></main>
+<p id="status"></p>
+<script src="app.js" type="module"></script>
+</body>
+</html>

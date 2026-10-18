@@ -1,0 +1,11 @@
+{
+  "name": "korting",
+  "version": "0.1.0",
+  "description": "Zbiera promocje z holenderskich sklepów i pokazuje je na telefonie",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": { "node": ">=20" }
+}
