@@ -18,3 +18,7 @@ app/src/main/java/inline/
 
 # Bundle artifacts
 *.jsbundle
+
+# klucz podpisu i gotowe pliki (deploy/aplikacja.sh)
+korting-upload.keystore
+dist/

@@ -97,7 +97,18 @@ android {
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
+    // klucz wydania: android/korting-upload.keystore, haslo tylko w KORTING_KEY_PASSWORD (deploy/aplikacja.sh)
+    def kortingKeystore = rootProject.file('korting-upload.keystore')
+    def kortingKeyPassword = System.getenv('KORTING_KEY_PASSWORD')
     signingConfigs {
+        if (kortingKeystore.exists() && kortingKeyPassword) {
+            upload {
+                storeFile kortingKeystore
+                storePassword kortingKeyPassword
+                keyAlias 'korting'
+                keyPassword kortingKeyPassword
+            }
+        }
         debug {
             storeFile file('debug.keystore')
             storePassword 'android'
@@ -112,7 +123,7 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.findByName('upload') ?: signingConfigs.debug
             def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
             shrinkResources enableShrinkResources.toBoolean()
             minifyEnabled enableMinifyInReleaseBuilds
