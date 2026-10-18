@@ -11,7 +11,7 @@ const QUERIES = ['', 'melk', 'vlees', 'kip', 'vis', 'groente', 'fruit', 'kaas', 
 // API mobilne AH przyjmuje tylko klienta „Appie” – UA przeglądarki dostaje odmowę.
 const APPIE_UA = 'Appie/8.22.3';
 const headers = (token) => ({
-  'user-agent': APPIE_UA, 'content-type': 'application/json', accept: 'application/json',
+  'user-agent': APPIE_UA, 'x-application': 'AHWEBSHOP', 'content-type': 'application/json', accept: 'application/json',
   ...(token && { authorization: `Bearer ${token}` }),
 });
 

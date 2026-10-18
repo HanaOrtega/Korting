@@ -94,3 +94,24 @@ test('AH: tylko produkty w bonusie', () => {
   assert.equal(deals.length, 1);
   assert.equal(deals[0].price, 1.09);
 });
+
+import ah from '../src/providers/ah.js';
+
+test('AH: wyszukiwanie wysyła x-application i klienta Appie, a błąd serwera pokazuje treść odpowiedzi', async () => {
+  const calls = [];
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url, opts) => {
+    calls.push({ url: String(url), headers: opts.headers });
+    if (String(url).includes('token/anonymous')) return new Response(JSON.stringify({ access_token: 't' }), { status: 200 });
+    return new Response('{"detail":"Can not find application"}', { status: 500 });
+  };
+  try {
+    await assert.rejects(ah.fetch(), /HTTP 500 – \{"detail":"Can not find application"\}/);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+  const search = calls.find((c) => c.url.includes('product/search'));
+  assert.equal(search.headers['x-application'], 'AHWEBSHOP');
+  assert.match(search.headers['user-agent'], /^Appie\//);
+  assert.equal(search.headers.authorization, 'Bearer t');
+});

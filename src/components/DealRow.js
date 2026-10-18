@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { Image, Linking, Pressable, Text, View } from 'react-native';
+import { UA } from '../providers/util.js';
 import { ACCENT } from '../theme.js';
 import { daysLeft, fmtDate, fmtPrice } from '../format.js';
 
 const THUMB = 60;
 
+// Jumbo (Akamai) odrzuca żądania z domyślnym User-Agentem okhttp, którego używa Image w React Native.
 function Thumb({ uri }) {
   const [failed, setFailed] = useState(false);
   return (
     <View style={{ width: THUMB, height: THUMB, borderRadius: 8, backgroundColor: '#fff', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
       {uri && !failed
-        ? <Image source={{ uri }} style={{ width: THUMB, height: THUMB }} resizeMode="contain" onError={() => setFailed(true)} />
+        ? <Image source={{ uri, headers: { 'User-Agent': UA } }} style={{ width: THUMB, height: THUMB }} resizeMode="contain" onError={() => setFailed(true)} />
         : <Text style={{ fontSize: 24 }}>🛒</Text>}
     </View>
   );
