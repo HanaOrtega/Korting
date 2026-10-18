@@ -21,10 +21,13 @@ JAVA_HOME="$(printf '%s\n' "$sdk_out" | sed -n 's/^JAVA_HOME=//p' | tail -1)"
 export ANDROID_HOME JAVA_HOME
 export PATH="$JAVA_HOME/bin:$PATH"
 
-# Gradle pakuje JavaScript i bierze wtyczki z node_modules
-if [ ! -d node_modules ]; then
-    echo "==> Biblioteki JavaScript (npm ci, jednorazowo)"
+# Gradle pakuje JavaScript i bierze wtyczki z node_modules. Biblioteki sa doinstalowywane za kazdym razem,
+# gdy zmieni sie package-lock.json (np. po git pull z nowa zaleznoscia) - nie tylko gdy brakuje folderu.
+lock_hash="$(sha256sum package-lock.json | cut -d' ' -f1)"
+if [ ! -d node_modules ] || [ "$(cat node_modules/.korting-lock 2>/dev/null || true)" != "$lock_hash" ]; then
+    echo "==> Biblioteki JavaScript (npm ci)"
     npm ci --no-audit --no-fund
+    echo "$lock_hash" > node_modules/.korting-lock
 fi
 
 KEYSTORE=android/korting-upload.keystore
