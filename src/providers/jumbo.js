@@ -2,13 +2,19 @@ import { fetchText, nuxtData } from './util.js';
 
 const URL_ = 'https://www.jumbo.com/aanbiedingen/nu';
 
-// "voor 4,99" -> 4.99; "2 voor 6,49", "1+1 gratis", "1,00 korting" -> brak ceny za sztukę.
+// „voor 4,99” → 4,99 za sztukę; „2 voor 6,49” → 3,25 za sztukę (kupując 2); „1+1 gratis”, „25% korting”
+// i „2e halve prijs” nie mają ceny bazowej, więc ceny nie dostają.
 function priceFromTags(tags) {
   for (const t of tags) {
-    const m = /^voor (\d+),(\d\d)$/.exec(t.trim());
-    if (m) return Number(`${m[1]}.${m[2]}`);
+    const single = /^voor (\d+),(\d\d)$/i.exec(t.trim());
+    if (single) return { price: Number(`${single[1]}.${single[2]}`) };
+    const multi = /^(\d+) voor (\d+),(\d\d)$/i.exec(t.trim());
+    if (multi && Number(multi[1]) > 1) {
+      const n = Number(multi[1]); const total = Number(`${multi[2]}.${multi[3]}`);
+      return { price: Math.round((total / n) * 100) / 100, bundle: { n, total } };
+    }
   }
-  return null;
+  return { price: null };
 }
 
 export function parseJumbo(html) {
@@ -25,8 +31,9 @@ export function parseJumbo(html) {
       store: 'Jumbo',
       name: p.title,
       description: p.subtitle ?? '',
+      oldPrice: null,
       unit: '',
-      price: priceFromTags(tags),
+      ...priceFromTags(tags),
       promoText: tags.join(', '),
       validFrom: p.start?.iso ?? null,
       validUntil: p.end?.iso ?? null,

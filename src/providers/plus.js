@@ -27,8 +27,8 @@ export function parsePlus(json) {
         id,
         store: 'Plus',
         name: [o.Brand, o.Name].filter(Boolean).join(' ').trim(),
-        description: [o.Example, o.Variant, o.Package, was && `Was €${String(was).replace('.', ',')}`]
-          .filter(Boolean).join(' · '),
+        description: [o.Example, o.Variant, o.Package].filter(Boolean).join(' · '),
+        oldPrice: was,
         unit: '',
         price: num(o.NewPrice),
         promoText: o.DisplayInfo_Label || o.DisplayInfo_PromotionBasedLabel || '',

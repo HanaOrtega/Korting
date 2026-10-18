@@ -29,6 +29,11 @@ pobiera promocje ze stron sklepów i trzyma je w pamięci telefonu.
   tylko za zgodą) albo **„Wybierz na mapie”**: mapa OpenStreetMap, na której wyszukujesz dowolne miasto lub adres
   (albo przesuwasz mapę), dotykasz „Szukaj sklepów tutaj” i zaznaczasz pinezki konkretnych sklepów – także w innym
   mieście niż to, w którym jesteś. Wybrany konkretny sklep jest celem nawigacji.
+- **Ile taniej i gdzie:** przy każdej ofercie widać oszczędność względem zwykłej ceny („−20% (−€0,40)”, gdy sklep ją
+  podaje; dla Aldi liczona z „−33%”) oraz cenę za kg/l, z oznaczeniem najtańszej oferty. Widok **Porównanie** na liście
+  zestawia sklepy: koszt tych samych produktów w każdym sklepie (przy znanej gramaturze – tej samej ilości) i zdanie typu
+  „te same produkty kosztują o X% mniej w Lidlu niż w Jumbo”. Porównywane są tylko produkty z ceną w obu sklepach,
+  a w tabeli widać, jaka oferta za tym stoi.
 - Zakładka **Promocje**: wszystkie promocje, wyszukiwarka, filtr sklepu, sortowanie (koniec promocji, cena,
   sklep, nazwa), „＋” dodaje produkt do listy.
 - Dane są zapamiętywane na telefonie (lista, język, ulubione, ostatnie promocje – działa offline) i odświeżane
@@ -101,3 +106,12 @@ Dodanie produktu/języka: wiersz w `src/data/glossary.js`.
 Lokalizacja jest używana wyłącznie po dotknięciu „Znajdź sklepy w pobliżu”. Dane o sklepach pochodzą z
 OpenStreetMap (Overpass API; kilka serwerów zapasowych); rozpoznawane są sieci Albert Heijn, Aldi, Lidl, Jumbo,
 Dirk i Plus. Promocje są ogólnokrajowe, więc ulubiony sklep służy do wyboru sieci i nawigacji.
+
+## Ograniczenia porównania cen
+
+- Porównujemy **najtańszą ofertę pasującą do produktu** w każdym sklepie – to nie zawsze ten sam artykuł (np. „kawa”
+  może być rozpuszczalna w jednym sklepie i mrożona w drugim); dlatego w tabeli widać nazwę oferty.
+- **Zwykłych cen (bez promocji) prawie nie mamy**: lidl.nl poza promocjami pokazuje tylko sprzęt, a Aldi, Jumbo, Dirk i Plus
+  nie wystawiają ich w tych samych danych. Zwykłe ceny pobieramy tylko z Albert Heijn (niesprawdzone na żywo).
+- Jumbo często podaje tylko mechanizm („25% korting”, „1+1 gratis”) bez ceny bazowej – takie oferty nie mają ceny,
+  więc nie wchodzą do porównania („2 voor 6,49” liczymy jako 3,25 za sztukę).

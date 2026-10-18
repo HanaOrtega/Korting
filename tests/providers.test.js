@@ -19,8 +19,8 @@ test('Lidl: cena, rabat i data końca; stały asortyment pomijany', () => {
   const deals = parseLidl(lidlHtml(lidlItem({}), regular));
   assert.equal(deals.length, 1);
   assert.deepEqual(
-    [deals[0].name, deals[0].price, deals[0].promoText, deals[0].description, deals[0].validUntil],
-    ['CHEF SELECT & YOU Andijvie', 1.59, '-20%', 'Was €1,99', '2026-10-25T21:59:59Z'],
+    [deals[0].name, deals[0].price, deals[0].promoText, deals[0].oldPrice, deals[0].validUntil],
+    ['CHEF SELECT & YOU Andijvie', 1.59, '-20%', 1.99, '2026-10-25T21:59:59Z'],
   );
 });
 
@@ -44,10 +44,16 @@ test('Jumbo: rozwija devalue i wyciąga cenę z etykiety "voor X,XX"', () => {
   );
 });
 
-test('Jumbo: "2 voor 6,49" nie daje ceny za sztukę', () => {
+test('Jumbo: "2 voor 6,49" daje cenę za sztukę i zachowuje pakiet', () => {
   const [d] = parseJumbo(nuxt('2 voor 6,49'));
-  assert.equal(d.price, null);
+  assert.equal(d.price, 3.25);
+  assert.deepEqual(d.bundle, { n: 2, total: 6.49 });
   assert.equal(d.promoText, '2 voor 6,49');
+});
+
+test('Jumbo: procenty i „1+1 gratis” nie mają ceny bazowej', () => {
+  for (const tag of ['25% korting', '1+1 gratis', '2e halve prijs']) assert.equal(parseJumbo(nuxt(tag))[0].price, null, tag);
+  assert.equal(parseJumbo(nuxt('Voor 6,99'))[0].price, 6.99);
 });
 
 test('Jumbo: błąd gdy brak danych', () => {
@@ -68,8 +74,9 @@ test('Plus: oferty z kategorii, bez darmowej dostawy', () => {
   assert.equal(deals.length, 1);
   assert.deepEqual(
     [deals[0].name, deals[0].price, deals[0].description, deals[0].validUntil],
-    ['Biologisch PLUS Wortelen', 1.49, 'Per 1 kg · Was €1,85', '2026-10-20T23:59:59'],
+    ['Biologisch PLUS Wortelen', 1.49, 'Per 1 kg', '2026-10-20T23:59:59'],
   );
+  assert.equal(deals[0].oldPrice, 1.85);
   assert.throws(() => parsePlus({}), /PLUS/);
 });
 
@@ -81,8 +88,8 @@ test('Dirk: oferta z ceną, ceną regularną i zdjęciem produktu', () => {
   ])}</script>`;
   const [d] = parseDirk(nuxt);
   assert.deepEqual(
-    [d.store, d.name, d.price, d.promoText, d.description, d.image],
-    ['Dirk', 'Gevulde speculaas', 2.99, 'VR, ZA & ZO', 'Pak 2 x 250 gram · Was €3,69', 'https://web-fileserver.dirk.nl/artikelen/a%20b.png?width=190'],
+    [d.store, d.name, d.price, d.promoText, d.description, d.oldPrice, d.image],
+    ['Dirk', 'Gevulde speculaas', 2.99, 'VR, ZA & ZO', 'Pak 2 x 250 gram', 3.69, 'https://web-fileserver.dirk.nl/artikelen/a%20b.png?width=190'],
   );
 });
 

@@ -34,7 +34,8 @@ export function parseAh(json) {
       id: `ah-${p.webshopId ?? p.id}`,
       store: 'Albert Heijn',
       name: p.title,
-      description: p.priceBeforeBonus != null ? `Was €${String(p.priceBeforeBonus).replace('.', ',')}` : '',
+      description: '',
+      oldPrice: p.priceBeforeBonus ?? null,
       unit: p.salesUnitSize ?? '',
       price: priceOf(p),
       promoText: p.bonusMechanism ?? '',
@@ -47,37 +48,61 @@ export function parseAh(json) {
 
 const searchUrl = (q, params) => `${API}/mobile-services/product/search/v2?query=${encodeURIComponent(q)}&${params}`;
 
+let session = null; // { token, params } – po pierwszym udanym wyszukiwaniu pamiętamy działające parametry
+
+async function getToken() {
+  const auth = await fetchWithTimeout(`${API}/mobile-auth/v1/auth/token/anonymous`, {
+    method: 'POST', headers: headers(), body: JSON.stringify({ clientId: 'appie' }),
+  }, 15000);
+  if (!auth.ok) throw await failure(auth, 'token');
+  const { access_token: token } = await auth.json();
+  if (!token) throw new Error('AH: odpowiedź bez access_token (zmieniło się API?)');
+  return token;
+}
+
+/** Wyszukuje produkty; przy pierwszym wywołaniu dobiera parametry, które serwer przyjmuje. */
+async function search(q) {
+  session ??= { token: await getToken(), params: null };
+  const get = (params) => fetchWithTimeout(searchUrl(q, params), { headers: headers(session.token) }, 20000);
+  if (session.params) {
+    const res = await get(session.params);
+    if (res.ok) return res.json();
+    session = null; // token mógł wygasnąć – następne wywołanie zacznie od nowa
+    throw await failure(res, 'wyszukiwanie');
+  }
+  const tried = [];
+  for (const set of PARAM_SETS) {
+    const res = await get(set);
+    if (res.ok) { session.params = set; return res.json(); }
+    tried.push(`[${set}] ${(await failure(res, '')).message.replace(/^AH : /, '')}`);
+  }
+  session = null;
+  throw new Error(`AH wyszukiwanie: ${tried.join(' | ')}`);
+}
+
+/** Produkty z wyszukiwarki jako zwykłe ceny (przy produkcie w bonusie – cena sprzed bonusu). */
+export function parseAhRegular(json) {
+  return (json?.products ?? [])
+    .map((p) => ({ p, price: p.priceBeforeBonus ?? p.currentPrice ?? p.price?.now ?? null }))
+    .filter(({ p, price }) => p.title && price != null)
+    .map(({ p, price }) => ({
+      id: `ah-${p.webshopId ?? p.id}`, store: 'Albert Heijn', name: p.title, description: '', oldPrice: null,
+      unit: p.salesUnitSize ?? '', price, promoText: '', validFrom: null, validUntil: null,
+      image: p.images?.[0]?.url ?? null, url: `https://www.ah.nl/producten/product/wi${p.webshopId ?? p.id}`,
+    }));
+}
+
 export default {
   name: 'Albert Heijn',
+  async regular(term) {
+    return parseAhRegular(await search(term));
+  },
   async fetch() {
-    const auth = await fetchWithTimeout(`${API}/mobile-auth/v1/auth/token/anonymous`, {
-      method: 'POST', headers: headers(), body: JSON.stringify({ clientId: 'appie' }),
-    }, 15000);
-    if (!auth.ok) throw await failure(auth, 'token');
-    const { access_token: token } = await auth.json();
-    if (!token) throw new Error('AH: odpowiedź bez access_token (zmieniło się API?)');
-
-    const get = (q, params) => fetchWithTimeout(searchUrl(q, params), { headers: headers(token) }, 20000);
-
-    // 1. znajdź zestaw parametrów, który serwer przyjmuje
-    const tried = [];
-    let params = null;
-    let first = null;
-    for (const set of PARAM_SETS) {
-      const res = await get(QUERIES[0], set);
-      if (res.ok) { params = set; first = await res.json(); break; }
-      tried.push(`[${set}] ${(await failure(res, '')).message.replace(/^AH : /, '')}`);
-    }
-    if (!params) throw new Error(`AH wyszukiwanie: ${tried.join(' | ')}`);
-
-    // 2. reszta haseł tym samym zestawem; do bonusu zostają tylko produkty z isBonus
-    const results = [parseAh(first)];
+    const first = await search(QUERIES[0]);
     const sample = first?.products?.[0];
+    const results = [parseAh(first)];
     await Promise.all(QUERIES.slice(1).map(async (q) => {
-      try {
-        const res = await get(q, params);
-        if (res.ok) results.push(parseAh(await res.json()));
-      } catch { /* pojedyncze hasło może zawieść */ }
+      try { results.push(parseAh(await search(q))); } catch { /* pojedyncze hasło może zawieść */ }
     }));
     const deals = [...new Map(results.flat().map((d) => [d.id, d])).values()];
     if (!deals.length) {

@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import ByStoreView from '../components/ByStoreView.js';
+import CompareView from '../components/CompareView.js';
 import DealRow from '../components/DealRow.js';
 import { dutchName, displayName, matchDeals, resolve, suggest } from '../match.js';
 import { planShopping } from '../plan.js';
+import { bestUnitId } from '../pricing.js';
+import { lookupRegular, regularStores } from '../regular.js';
 import { favoriteChains } from '../stores.js';
 import { translateToDutch } from '../translate.js';
 import { ACCENT } from '../theme.js';
@@ -45,7 +48,32 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
     return { item, r, hits: matchDeals(r.terms, deals, r.ci) };
   }), [items, deals, vocab, tr, lang]);
 
-  const plan = useMemo(() => planShopping(rows, favoriteChains(favorites)), [rows, favorites]);
+  const chains = useMemo(() => favoriteChains(favorites), [favorites]);
+  const plan = useMemo(() => planShopping(rows, chains), [rows, chains]);
+
+  // zwykłe ceny (bez promocji) pobieramy dopiero po otwarciu porównania – to osobne zapytania do sklepów
+  const [regular, setRegular] = useState({});
+  const [regLoading, setRegLoading] = useState(false);
+  const regKey = rows.filter((x) => !x.item.done).map((x) => x.r.terms[0]).join('|') + '#' + chains.join(',');
+  useEffect(() => {
+    if (view !== 'compare') return undefined;
+    const sources = regularStores().filter((s) => chains.includes(s));
+    if (!sources.length) return undefined;
+    let cancelled = false;
+    (async () => {
+      setRegLoading(true);
+      for (const { item, r } of rows.filter((x) => !x.item.done)) {
+        const found = [];
+        for (const store of sources) {
+          try { found.push(...await lookupRegular(store, r.terms, r.ci)); } catch { /* brak danych z tego sklepu */ }
+        }
+        if (cancelled) return;
+        setRegular((prev) => ({ ...prev, [item.id]: found }));
+      }
+      if (!cancelled) setRegLoading(false);
+    })();
+    return () => { cancelled = true; setRegLoading(false); };
+  }, [view, regKey]);
   const toggleDone = (id) => setItems((prev) => prev.map((it) => (it.id === id ? { ...it, done: !it.done } : it)));
 
   // słowa spoza słownika tłumaczymy w tle na holenderski (raz na słowo; wynik zapamiętany w telefonie)
@@ -95,6 +123,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <Chip c={c} label={t('viewItems')} selected={view === 'items'} onPress={() => setView('items')} />
           <Chip c={c} label={t('viewStores')} selected={view === 'stores'} onPress={() => setView('stores')} />
+          <Chip c={c} label={t('viewCompare')} selected={view === 'compare'} onPress={() => setView('compare')} />
         </View>
       )}
 
@@ -109,9 +138,14 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
         <ByStoreView plan={plan} c={c} t={t} lang={lang} favorites={favorites} onToggleDone={toggleDone} />
       )}
 
+      {view === 'compare' && rows.length > 0 && (
+        <CompareView c={c} t={t} rows={rows} regular={regular} stores={chains} loading={regLoading} />
+      )}
+
       {view === 'items' && rows.map(({ item, r, hits }) => {
         const expanded = !!open[item.id];
         const shown = expanded ? hits : hits.slice(0, PREVIEW);
+        const bestId = bestUnitId(hits);
         const choices = r.status === 'fuzzy' || r.status === 'ambiguous'
           ? [r.ci, ...r.alts].map((ci) => ({ key: ci, label: displayName(ci, lang), apply: displayName(ci, lang) }))
           : r.status === 'dutch-fuzzy' ? [{ key: r.word, label: r.word, apply: r.word }] : [];
@@ -154,7 +188,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
                 ) : (
                   <>
                     <Text style={{ color: ACCENT, fontWeight: '600', fontSize: 13 }}>{t('promoCount', { n: hits.length })}</Text>
-                    {shown.map((d) => <DealRow key={d.id} deal={d} c={c} t={t} lang={lang} />)}
+                    {shown.map((d) => <DealRow key={d.id} deal={d} c={c} t={t} lang={lang} best={d.id === bestId} />)}
                     {hits.length > PREVIEW && (
                       <Pressable onPress={() => setOpen((o) => ({ ...o, [item.id]: !expanded }))}>
                         <Text style={{ color: ACCENT, paddingVertical: 4 }}>

@@ -1,3 +1,4 @@
+import { oldPriceFromPercent } from '../pricing.js';
 import { fetchText, sliceBalanced } from './util.js';
 
 const URL_ = 'https://www.aldi.nl/aanbiedingen.html';
@@ -25,6 +26,7 @@ export function parseAldi(html) {
         unit: p.salesUnit ?? '',
         price: promo.priceValue,
         promoText: promo.priceTagLabels?.promoText1 ?? '',
+        oldPrice: oldPriceFromPercent(promo.priceValue, promo.priceTagLabels?.promoText1),
         validFrom: toISO(promo.validFrom),
         validUntil: toISO(promo.validUntil),
         image,

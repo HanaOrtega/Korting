@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Image, Linking, Pressable, Text, View } from 'react-native';
+import { fmtUnit, saving, unitPrice } from '../pricing.js';
 import { UA } from '../providers/util.js';
 import { ACCENT } from '../theme.js';
 import { daysLeft, fmtDate, fmtPrice } from '../format.js';
@@ -18,7 +19,9 @@ function Thumb({ uri }) {
   );
 }
 
-export default function DealRow({ deal, c, t, lang, onAdd }) {
+export default function DealRow({ deal, c, t, lang, onAdd, best = false }) {
+  const save = saving(deal);
+  const unit = unitPrice(deal);
   const n = deal.validUntil ? daysLeft(deal.validUntil) : null;
   const urgent = n !== null && n <= 1;
   const until = deal.validUntil
@@ -39,6 +42,14 @@ export default function DealRow({ deal, c, t, lang, onAdd }) {
           <Text style={{ color: urgent ? c.danger : c.mut, fontSize: 13 }}>{until}</Text>
         </View>
         {note ? <Text style={{ color: c.mut, fontSize: 12 }} numberOfLines={2}>{note}</Text> : null}
+        {(save || unit) && (
+          <Text style={{ fontSize: 12, color: c.mut }}>
+            {save ? <Text style={{ color: '#2b8a3e', fontWeight: '600' }}>−{save.pct}% (−€{save.eur.toFixed(2).replace('.', ',')})</Text> : null}
+            {save && unit ? '  ·  ' : ''}
+            {unit ? fmtUnit(unit) : ''}
+            {best ? <Text style={{ color: ACCENT, fontWeight: '600' }}>{'  ★ '}{t('bestUnit')}</Text> : null}
+          </Text>
+        )}
       </View>
       <Text style={{ color: ACCENT, fontWeight: '700', fontSize: deal.price != null ? 18 : 14, maxWidth: 110, textAlign: 'right' }}>
         {deal.price != null ? fmtPrice(deal.price) : deal.promoText || '%'}

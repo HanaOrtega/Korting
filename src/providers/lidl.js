@@ -23,13 +23,15 @@ export function parseLidl(html) {
     if (!cur && p.price?.price == null) continue;
     if (!p.fullTitle) continue;
     const validUntil = isoFix(cur?.endDate) ?? toISO(p.storeEndDate);
-    if (!validUntil) continue; // bez daty końca to stały asortyment, nie promocja
+    // bez daty końca to stały asortyment – na lidl.nl to wyłącznie sprzęt, nie jedzenie, więc pomijamy
+    if (!validUntil) continue;
     const discount = cur?.discount?.showDiscount ? cur.discount : null;
     out.push({
       id: `lidl-${p.productId}`,
       store: 'Lidl',
       name: p.fullTitle,
-      description: discount?.deletedPrice != null ? `Was €${String(discount.deletedPrice).replace('.', ',')}` : '',
+      description: '',
+      oldPrice: discount?.deletedPrice ?? null,
       unit: cur?.packaging?.text ?? '',
       price: cur?.price ?? p.price.price,
       promoText: discount?.discountText ?? '',
