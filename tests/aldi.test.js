@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseAldi } from '../providers/aldi.js';
+import { parseAldi } from '../src/providers/aldi.js';
 
 const item = {
   isAvailable: true, salesUnit: 'Per stuk', name: 'Amaryllismix', shortDescription: 'Potmaat: 12 cm.',

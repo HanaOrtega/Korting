@@ -1,4 +1,4 @@
-import { fetchText } from './util.js';
+import { fetchText, isoFix } from './util.js';
 
 // Wyszukiwarka Lidla zwraca ~79 kafelków na zapytanie (offset nie działa), więc
 // odpytujemy kilka haseł i deduplikujemy po productId.
@@ -22,7 +22,7 @@ export function parseLidl(html) {
     const cur = entry && (typeof entry.price === 'number' ? entry : entry.price);
     if (!cur && p.price?.price == null) continue;
     if (!p.fullTitle) continue;
-    const validUntil = cur?.endDate ?? toISO(p.storeEndDate);
+    const validUntil = isoFix(cur?.endDate) ?? toISO(p.storeEndDate);
     if (!validUntil) continue; // bez daty końca to stały asortyment, nie promocja
     const discount = cur?.discount?.showDiscount ? cur.discount : null;
     out.push({
@@ -33,7 +33,7 @@ export function parseLidl(html) {
       unit: cur?.packaging?.text ?? '',
       price: cur?.price ?? p.price.price,
       promoText: discount?.discountText ?? '',
-      validFrom: cur?.startDate ?? toISO(p.storeStartDate),
+      validFrom: isoFix(cur?.startDate) ?? toISO(p.storeStartDate),
       validUntil,
       image: p.image ?? null,
       url: p.canonicalUrl ? `https://www.lidl.nl${p.canonicalUrl}` : '',

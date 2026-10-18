@@ -4,7 +4,6 @@ import dirk from './dirk.js';
 import jumbo from './jumbo.js';
 import lidl from './lidl.js';
 import plus from './plus.js';
-import sample from './sample.js';
 
 // Aby dodać sklep: nowy plik z { name, fetch() -> Deal[] } i wpis tutaj.
-export const providers = process.env.KORTING_SAMPLE ? [sample] : [ah, aldi, dirk, jumbo, lidl, plus];
+export const providers = [aldi, lidl, jumbo, dirk, plus, ah];

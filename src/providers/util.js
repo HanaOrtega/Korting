@@ -1,11 +1,22 @@
 export const UA =
   'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Mobile Safari/537.36';
 
+// fetch z limitem czasu (AbortSignal.timeout nie istnieje w React Native).
+export async function fetchWithTimeout(url, opts = {}, timeoutMs = 20000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...opts, signal: ctrl.signal });
+  } catch (e) {
+    throw ctrl.signal.aborted ? new Error(`${url} -> przekroczono czas oczekiwania`) : e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function fetchText(url, timeoutMs = 20000) {
-  const res = await fetch(url, {
-    headers: { 'user-agent': UA, 'accept-language': 'nl-NL,nl;q=0.9' },
-    signal: AbortSignal.timeout(timeoutMs),
-  });
+  const res = await fetchWithTimeout(
+    url, { headers: { 'user-agent': UA, 'accept-language': 'nl-NL,nl;q=0.9' } }, timeoutMs);
   if (!res.ok) throw new Error(`${url} -> HTTP ${res.status}`);
   return res.text();
 }
@@ -45,3 +56,6 @@ export function nuxtData(html, label = 'strona') {
   };
   return { flat, get };
 }
+
+// Hermes (React Native) bywa wybredny: dopisz sekundy do "…T22:00Z".
+export const isoFix = (s) => (s ? s.replace(/T(\d\d:\d\d)(Z|[+-]\d\d:\d\d)?$/, 'T$1:00$2') : s);

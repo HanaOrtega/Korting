@@ -1,6 +1,8 @@
 // PLUS jest za ochroną antybotową (Imperva) i ładuje oferty przez OutSystems, więc zwykły
-// fetch dostaje blokadę. Otwieramy stronę w prawdziwej przeglądarce (Playwright) i
-// przechwytujemy odpowiedź, którą sama strona pobiera. Playwright jest opcjonalny.
+// fetch dostaje blokadę. Ładujemy stronę w ukrytym WebView (WebViewHost) i przechwytujemy
+// odpowiedź, którą sama strona pobiera.
+import { runWebViewTask } from '../webview.js';
+
 const PAGE = 'https://www.plus.nl/aanbiedingen';
 const CALL = 'DataActionGetPromotionList_Optimization';
 
@@ -43,29 +45,9 @@ export function parsePlus(json) {
 export default {
   name: 'Plus',
   async fetch() {
-    let chromium;
-    try {
-      ({ chromium } = await import('playwright'));
-    } catch {
-      throw new Error('wymaga pakietu "playwright" (npm i playwright)');
-    }
-    const browser = await chromium.launch({
-      executablePath: process.env.CHROMIUM_PATH || undefined,
-    });
-    try {
-      const page = await (await browser.newContext({ locale: 'nl-NL' })).newPage();
-      // Strona woła to API kilka razy (m.in. wersja „preloaded” z częścią ofert) – zbieramy wszystkie.
-      const bodies = [];
-      page.on('response', async (r) => {
-        if (r.url().includes(CALL)) bodies.push(r.json().catch(() => null));
-      });
-      await page.goto(PAGE, { waitUntil: 'networkidle', timeout: 45000 });
-      await page.waitForTimeout(2000);
-      const results = (await Promise.all(bodies)).filter(Boolean);
-      if (!results.length) throw new Error('PLUS: strona nie pobrała listy ofert');
-      return [...new Map(results.flatMap(parsePlus).map((d) => [d.id, d])).values()];
-    } finally {
-      await browser.close();
-    }
+    const bodies = await runWebViewTask({ url: PAGE, match: CALL, timeoutMs: 30000 });
+    const results = bodies.map((b) => { try { return JSON.parse(b); } catch { return null; } }).filter(Boolean);
+    if (!results.length) throw new Error('PLUS: strona nie pobrała listy ofert');
+    return [...new Map(results.flatMap(parsePlus).map((d) => [d.id, d])).values()];
   },
 };

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseLidl } from '../providers/lidl.js';
-import { parseJumbo } from '../providers/jumbo.js';
+import { parseLidl } from '../src/providers/lidl.js';
+import { parseJumbo } from '../src/providers/jumbo.js';
 
 const esc = (o) => JSON.stringify(o).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 const lidlItem = (over) => ({
@@ -54,9 +54,9 @@ test('Jumbo: błąd gdy brak danych', () => {
   assert.throws(() => parseJumbo('<html></html>'), /__NUXT_DATA__/);
 });
 
-import { parsePlus } from '../providers/plus.js';
-import { parseDirk } from '../providers/dirk.js';
-import { parseAh } from '../providers/ah.js';
+import { parsePlus } from '../src/providers/plus.js';
+import { parseDirk } from '../src/providers/dirk.js';
+import { parseAh } from '../src/providers/ah.js';
 
 test('Plus: oferty z kategorii, bez darmowej dostawy', () => {
   const offer = (o) => ({ PromotionID: '1', Offer_Id: '7', Brand: 'Biologisch PLUS', Name: 'Wortelen', Example: 'Per 1 kg',
