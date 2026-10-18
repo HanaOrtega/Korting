@@ -82,7 +82,7 @@ test('Dirk: oferta z ceną, ceną regularną i zdjęciem produktu', () => {
   const [d] = parseDirk(nuxt);
   assert.deepEqual(
     [d.store, d.name, d.price, d.promoText, d.description, d.image],
-    ['Dirk', 'Gevulde speculaas', 2.99, 'VR, ZA & ZO', 'Pak 2 x 250 gram · Was €3,69', 'https://web-fileserver.dirk.nl/artikelen/a%20b.png'],
+    ['Dirk', 'Gevulde speculaas', 2.99, 'VR, ZA & ZO', 'Pak 2 x 250 gram · Was €3,69', 'https://web-fileserver.dirk.nl/artikelen/a%20b.png?width=190'],
   );
 });
 

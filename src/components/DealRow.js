@@ -1,6 +1,20 @@
-import { Linking, Pressable, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Image, Linking, Pressable, Text, View } from 'react-native';
 import { ACCENT } from '../theme.js';
 import { daysLeft, fmtDate, fmtPrice } from '../format.js';
+
+const THUMB = 60;
+
+function Thumb({ uri }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <View style={{ width: THUMB, height: THUMB, borderRadius: 8, backgroundColor: '#fff', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
+      {uri && !failed
+        ? <Image source={{ uri }} style={{ width: THUMB, height: THUMB }} resizeMode="contain" onError={() => setFailed(true)} />
+        : <Text style={{ fontSize: 24 }}>🛒</Text>}
+    </View>
+  );
+}
 
 export default function DealRow({ deal, c, t, lang, onAdd }) {
   const n = deal.validUntil ? daysLeft(deal.validUntil) : null;
@@ -11,6 +25,7 @@ export default function DealRow({ deal, c, t, lang, onAdd }) {
   const note = [deal.unit, deal.price != null ? deal.promoText : '', deal.description].filter(Boolean).join(' · ');
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 10 }}>
+      <Thumb uri={deal.image} />
       <View style={{ flex: 1 }}>
         <Pressable disabled={!deal.url} onPress={() => deal.url && Linking.openURL(deal.url)}>
           <Text style={{ color: c.fg, fontWeight: '600' }} numberOfLines={2}>{deal.name}</Text>

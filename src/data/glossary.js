@@ -12,7 +12,7 @@ sojamelk|havermelk|amandelmelk|plantaardige melk;plant milk|oat milk|soy milk;ml
 yoghurt|yogurt;yogurt|yoghurt;jogurt;joghurt;yaourt|yogourt;yogur;yogurt;iogurte;yoğurt;йогурт;iaurt;йогурт
 kaas|plakken kaas;cheese;ser;käse;fromage;queso;formaggio;queijo;peynir;сир;brânză;сыр
 boter;butter;masło;butter;beurre;mantequilla;burro;manteiga;tereyağı;вершкове масло;unt;сливочное масло
-eieren|ei;eggs|egg;jajka|jajko|jaja;eier|ei;oeufs|oeuf|œufs;huevos|huevo;uova|uovo;ovos|ovo;yumurta;яйця|яйце;ouă|ou;яйца|яйцо
+eieren|ei;eggs|egg;jajka|jajko|jaja|jajek|jajkiem;eier|ei;oeufs|oeuf|œufs;huevos|huevo;uova|uovo;ovos|ovo;yumurta;яйця|яйце;ouă|ou;яйца|яйцо
 slagroom|room|kookroom;cream|whipped cream;śmietana|śmietanka;sahne|schlagsahne;crème|creme fraîche;nata;panna;natas|nata;süt kreması|krema;вершки|сметана;smântână|frișcă;сливки|сметана
 kwark;quark|curd cheese;twaróg;quark|topfen;fromage blanc;requesón;ricotta|quark;requeijão|queijo fresco;süzme peynir|lor peyniri;кисломолочний сир;brânză de vaci;творог
 vla|pudding;custard|pudding;budyń|pudding;pudding|vanillepudding;crème dessert|flan;natillas|flan;budino;pudim;puding|muhallebi;пудинг;budincă;пудинг
@@ -129,6 +129,79 @@ vuilniszakken|afvalzakken;garbage bags|bin bags;worki na śmieci;müllbeutel|mü
 luiers|pampers;diapers|nappies;pieluchy|pampersy;windeln;couches;pañales;pannolini;fraldas;bebek bezi;підгузки;scutece;подгузники
 kattenvoer|kattenbrokken;cat food;karma dla kota|jedzenie dla kota;katzenfutter;nourriture pour chat|croquettes pour chat;comida para gatos;cibo per gatti;ração para gatos|comida para gatos;kedi maması;корм для кішок;mâncare pentru pisici;корм для кошек
 hondenvoer|hondenbrokken;dog food;karma dla psa|jedzenie dla psa;hundefutter;nourriture pour chien|croquettes pour chien;comida para perros;cibo per cani;ração para cães|comida para cães;köpek maması;корм для собак;mâncare pentru câini;корм для собак
+# --- dodatkowe: owoce i warzywa ---
+framboos|frambozen;raspberries|raspberry;maliny|malina;himbeeren|himbeere;framboises|framboise;frambuesas|frambuesa;lamponi|lampone;framboesas|framboesa;ahududu;малина;zmeură;малина
+kersen|kers;cherries|cherry;wiśnie|czereśnie|wiśnia;kirschen|kirsche;cerises|cerise;cerezas|cereza;ciliegie|ciliegia;cerejas|cereja;kiraz|vişne;вишня|черешня;cireșe|cireașă;вишня|черешня
+perziken|perzik|nectarines|nectarine;peaches|peach|nectarines;brzoskwinie|brzoskwinia|nektarynki;pfirsiche|pfirsich|nektarinen;pêches|pêche|nectarines;melocotones|melocotón|nectarinas;pesche|pesca|nettarine;pêssegos|pêssego|nectarinas;şeftali|nektarin;персики|персик|нектарини;piersici|piersică|nectarine;персики|персик|нектарины
+pruimen|pruim;plums|plum;śliwki|śliwka;pflaumen|pflaume|zwetschgen;prunes|prune;ciruelas|ciruela;prugne|prugna|susine;ameixas|ameixa;erik;сливи|слива;prune|prună;сливы|слива
+grapefruit|pompelmoes;grapefruit;grejpfrut;grapefruit|pampelmuse;pamplemousse;pomelo;pompelmo;toranja;greyfurt;грейпфрут;grepfrut;грейпфрут
+rucola;rocket|arugula;rukola;rucola|rauke;roquette;rúcula;rucola;rúcula;roka;рукола;rucola;руккола
+radijs|radijsjes;radish|radishes;rzodkiewka|rzodkiewki;radieschen;radis;rábano|rábanos;ravanello|ravanelli;rabanete|rabanetes;turp;редиска;ridichi|ridiche;редис
+bieten|biet|rode biet;beetroot|beets;burak|buraki;rote bete|rote beete;betterave|betteraves;remolacha;barbabietola;beterraba;pancar;буряк;sfeclă roșie|sfeclă;свёкла|свекла
+selderij|bleekselderij|knolselderij;celery;seler;sellerie;céleri;apio;sedano;aipo;kereviz;селера;țelină;сельдерей
+venkel;fennel;koper włoski|fenkuł;fenchel;fenouil;hinojo;finocchio;funcho;rezene;фенхель;fenicul;фенхель
+asperges|asperge;asparagus;szparagi|szparag;spargel;asperges|asperge;espárragos|espárrago;asparagi|asparago;espargos|espargo;kuşkonmaz;спаржа;sparanghel;спаржа
+erwten|doperwten|tuinerwten;peas;groszek|groch;erbsen;petits pois|pois;guisantes;piselli;ervilhas;bezelye;горошок;mazăre;горошек
+zoete aardappel|zoete aardappelen|bataat;sweet potato|sweet potatoes;batat|słodkie ziemniaki;süßkartoffel|süßkartoffeln;patate douce|patates douces;batata|boniato;patate dolci|patata dolce;batata-doce;tatlı patates;батат|солодка картопля;cartof dulce|cartofi dulci;батат|сладкий картофель
+gember;ginger;imbir;ingwer;gingembre;jengibre;zenzero;gengibre;zencefil;імбир;ghimbir;имбирь
+peterselie;parsley;pietruszka;petersilie;persil;perejil;prezzemolo;salsa|salsinha;maydanoz;петрушка;pătrunjel;петрушка
+basilicum;basil;bazylia;basilikum;basilic;albahaca;basilico;manjericão;fesleğen;базилік;busuioc;базилик
+olijven|olijf;olives|olive;oliwki;oliven|olive;olives|olive;aceitunas|olivas;olive|oliva;azeitonas;zeytin;оливки|маслини;măsline;оливки|маслины
+# --- dodatkowe: mięso, ryby, nabiał ---
+salami;salami;salami;salami;salami;salami;salame;salame;salam;салямі;salam;салями
+leverworst|paté|smeerleverworst;liverwurst|pâté|liver sausage;pasztetowa|pasztet;leberwurst|pastete;pâté;paté;paté|patè;patê;ezme|ciğer ezmesi;паштет;pateu;паштет
+braadworst|bratwurst;bratwurst;kiełbasa biała|kiełbasa do smażenia;bratwurst;saucisse à rôtir|bratwurst;salchicha para asar|bratwurst;salsiccia|bratwurst;salsicha para assar|bratwurst;kızartmalık sosis|bratwurst;братвурст|ковбаски для смаження;bratwurst|cârnați pentru prăjit;братвурст|колбаски для жарки
+gehaktballen|gehaktbal;meatballs|meatball;klopsiki|pulpety;frikadellen|hackbällchen;boulettes de viande|boulettes;albóndigas;polpette;almôndegas;köfte;фрикадельки|тефтелі;chifteluțe|chiftele;фрикадельки|тефтели
+schnitzel|schnitzels|kipschnitzel;schnitzel|cutlet;sznycel|kotlet schabowy;schnitzel;escalope;escalope|milanesa;cotoletta|scaloppina;escalope|panado;şnitzel;шніцель|відбивна;șnițel;шницель|отбивная
+kabeljauw;cod;dorsz;kabeljau|dorsch;cabillaud|morue;bacalao;merluzzo|baccalà;bacalhau;morina;тріска;cod|batog;треска
+haring;herring;śledź;hering;hareng;arenque;aringa;arenque;ringa;оселедець;hering;сельдь|селедка
+makreel;mackerel;makrela;makrele;maquereau;caballa|escombro;sgombro;cavala|sarda;uskumru;скумбрія;macrou;скумбрия
+mosselen|mossel;mussels;małże|omułki;muscheln|miesmuscheln;moules;mejillones;cozze;mexilhões;midye;мідії;midii;мидии
+roomkaas|smeerkaas;cream cheese;serek śmietankowy|serek do smarowania;frischkäse;fromage frais|fromage à tartiner;queso crema;formaggio spalmabile;queijo creme;krem peynir;вершковий сир;brânză cremă;сливочный сыр
+mozzarella;mozzarella;mozzarella;mozzarella;mozzarella;mozzarella;mozzarella;mozzarella;mozzarella;моцарела;mozzarella;моцарелла
+feta;feta|greek cheese;feta;feta|schafskäse;feta;queso feta|feta;feta;queijo feta|feta;beyaz peynir|feta;фета;feta;фета
+karnemelk;buttermilk;maślanka;buttermilch;babeurre|lait ribot;suero de leche|suero de mantequilla;latticello;leitelho;ayran|çalkanmış süt;маслянка|пахта;zară;пахта|маслянка
+drinkyoghurt|yoghurtdrank;drinking yoghurt|yogurt drink;jogurt pitny;trinkjoghurt;yaourt à boire;yogur líquido|yogur para beber;yogurt da bere;iogurte líquido;ayran|içilebilir yoğurt;питний йогурт;iaurt de băut;питьевой йогурт
+chocolademelk;chocolate milk;mleko czekoladowe;schokomilch|kakao;lait chocolaté;leche con chocolate|batido de chocolate;latte al cioccolato;leite com chocolate|chocolate frio;çikolatalı süt;шоколадне молоко;lapte cu ciocolată;шоколадное молоко
+# --- dodatkowe: pieczywo, słodkie, spiżarnia ---
+pannenkoeken|pannenkoek|poffertjes;pancakes|pancake;naleśniki|naleśnik|racuchy;pfannkuchen;crêpes|crêpe|pancakes;tortitas|crepes|panqueques;pancake|crêpe;panquecas|crepes;krep|pankek;млинці|млинець;clătite|clătită;блины|блин|оладьи
+wafels|wafel;waffles|waffle;gofry|gofr;waffeln|waffel;gaufres|gaufre;gofres|gofre;waffle|cialde;waffles|waffle;waffle|gofret;вафлі|вафля;vafe|vafă;вафли|вафля
+muffins|muffin|cupcakes;muffins|muffin|cupcakes;muffinki|muffin;muffins|muffin;muffins|muffin;magdalenas|muffins;muffin|plumcake;queques|muffins;muffin|kek;мафіни|кекс;brioșe|muffins;маффины|кекс
+rozijnen;raisins;rodzynki;rosinen;raisins secs;pasas;uvetta|uva passa;passas|uvas passas;kuru üzüm;родзинки|ізюм;stafide;изюм
+gedroogd fruit|dadels|vijgen|abrikozen;dried fruit|dates|figs|apricots;suszone owoce|daktyle|figi|morele;trockenfrüchte|datteln|feigen;fruits secs|dattes|figues;fruta seca|dátiles|higos;frutta secca|datteri|fichi;fruta seca|tâmaras|figos;kuru meyve|hurma|incir|kayısı;сухофрукти|фініки|інжир;fructe uscate|curmale|smochine;сухофрукты|финики|инжир
+popcorn;popcorn;popcorn;popcorn;pop-corn|popcorn;palomitas;popcorn;pipocas;patlamış mısır|popcorn;попкорн;floricele|popcorn;попкорн
+rijstwafels|rijstwafel;rice cakes;wafle ryżowe|chrupki ryżowe;reiswaffeln;galettes de riz;tortitas de arroz;gallette di riso;bolachas de arroz;pirinç patlağı;рисові хлібці;turte de orez;рисовые хлебцы
+tomatenpuree;tomato paste|tomato puree;koncentrat pomidorowy;tomatenmark;concentré de tomate;concentrado de tomate;concentrato di pomodoro;concentrado de tomate;domates salçası;томатна паста;pastă de tomate;томатная паста
+gepelde tomaten|tomatenblokjes|passata;canned tomatoes|chopped tomatoes|passata;pomidory w puszce|passata;dosentomaten|passata;tomates pelées|tomates concassées|passata;tomate triturado|tomate pelado|passata;pomodori pelati|polpa di pomodoro|passata;tomate pelado|polpa de tomate|passata;konserve domates|passata;консервовані помідори|пасата;roșii în conservă|passata;консервированные помидоры|пассата
+couscous;couscous;kuskus;couscous;couscous|semoule;cuscús;couscous;cuscuz;kuskus;кускус;cuscus;кускус
+quinoa;quinoa;komosa ryżowa|quinoa;quinoa;quinoa;quinoa;quinoa;quinoa;kinoa;кіноа;quinoa;киноа
+noedels|mie;noodles;makaron chiński|noodle;nudeln|asia-nudeln;nouilles;fideos chinos|noodles;noodles;talharim|noodles;erişte|noodle;локшина;tăiței|noodles;лапша
+wraps|tortilla|tortilla's;wraps|tortillas;tortille|wrapy;wraps|tortillas;wraps|tortillas;tortillas|wraps;piadine|tortillas|wrap;tortilhas|wraps;dürüm|tortilla|lavaş;тортильї|лаваш;tortilla|wrap;тортильи|лаваш
+pesto;pesto;pesto;pesto;pesto;pesto;pesto;pesto;pesto;песто;pesto;песто
+appelmoes;apple sauce|applesauce;mus jabłkowy;apfelmus;compote de pommes;compota de manzana;composta di mele;compota de maçã;elma püresi;яблучне пюре;compot de mere;яблочное пюре
+augurken|augurk;pickles|gherkins;ogórki konserwowe|korniszony;gewürzgurken|essiggurken;cornichons;pepinillos;cetriolini;pepinos em conserva;kornişon|turşu;мариновані огірки;murături|castraveți murați;маринованные огурцы
+zuurkool;sauerkraut;kapusta kiszona;sauerkraut;choucroute;chucrut;crauti;chucrute;lahana turşusu;квашена капуста;varză murată;квашеная капуста
+bouillon|bouillonblokjes;stock cube|bouillon;kostka rosołowa|bulion;brühwürfel|brühe;bouillon cube|bouillon;caldo en cubitos|caldo;dado|brodo;caldo|cubos de caldo;et suyu tableti|bulyon;бульйонний кубик|бульйон;cub de supă|supă concentrată;бульонный кубик|бульон
+kaneel;cinnamon;cynamon;zimt;cannelle;canela;cannella;canela;tarçın;кориця;scorțișoară;корица
+bakpoeder;baking powder;proszek do pieczenia;backpulver;levure chimique;levadura química;lievito in polvere;fermento em pó;kabartma tozu;розпушувач;praf de copt;разрыхлитель
+gist;yeast;drożdże;hefe;levure;levadura;lievito;fermento;maya;дріжджі;drojdie;дрожжи
+# --- dodatkowe: napoje i dom ---
+whisky|wodka|gin|rum|jenever|sterke drank;whisky|vodka|gin|rum|spirits;whisky|wódka|gin|rum|alkohol;whisky|wodka|gin|rum|spirituosen;whisky|vodka|gin|rhum|spiritueux;whisky|vodka|ginebra|ron|licor;whisky|vodka|gin|rum|liquori;whisky|vodka|gin|rum|bebidas espirituosas;viski|votka|cin|rom|içki;віскі|горілка|джин|ром|міцний алкоголь;whisky|vodcă|gin|rom|băuturi spirtoase;виски|водка|джин|ром|крепкий алкоголь
+prosecco|champagne|mousserende wijn|cava;prosecco|champagne|sparkling wine|cava;prosecco|szampan|wino musujące|cava;prosecco|champagner|sekt|schaumwein;prosecco|champagne|vin mousseux|cava;prosecco|champán|cava|vino espumoso;prosecco|champagne|spumante;prosecco|champanhe|espumante;prosecco|şampanya|köpüklü şarap;просекко|шампанське|ігристе вино;prosecco|șampanie|vin spumant;просекко|шампанское|игристое вино
+cider;cider;cydr;cidre|apfelwein;cidre;sidra;sidro;sidra;elma şarabı;сидр;cidru;сидр
+ijsthee;iced tea|ice tea;mrożona herbata|ice tea;eistee;thé glacé|ice tea;té helado|ice tea;tè freddo|ice tea;chá gelado|ice tea;buzlu çay|ice tea;холодний чай|айс ті;ceai rece|ice tea;холодный чай|айс ти
+smoothie|smoothies;smoothie|smoothies;smoothie|koktajl owocowy;smoothie|smoothies;smoothie|smoothies;batido|smoothie;frullato|smoothie;batido|smoothie;smoothie;смузі;smoothie;смузи
+tissues|zakdoekjes|papieren zakdoekjes;tissues|paper tissues;chusteczki|chusteczki higieniczne;taschentücher|tempo;mouchoirs|mouchoirs en papier;pañuelos|pañuelos de papel;fazzoletti|fazzoletti di carta;lenços|lenços de papel;mendil|kağıt mendil;серветки|паперові хустинки;șervețele|batiste de hârtie;салфетки|бумажные платочки
+maandverband|tampons|inlegkruisjes;sanitary pads|tampons|panty liners;podpaski|tampony|wkładki higieniczne;binden|tampons|slipeinlagen;serviettes hygiéniques|tampons|protège-slips;compresas|tampones|salvaslips;assorbenti|tamponi|proteggislip;pensos higiénicos|tampões|protetores diários;hijyenik ped|tampon|günlük ped;прокладки|тампони;absorbante|tampoane;прокладки|тампоны
+deodorant|deo;deodorant;dezodorant;deo|deodorant;déodorant;desodorante;deodorante;desodorizante|desodorante;deodorant;дезодорант;deodorant;дезодорант
+scheermesjes|scheerschuim|scheergel;razors|shaving foam|shaving gel;maszynki do golenia|pianka do golenia|żel do golenia;rasierer|rasierklingen|rasierschaum|rasiergel;rasoirs|mousse à raser|gel à raser;cuchillas de afeitar|espuma de afeitar|gel de afeitar;rasoi|schiuma da barba|gel da barba;lâminas de barbear|espuma de barbear|gel de barbear;tıraş bıçağı|tıraş köpüğü|tıraş jeli;леза для гоління|піна для гоління|гель для гоління;lame de ras|spumă de ras|gel de ras;лезвия для бритья|пена для бритья|гель для бритья
+aluminiumfolie|bakpapier|vershoudfolie;aluminium foil|baking paper|cling film;folia aluminiowa|papier do pieczenia|folia spożywcza;alufolie|backpapier|frischhaltefolie;papier aluminium|papier cuisson|film alimentaire;papel de aluminio|papel de horno|film transparente;carta stagnola|carta forno|pellicola trasparente;papel de alumínio|papel vegetal|película aderente;alüminyum folyo|yağlı kâğıt|streç film;алюмінієва фольга|пергамент для випічки|харчова плівка;folie de aluminiu|hârtie de copt|folie alimentară;алюминиевая фольга|пергамент для выпечки|пищевая пленка
+schoonmaakmiddel|allesreiniger|wc reiniger|schoonmaakmiddelen;cleaning product|all-purpose cleaner|toilet cleaner;środek czystości|płyn do czyszczenia|środek do wc;reiniger|allzweckreiniger|wc-reiniger;produit nettoyant|nettoyant multi-usage|nettoyant wc;producto de limpieza|limpiador multiusos|limpiador wc;detergente|multiuso|detergente wc;produto de limpeza|multiusos|limpa wc;temizlik ürünü|çok amaçlı temizleyici|tuvalet temizleyici;засіб для прибирання|універсальний очисник|засіб для wc;produs de curățenie|soluție universală|soluție wc;чистящее средство|универсальный очиститель|средство для туалета
+kokosmelk;coconut milk;mleko kokosowe;kokosmilch;lait de coco;leche de coco;latte di cocco;leite de coco;hindistan cevizi sütü;кокосове молоко;lapte de cocos;кокосовое молоко
+tofu;tofu;tofu;tofu;tofu;tofu;tofu;tofu;tofu;тофу;tofu;тофу
+hummus;hummus;hummus;hummus;houmous|hummus;hummus;hummus;húmus|hummus;humus;хумус;hummus;хумус
+boekweit|gort|gierst|grutten;buckwheat|barley|millet|groats;kasza|kasza gryczana|kasza jaglana;buchweizen|graupen|hirse|grütze;sarrasin|orge|millet|semoule;trigo sarraceno|cebada|mijo;grano saraceno|orzo|miglio;trigo sarraceno|cevada|milho miúdo;karabuğday|arpa|darı;гречка|крупа|пшоно;hrișcă|orz|mei;гречка|крупа|пшено
+puddingpoeder|gelatinepoeder;jelly dessert|pudding mix;kisiel|budyń w proszku;götterspeise|puddingpulver;gelée dessert|préparation pour flan;gelatina|preparado para flan;budino istantaneo|gelatina;gelatina|preparado para pudim;jöle|puding tozu;кисіль|пудинг у порошку;jeleu|budincă la plic;кисель|пудинг в порошке
 `;
 
 export const ROWS = RAW.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));

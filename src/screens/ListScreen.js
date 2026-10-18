@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import DealRow from '../components/DealRow.js';
 import { dutchName, displayName, matchDeals, resolve, suggest } from '../match.js';
+import { translateToDutch } from '../translate.js';
 import { ACCENT } from '../theme.js';
 
 const PREVIEW = 3;
@@ -20,6 +21,9 @@ function Chip({ label, onPress, selected, c }) {
 export default function ListScreen({ c, t, lang, items, setItems, deals, vocab }) {
   const [text, setText] = useState('');
   const [open, setOpen] = useState({});
+  const [tr, setTr] = useState({}); // „język|tekst” -> tłumaczenie na holenderski (albo null)
+  const asked = useRef(new Set());
+  const trKey = (text) => `${lang}|${text.trim().toLowerCase()}`;
 
   const add = (raw) => {
     const parts = raw.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean);
@@ -34,9 +38,22 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab }
   const remove = (id) => setItems((prev) => prev.filter((it) => it.id !== id));
 
   const rows = useMemo(() => items.map((item) => {
-    const r = resolve(item.text, vocab);
+    const r = resolve(item.text, vocab, tr[trKey(item.text)] ?? null);
     return { item, r, hits: matchDeals(r.terms, deals) };
-  }), [items, deals, vocab]);
+  }), [items, deals, vocab, tr, lang]);
+
+  // słowa spoza słownika tłumaczymy w tle na holenderski (raz na słowo; wynik zapamiętany w telefonie)
+  useEffect(() => {
+    for (const { item, r } of rows) {
+      const key = trKey(item.text);
+      if (r.status !== 'unknown' || key in tr || asked.current.has(key)) continue;
+      asked.current.add(key);
+      translateToDutch(item.text, lang).then((out) => {
+        if (out) setTr((prev) => ({ ...prev, [key]: out }));
+        else asked.current.delete(key); // brak sieci/limit – spróbujemy przy następnej zmianie listy
+      });
+    }
+  }, [rows]);
 
   const lastPart = text.split(/[,;\n]/).pop();
   const suggestions = useMemo(() => suggest(lastPart, lang), [lastPart, lang]);
@@ -103,7 +120,10 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab }
                 </View>
               </View>
             )}
-            {r.ci != null && (
+            {r.status === 'translated' && (
+              <Text style={{ color: c.mut, fontSize: 13, marginTop: 6 }}>{t('translated')} {r.word}</Text>
+            )}
+            {r.ci != null && r.status !== 'translated' && (
               <Text style={{ color: c.mut, fontSize: 13, marginTop: 6 }}>
                 {t('searchingFor')} {dutchName(r.ci)}
               </Text>

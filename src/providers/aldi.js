@@ -15,7 +15,8 @@ export function parseAldi(html) {
     .filter((p) => p.isAvailable !== false && p.currentPrice?.priceValue != null)
     .map((p) => {
       const promo = p.promotionPrices?.[0] ?? p.currentPrice;
-      const image = p.assets?.find((a) => a.type === 'primary')?.url ?? null;
+      const primary = p.assets?.find((a) => a.type === 'primary')?.url;
+      const image = primary ? `${primary}?wid=200&fmt=jpg` : null; // miniaturka: ~8 KB zamiast ~130 KB
       return {
         id: `aldi-${p.objectID}`,
         store: 'Aldi',

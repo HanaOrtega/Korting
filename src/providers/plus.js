@@ -34,7 +34,7 @@ export function parsePlus(json) {
         promoText: o.DisplayInfo_Label || o.DisplayInfo_PromotionBasedLabel || '',
         validFrom: start ? `${start}T00:00:00` : null,
         validUntil: end ? `${end}T23:59:59` : null,
-        image: o.ImageURL || null,
+        image: o.ImageURL ? `${o.ImageURL}?w=200&fm=jpg` : null,
         url: o.Slug ? `https://www.plus.nl/product/${o.Slug}` : PAGE,
       });
     }

@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Modal, Platform, Pressable, StatusBar as RNStatusBar, Text, useColorScheme, View } from 'react-native';
+import { Alert, Modal, Platform, Pressable, StatusBar as RNStatusBar, Text, useColorScheme, View } from 'react-native';
 import WebViewHost from './src/components/WebViewHost.js';
 import { loadDeals, readCache } from './src/deals.js';
 import { LANG_CODES, LANG_NAMES, makeT, pickLanguage } from './src/i18n.js';
@@ -78,9 +78,11 @@ export default function App() {
         </View>
         {loading && <Text style={{ color: c.mut, fontSize: 13 }}>{t('loading')}</Text>}
         {!loading && data.errors.length > 0 && (
-          <Text style={{ backgroundColor: c.warn, color: c.warnFg, padding: 8, borderRadius: 10, fontSize: 13 }}>
-            {t('failed', { stores: data.errors.map((e) => e.store).join(', ') })}
-          </Text>
+          <Pressable onPress={() => Alert.alert('Korting', data.errors.map((e) => `${e.store}: ${e.error}`).join('\n\n'))}>
+            <Text style={{ backgroundColor: c.warn, color: c.warnFg, padding: 8, borderRadius: 10, fontSize: 13 }}>
+              {t('failed', { stores: data.errors.map((e) => e.store).join(', ') })} · {t('details')}
+            </Text>
+          </Pressable>
         )}
       </View>
 

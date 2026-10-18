@@ -87,3 +87,36 @@ test('karma dla zwierząt nie jest pokazywana przy szukaniu mięsa', () => {
   assert.deepEqual(matchDeals(resolve('kurczak').terms, food).map((d) => d.name), ['Kipfilet']);
   assert.equal(matchDeals(resolve('karma dla psa').terms, food).length, 1);
 });
+
+test('odmiana: końcówki fleksyjne nie psują rozpoznania', () => {
+  for (const [input, nl] of [['pomidorów', 'tomaten'], ['masła', 'boter'], ['chleba', 'brood'], ['jabłek', 'appels'],
+    ['ziemniaków', 'aardappelen'], ['kurczaka', 'kipfilet'], ['sera', 'kaas'], ['jajek', 'eieren']]) {
+    assert.equal(dutchName(resolve(input).ci), nl, input);
+  }
+});
+
+test('z kilku słów wygrywa właściwe: „piersi z kurczaka” to kurczak, a „mleko kokosowe” to kokosmelk', () => {
+  assert.equal(dutchName(resolve('piersi z kurczaka').ci), 'kipfilet');
+  assert.equal(dutchName(resolve('mleko kokosowe').ci), 'kokosmelk');
+});
+
+test('dokładne holenderskie słowo z promocji wygrywa z domysłem literówki', () => {
+  const vocab = buildVocab([{ name: 'Tompouce' }, { name: 'Roomboter' }]);
+  assert.equal(resolve('tompouce', vocab).status, 'dutch');
+});
+
+test('tłumaczenie: nierozpoznane słowo jest rozpoznawane po przetłumaczeniu', () => {
+  const vocab = buildVocab([{ name: 'Tuinkers bakje' }]);
+  assert.equal(resolve('rzeżucha', vocab).status, 'unknown');
+  const r = resolve('rzeżucha', vocab, 'tuinkers');
+  assert.equal(r.status, 'translated');
+  assert.deepEqual(r.terms, ['tuinkers']);
+  assert.equal(matchDeals(r.terms, [{ name: 'Tuinkers bakje', price: 1 }]).length, 1);
+  // tłumaczenie na słowo ze słownika → pojęcie
+  assert.equal(dutchName(resolve('rzeżucha', vocab, 'melk').ci), 'melk');
+});
+
+test('ziemniak (aardappel) nie jest jabłkiem (appel)', () => {
+  const d = [{ name: 'Aardappel Anders', price: 1 }, { name: 'Elstar appels', price: 2 }];
+  assert.deepEqual(matchDeals(resolve('jabłka').terms, d).map((x) => x.name), ['Elstar appels']);
+});

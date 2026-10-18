@@ -74,6 +74,23 @@ const UNITS = new Set(['kg', 'g', 'gr', 'l', 'ml', 'szt', 'sztuk', 'st', 'stuks'
   'pack', 'paczka', 'opakowanie', 'litr', 'litry', 'litrow', 'gram', 'kilo']);
 const isQty = (t) => /^\d+[a-z]*$/.test(t) || UNITS.has(t);
 
+// Odmiana: „pomidorów”/„pomidory”, „jabłek”/„jabłka”, „masła”/„masło” – wspólny początek, różni się końcówka.
+function stemConcepts(token) {
+  if (token.length < 3) return [];
+  const best = new Map();
+  for (const { t, ci } of allTerms) {
+    if (t.length < 3 || t.includes(' ')) continue;
+    let cp = 0;
+    while (cp < token.length && cp < t.length && token[cp] === t[cp]) cp++;
+    const shorter = Math.min(token.length, t.length);
+    const rest = Math.max(token.length, t.length) - cp;
+    // krótkie terminy („ser”) tylko z krótką końcówką („sera”, „serem”) – inaczej łapałyby przypadkowe słowa
+    const ok = t.length === 3 ? cp === 3 && token.length <= 5 : cp >= 4 && cp >= shorter - 2 && rest <= 3;
+    if (ok && (!best.has(ci) || rest < best.get(ci))) best.set(ci, rest);
+  }
+  return [...best].sort((a, b) => a[1] - b[1]).map(([ci, rest]) => ({ ci, rest }));
+}
+
 function fuzzyConcepts(str) {
   const limit = maxDist(str.length);
   if (!limit) return [];
@@ -98,7 +115,7 @@ export function buildVocab(deals) {
  * status: exact | ambiguous | fuzzy | dutch | dutch-fuzzy | unknown
  * ci – wybrane pojęcie, alts – inne możliwości („czy chodziło o…”), terms – szukane słowa po holendersku.
  */
-export function resolve(raw, vocab = new Set()) {
+export function resolve(raw, vocab = new Set(), translated = null) {
   const tokens = norm(raw).split(' ').filter((t) => t && !isQty(t));
   const phrase = tokens.join(' ');
   const out = (status, ci, alts = [], extra = {}) =>
@@ -109,7 +126,19 @@ export function resolve(raw, vocab = new Set()) {
   const exact = termIndex.get(phrase) ?? tokens.map((t) => termIndex.get(t)).find(Boolean);
   if (exact) return out(exact.length > 1 ? 'ambiguous' : 'exact', exact[0], exact.slice(1));
 
-  // 2. literówki
+  // 2. odmieniona forma (końcówka inna niż w słowniku)
+  // (z kilku słów wygrywa najlepsze dopasowanie, a przy remisie dłuższe słowo: „piersi z kurczaka” → kurczak)
+  const stems = tokens.flatMap((t) => stemConcepts(t).map((s) => ({ ...s, len: t.length })))
+    .sort((a, b) => a.rest - b.rest || b.len - a.len);
+  if (stems.length) {
+    const ids = [...new Set(stems.map((s) => s.ci))];
+    return out('stem', ids[0], ids.slice(1, 4));
+  }
+
+  // 3. dokładne holenderskie słowo z promocji (zanim zgadniemy literówkę)
+  for (const t of tokens) if (vocab.has(t)) return out('dutch', null, [], { terms: [t] });
+
+  // 4. literówki
   const cands = new Map();
   for (const s of new Set([phrase, ...tokens])) {
     if (s.length < 4) continue;
@@ -120,8 +149,7 @@ export function resolve(raw, vocab = new Set()) {
     return out('fuzzy', ranked[0], ranked.slice(1, 5));
   }
 
-  // 3. holenderskie słowo z promocji (dokładnie lub z literówką)
-  for (const t of tokens) if (vocab.has(t)) return out('dutch', null, [], { terms: [t] });
+  // 5. holenderskie słowo z promocji z literówką
   let bestWord = null;
   let bestD = 99;
   for (const t of tokens) {
@@ -134,6 +162,13 @@ export function resolve(raw, vocab = new Set()) {
     }
   }
   if (bestWord) return out('dutch-fuzzy', null, [], { terms: [bestWord], word: bestWord });
+
+  // 6. nic nie pasuje: jeśli mamy tłumaczenie na holenderski (translate.js), rozpoznajemy je
+  if (translated) {
+    const r = resolve(translated, vocab);
+    if (r.status !== 'unknown') return { ...r, raw, status: 'translated', word: norm(translated) };
+    return { raw, status: 'translated', ci: null, alts: [], terms: norm(translated).split(' ').filter(Boolean), word: norm(translated) };
+  }
   return out('unknown', null);
 }
 
@@ -164,6 +199,9 @@ function tokensOf(deal) {
 // Karma dla zwierząt często zawiera nazwę mięsa („kip”, „rund”) – pomijamy ją, chyba że o nią chodzi.
 const PET = /^(honden|katten)/;
 
+// Holenderskie złożenia kończące się tak samo jak szukane słowo, ale znaczące co innego.
+const FALSE_COMPOUND = { appel: /aardappel/, appels: /aardappel/ };
+
 function scoreDeal(deal, terms) {
   const { n, tokens } = tokensOf(deal);
   if (tokens.some((t) => PET.test(t)) && !terms.some((t) => PET.test(t))) return 0;
@@ -171,6 +209,7 @@ function scoreDeal(deal, terms) {
   for (const term of terms) {
     if (term.includes(' ')) { if (n.includes(` ${term} `) || n.endsWith(` ${term} `)) best = Math.max(best, 3); continue; }
     for (const tok of tokens) {
+      if (FALSE_COMPOUND[term]?.test(tok)) continue;
       if (tok === term) best = Math.max(best, 3);
       else if (term.length >= 4 && tok.endsWith(term)) best = Math.max(best, 2); // złożenia: „halfvolle”+„melk”
       else if (term.length >= 4 && tok.startsWith(term)) best = Math.max(best, 1);

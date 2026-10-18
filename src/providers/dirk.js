@@ -23,7 +23,7 @@ export function parseDirk(html) {
       promoText: (o.textPriceSign ?? '').replace(/_actie$/, '').trim(),
       validFrom: o.startDate ?? null,
       validUntil: o.endDate ?? null,
-      image: image ? IMG + encodeURI(image) : null,
+      image: image ? `${IMG}${encodeURI(image)}?width=190` : null, // miniaturka (oryginał ma kilka MB)
       url: URL_,
     });
   });
