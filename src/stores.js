@@ -48,24 +48,83 @@ export function parseOverpass(json, lat, lon) {
 
 const ENDPOINTS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter',
   'https://overpass.private.coffee/api/interpreter'];
+const UA = 'Korting/0.4 (shopping list app)';
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-export async function findNearbyStores(lat, lon, radius = 5000) {
+// Pierwsza udana odpowiedź ze wszystkich serwerów naraz (Promise.any bywa niedostępne); błędy zbiera w jeden.
+function firstSuccess(promises) {
+  return new Promise((resolve, reject) => {
+    const errors = [];
+    promises.forEach((p) => p.then(resolve, (e) => { errors.push(e.message); if (errors.length === promises.length) reject(new Error(errors.join('; '))); }));
+  });
+}
+
+async function overpass(lat, lon, radius) {
   const query = `[out:json][timeout:25];nwr["shop"="supermarket"](around:${radius},${lat},${lon});out center tags 400;`;
-  const errors = [];
-  for (const url of ENDPOINTS) {
+  return firstSuccess(ENDPOINTS.map(async (url) => {
     try {
       const res = await fetchWithTimeout(url, {
         method: 'POST',
-        headers: { 'content-type': 'application/x-www-form-urlencoded', 'user-agent': 'Korting/0.3 (shopping list app)' },
+        headers: { 'content-type': 'application/x-www-form-urlencoded', 'user-agent': UA },
         body: `data=${encodeURIComponent(query)}`,
-      }, 30000);
+      }, 15000);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return parseOverpass(await res.json(), lat, lon);
-    } catch (e) {
-      errors.push(`${new URL(url).hostname}: ${e.message}`);
+    } catch (e) { throw new Error(`${new URL(url).hostname}: ${e.message}`); }
+  }));
+}
+
+// ---- plan B: Nominatim (wyszukiwanie sieci w obszarze mapy) ----
+/** Wyniki Nominatim dla jednej sieci → sklepy (tylko obiekty „shop”, z rozpoznaną siecią). */
+export function parseNominatimStores(json, lat, lon) {
+  const out = [];
+  for (const p of Array.isArray(json) ? json : []) {
+    if (p.category !== 'shop' || p.lat == null || p.lon == null) continue;
+    const chain = chainOf({ name: p.name ?? '' });
+    if (!chain) continue;
+    const a = p.address ?? {};
+    const street = [a.road, a.house_number].filter(Boolean).join(' ');
+    const place = a.town ?? a.city ?? a.village ?? a.municipality;
+    out.push({
+      id: `${p.osm_type}/${p.osm_id}`, chain, name: p.name,
+      address: [street, place].filter(Boolean).join(', '),
+      lat: Number(p.lat), lon: Number(p.lon), distance: distanceMeters(lat, lon, Number(p.lat), Number(p.lon)),
+    });
+  }
+  return out;
+}
+
+async function nominatimStores(lat, lon, radius) {
+  const dLat = radius / 111000;
+  const dLon = radius / (111000 * Math.cos((lat * Math.PI) / 180));
+  const viewbox = `${lon - dLon},${lat + dLat},${lon + dLon},${lat - dLat}`;
+  const byId = new Map();
+  const errors = [];
+  for (const chain of CHAINS) {
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(chain.id)}&viewbox=${viewbox}&bounded=1`
+        + '&format=jsonv2&addressdetails=1&limit=40&countrycodes=nl';
+      const res = await fetchWithTimeout(url, { headers: { 'user-agent': UA, accept: 'application/json' } }, 15000);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      for (const s of parseNominatimStores(await res.json(), lat, lon)) byId.set(s.id, s);
+    } catch (e) { errors.push(`${chain.id}: ${e.message}`); }
+    await sleep(1100); // polityka Nominatim: najwyżej jedno zapytanie na sekundę
+  }
+  if (errors.length === CHAINS.length) throw new Error(errors[0]);
+  return [...byId.values()].sort((a, b) => a.distance - b.distance);
+}
+
+/** Sklepy znanych sieci w okolicy: najpierw Overpass (jedno zapytanie), a gdy zawiedzie – Nominatim. */
+export async function findNearbyStores(lat, lon, radius = 5000) {
+  try {
+    return await overpass(lat, lon, radius);
+  } catch (e1) {
+    try {
+      return await nominatimStores(lat, lon, Math.min(radius, 6000));
+    } catch (e2) {
+      throw new Error(`Overpass: ${String(e1.message).slice(0, 90)} | Nominatim: ${e2.message}`);
     }
   }
-  throw new Error(errors.join('; '));
 }
 
 // ---- ulubione ----

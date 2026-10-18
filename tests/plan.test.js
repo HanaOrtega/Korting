@@ -90,3 +90,19 @@ test('mapa: strona zawiera API wołane z aplikacji i kolor każdej sieci', () =>
 test('mapa: zgłasza pozycję startową, nie tylko po przesunięciu', () => {
   assert.match(mapHtml(), /postView\(\);\s*\/\/ pozycja startowa/);
 });
+
+import { parseNominatimStores } from '../src/stores.js';
+
+test('Nominatim (plan B): sklepy z sieci, bez ulic i obiektów nie-sklepowych', () => {
+  const json = [
+    { osm_type: 'node', osm_id: 1, lat: '52.0847', lon: '4.8836', category: 'shop', type: 'supermarket', name: 'Albert Heijn',
+      address: { road: 'Wagenstraat', house_number: '24', town: 'Woerden' } },
+    { osm_type: 'way', osm_id: 2, lat: '52.09', lon: '4.88', category: 'highway', type: 'residential', name: 'Aldistraat' },
+    { osm_type: 'node', osm_id: 3, lat: '52.1', lon: '4.9', category: 'shop', type: 'supermarket', name: 'Buurtsuper' },
+  ];
+  const out = parseNominatimStores(json, 52.0847, 4.8836);
+  assert.equal(out.length, 1);
+  assert.deepEqual([out[0].id, out[0].chain, out[0].address], ['node/1', 'Albert Heijn', 'Wagenstraat 24, Woerden']);
+  assert.ok(out[0].distance < 5);
+  assert.deepEqual(parseNominatimStores(null, 0, 0), []);
+});

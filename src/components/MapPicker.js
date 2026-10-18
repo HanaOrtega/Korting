@@ -130,7 +130,7 @@ export default function MapPicker({ visible, onClose, c, t, favorites, setFavori
             originWhitelist={['*']} javaScriptEnabled domStorageEnabled style={{ flex: 1 }} />
         </View>
 
-        <View style={{ padding: 12, gap: 8, backgroundColor: c.card, borderTopWidth: 1, borderTopColor: c.border }}>
+        <View style={{ padding: 12, paddingBottom: 40, gap: 8, backgroundColor: c.card, borderTopWidth: 1, borderTopColor: c.border }}>
           <Text style={{ color: c.mut, fontSize: 12 }}>{t('selectedCount', { n: favorites.filter((f) => f.lat != null).length })}</Text>
           {tapped ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
