@@ -1,6 +1,7 @@
 import * as Location from 'expo-location';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
+import MapPicker from '../components/MapPicker.js';
 import { CHAINS, chainFavoriteId, findNearbyStores, fmtDistance } from '../stores.js';
 import { ACCENT } from '../theme.js';
 
@@ -8,6 +9,7 @@ const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeo
 
 export default function StoresScreen({ c, t, favorites, setFavorites, intro = false, onContinue }) {
   const [state, setState] = useState({ status: 'idle', stores: [], error: '' });
+  const [mapOpen, setMapOpen] = useState(false);
   const isFav = (id) => favorites.some((f) => f.id === id);
   const toggleStore = (s) => setFavorites((prev) => (prev.some((f) => f.id === s.id)
     ? prev.filter((f) => f.id !== s.id)
@@ -86,6 +88,11 @@ export default function StoresScreen({ c, t, favorites, setFavorites, intro = fa
         </View>
       )}
 
+      <Pressable onPress={() => setMapOpen(true)}
+        style={{ backgroundColor: ACCENT, borderRadius: 14, padding: 14, alignItems: 'center' }}>
+        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>🗺 {t('pickOnMap')}</Text>
+      </Pressable>
+
       <Pressable onPress={find} disabled={state.status === 'loading'}
         style={{ backgroundColor: ACCENT, borderRadius: 14, padding: 14, alignItems: 'center', opacity: state.status === 'loading' ? 0.6 : 1 }}>
         <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>📍 {t('findNearby')}</Text>
@@ -112,6 +119,8 @@ export default function StoresScreen({ c, t, favorites, setFavorites, intro = fa
           ))}
         </View>
       )}
+      <MapPicker visible={mapOpen} onClose={() => setMapOpen(false)} c={c} t={t} favorites={favorites} setFavorites={setFavorites} />
+
       {intro && (
         <Pressable onPress={onContinue} disabled={favorites.length === 0}
           style={{ backgroundColor: ACCENT, borderRadius: 14, padding: 14, alignItems: 'center', opacity: favorites.length === 0 ? 0.4 : 1 }}>

@@ -83,3 +83,18 @@ export function navigationUrl(chain, favs, platform = 'android') {
   return spot ? `geo:${spot.lat},${spot.lon}?q=${spot.lat},${spot.lon}(${encodeURIComponent(spot.name)})`
     : `geo:0,0?q=${encodeURIComponent(`${chain} supermarkt`)}`;
 }
+
+// ---- wyszukiwanie miejsc (Nominatim / OpenStreetMap) ----
+/** Odpowiedź Nominatim → [{ name, lat, lon }]. */
+export function parseNominatim(json) {
+  return (Array.isArray(json) ? json : [])
+    .filter((p) => p.lat != null && p.lon != null)
+    .map((p) => ({ name: p.display_name ?? p.name ?? '', lat: Number(p.lat), lon: Number(p.lon) }));
+}
+
+export async function geocode(query) {
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=jsonv2&limit=6&countrycodes=nl`;
+  const res = await fetchWithTimeout(url, { headers: { 'user-agent': 'Korting/0.4 (shopping list app)', accept: 'application/json' } }, 15000);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return parseNominatim(await res.json());
+}

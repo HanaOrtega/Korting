@@ -25,9 +25,10 @@ pobiera promocje ze stron sklepów i trzyma je w pamięci telefonu.
 - **Lista wg sklepów:** przełącznik „Produkty / Wg sklepów” dzieli listę na sklepy: do którego pojechać i co tam
   kupić (z ceną, sumą orientacyjną i przyciskiem „Nawiguj” do map). Produkt trafia tam, gdzie jest najtańszy,
   a jeśli masz ulubione sieci – najpierw do nich. Produkty bez żadnej promocji są w osobnej sekcji „Bez promocji”.
-- **Moje sklepy (zakładka Sklepy):** wybierasz sieci jednym dotknięciem albo „Znajdź sklepy w pobliżu” –
-  aplikacja pobiera lokalizację (tylko wtedy, za zgodą) i szuka sklepów w OpenStreetMap; ulubiony konkretny sklep
-  jest celem nawigacji.
+- **Moje sklepy (zakładka Sklepy):** wybierasz sieci jednym dotknięciem, „Znajdź sklepy w pobliżu” (lokalizacja,
+  tylko za zgodą) albo **„Wybierz na mapie”**: mapa OpenStreetMap, na której wyszukujesz dowolne miasto lub adres
+  (albo przesuwasz mapę), dotykasz „Szukaj sklepów tutaj” i zaznaczasz pinezki konkretnych sklepów – także w innym
+  mieście niż to, w którym jesteś. Wybrany konkretny sklep jest celem nawigacji.
 - Zakładka **Promocje**: wszystkie promocje, wyszukiwarka, filtr sklepu, sortowanie (koniec promocji, cena,
   sklep, nazwa), „＋” dodaje produkt do listy.
 - Dane są zapamiętywane na telefonie (lista, język, ulubione, ostatnie promocje – działa offline) i odświeżane
@@ -80,7 +81,8 @@ Testy logiki i parserów: `npm test`.
 - `App.js` – stan aplikacji, nagłówek, zakładki, wybór języka
 - `src/match.js` – rozpoznawanie produktów (słownik, odmiana, literówki, podpowiedzi) i dopasowanie do promocji
 - `src/plan.js` – podział listy na sklepy
-- `src/stores.js` – sieci, sklepy w pobliżu (Overpass/OpenStreetMap), nawigacja
+- `src/stores.js` – sieci, sklepy w pobliżu (Overpass/OpenStreetMap), wyszukiwanie miejsc (Nominatim), nawigacja
+- `src/mapHtml.js`, `src/components/MapPicker.js` – wybór sklepów na mapie (Leaflet w WebView, bez kluczy API)
 - `src/translate.js` – zapasowe tłumaczenie na holenderski
 - `src/data/glossary.js` – słownik produktów w 12 językach (tłumaczenia warto sprawdzić z natywnymi użytkownikami)
 - `src/i18n.js` – teksty interfejsu

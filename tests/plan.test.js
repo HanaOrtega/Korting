@@ -69,3 +69,24 @@ test('stores: odległość, formatowanie i nawigacja', () => {
   assert.match(navigationUrl('Lidl', favs, 'ios'), /^http:\/\/maps\.apple\.com\/\?daddr=52\.3,4\.8/);
   assert.deepEqual(favoriteChains(favs), ['Aldi', 'Lidl']);
 });
+
+import { parseNominatim } from '../src/stores.js';
+import { mapHtml, COLORS } from '../src/mapHtml.js';
+import { CHAINS } from '../src/stores.js';
+
+test('Nominatim: współrzędne zamieniane na liczby, wpisy bez pozycji pomijane', () => {
+  const out = parseNominatim([{ display_name: 'Utrecht, Nederland', lat: '52.09', lon: '5.12' }, { display_name: 'zły' }]);
+  assert.deepEqual(out, [{ name: 'Utrecht, Nederland', lat: 52.09, lon: 5.12 }]);
+  assert.deepEqual(parseNominatim(null), []);
+});
+
+test('mapa: strona zawiera API wołane z aplikacji i kolor każdej sieci', () => {
+  const html = mapHtml({ lat: 51.9, lon: 4.5, zoom: 12 });
+  for (const fn of ['window.setStores', 'window.setSelected', 'window.flyTo']) assert.ok(html.includes(fn), fn);
+  assert.ok(html.includes('setView([51.9, 4.5], 12)'));
+  for (const ch of CHAINS) assert.ok(COLORS[ch.id], `brak koloru dla ${ch.id}`);
+});
+
+test('mapa: zgłasza pozycję startową, nie tylko po przesunięciu', () => {
+  assert.match(mapHtml(), /postView\(\);\s*\/\/ pozycja startowa/);
+});
