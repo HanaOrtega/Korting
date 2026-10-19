@@ -157,3 +157,11 @@ Dirk i Plus. Promocje są ogólnokrajowe, więc ulubiony sklep służy do wyboru
 
 - Ilość z przepisu (np. „500 g”) jest wyróżniona kolorem przy pozycji na liście i w widoku „Wg sklepów”. Aplikacja niczego
   nie przelicza na gramatury promocji – pokazuje tylko to, co wynika z przepisu (po zsumowaniu).
+
+## Odporność wklejania przepisów
+
+Tekst jest najpierw ujednolicany (Unicode NFKC, twarde/wąskie spacje, niewidoczne znaki, HTML, markdown, wypełniacze
+„.....”), potem: usuwane są puste linie między każdymi dwiema liniami, a linie z samą ilością („500 gramów”, „2”) są
+doklejane do najbliższej nazwy (poprzedniej albo następnej). Ilość może też stać na końcu linii („kurczak: 500 g”,
+„kurczak – 500 g”, „kurczak (500 g)”, „jajka 3”). Linie, których nie da się odczytać, są wypisane w oknie przepisu,
+a nie gubione po cichu.

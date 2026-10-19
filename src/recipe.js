@@ -99,7 +99,7 @@ export function isQuantityOnly(line) {
   const q = s && takeQuantity(s.replace(/([½¼¾⅓⅔⅛])/g, (f) => ` ${FRAC[f]} `).trim());
   if (!q) return false;
   const rest = q.rest.trim();
-  return !!rest && UNIT_MAP.has(norm(rest));
+  return !rest || UNIT_MAP.has(norm(rest)); // „500 gramów” albo samo „2”
 }
 
 /** Jedna linia składnika → { raw, name, amounts: [{dim, value, approx?}], toTaste } albo null (nagłówek / pusta). `region` decyduje o rozmiarze łyżki i „cup”. */
@@ -112,7 +112,17 @@ export function parseLine(line, { region = 'metric' } = {}) {
   const n = norm(s);
   const toTaste = TO_TASTE.some((p) => n.includes(p));
   if (toTaste) for (const p of TO_TASTE) s = s.replace(new RegExp(p.split(' ').join('\\s+'), 'i'), ' ');
+  let trailing = null; // ilość na końcu: „kurczak 500 g”, „kurczak: 500 g”, „kurczak - 500 g”, „kurczak (500 g)”
+  if (!takeQuantity(s)) {
+    const m = /(?:^|\s)(?<sep>[:–—-]\s*|\(\s*)?(?<num>\d+(?:[.,]\d+)?(?:\/\d+)?)\s*(?<unit>[^\s\d()]+(?:\s[^\s\d()]+)?)?\s*\)?\s*$/.exec(s);
+    if (m && m.index > 0) {
+      const u = m.groups.unit ?? '';
+      const unitHit = u && (UNIT_MAP.has(norm(u)) || UNIT_MAP.has(norm(u.split(' ')[0])));
+      if (unitHit || (!u && (m.groups.sep || Number(m.groups.num.replace(',', '.')) <= 100))) { trailing = `${m.groups.num}${unitHit ? ` ${UNIT_MAP.has(norm(u)) ? u : u.split(' ')[0]}` : ''}`; s = s.slice(0, m.index).replace(/[\s:–—-]+$/, ''); }
+    }
+  }
   s = s.replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim(); // (opcjonalnie), (ok. 200 g)
+  if (trailing) s = `${trailing} ${s}`;
 
   let value = null;
   const q = takeQuantity(s);
@@ -203,6 +213,48 @@ function expandList(line, vocab, lang) {
   return parts.length > 1 && parts.every(known) ? parts.map((x) => (taste ? `${x} ${taste}` : x)) : [line];
 }
 
+/**
+ * Wklejka z różnych źródeł (strony WWW, PDF, komunikatory): ujednolica znaki i dzieli na linie. NFKC skleja rozłożone
+ * znaki diakrytyczne i zamienia twarde spacje, wąskie spacje, pełnoszerokie cyfry, ułamki „1⁄2” itp. na zwykłe.
+ */
+export function cleanText(text) {
+  const t = String(text ?? '')
+    .replace(/<\s*(br|\/p|\/li|\/div|\/tr|\/h\d)\b[^>]*>/gi, '\n').replace(/<[^>]+>/g, ' ') // pozostałości HTML
+    .replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&frac12;/gi, '½').replace(/&#?\w+;/g, ' ')
+    .normalize('NFKC')
+    .replace(/\u2044/g, '/')
+    .replace(/[\u200b-\u200f\u2060\ufeff\u00ad]/g, '') // niewidoczne znaki
+    .replace(/[\t\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]+/g, ' ')
+    .replace(/(\*\*|__|`|~~)/g, '').replace(/^\s*#{1,6}\s+/gm, '') // markdown
+    .replace(/[.·…_]{3,}|\s[-–—]{2,}\s/g, ' ') // „kurczak ......... 500 g”
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '');
+  return t.split(/\r\n|\n|\r|\u2028|\u2029|\u0085/);
+}
+
+/**
+ * Strony WWW rozdzielają nazwę i ilość na osobne linie („filety z piersi kurczaka” / „500 gramów”), czasem w odwrotnej
+ * kolejności. Linia z samą ilością i jednostką jest doklejana do najbliższej linii z samą nazwą (najpierw poprzedniej).
+ */
+export function pairQuantities(lines) {
+  const items = lines.map((text) => {
+    const t = text.trim();
+    const kind = !t ? 'blank' : isHeading(t) ? 'heading' : isQuantityOnly(t) ? 'q' : /\d/.test(t.replace(/\([^)]*\)/g, '')) ? 'full' : 'name';
+    return { text, kind, used: false, qs: [] };
+  });
+  const neighbour = (i, dir) => { // najbliższa niepusta linia (przez jedną pustą)
+    let j = i + dir;
+    if (items[j]?.kind === 'blank') j += dir;
+    return items[j];
+  };
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].kind !== 'q') continue;
+    const prev = neighbour(i, -1); const next = neighbour(i, 1);
+    const target = prev?.kind === 'name' && !prev.used ? prev : next?.kind === 'name' && !next.used ? next : null;
+    if (target) { target.used = true; target.qs.push(items[i].text.trim()); items[i].gone = true; }
+  }
+  return items.filter((x) => !x.gone).map((x) => (x.qs.length ? `${x.qs.join(' ')} ${x.text.trim()}` : x.text));
+}
+
 /** Strony WWW wklejają listę z pustą linią między każdymi dwiema – gdy tak jest prawie wszędzie, to odstęp, nie podział na przepisy. */
 function dropSpacerLines(lines) {
   const gaps = [];
@@ -231,7 +283,7 @@ function dropSpacerLines(lines) {
  */
 export function buildGroups(text, { lang, vocab, multiplier = 1, region = 'metric' }) {
   const blocks = [[]];
-  for (const raw of dropSpacerLines(String(text).replace(/[\u200b\ufeff]/g, '').split(/\r\n|\n|\r|\u2028|\u2029/))) {
+  for (const raw of pairQuantities(dropSpacerLines(cleanText(text)))) {
     if (isHeading(raw)) { // „Składniki:” – jedyna linia tuż przed nim (bez liczb) to tytuł przepisu
       const cur = blocks.at(-1);
       if (cur.length === 1 && !/\d/.test(cur[0].replace(/\([^)]*\)/g, ''))) cur.pop(); // „(4 porcje)” nie liczy się jako ilość
@@ -239,18 +291,15 @@ export function buildGroups(text, { lang, vocab, multiplier = 1, region = 'metri
       continue;
     }
     if (!raw.trim()) { if (blocks.at(-1).length) blocks.push([]); continue; }
-    let cur = blocks.at(-1);
-    if (!cur.length && blocks.length > 1 && isQuantityOnly(raw) && blocks.at(-2).length) { blocks.pop(); cur = blocks.at(-1); } // ilość po pustej linii
-    if (isQuantityOnly(raw) && cur.length && !/\d/.test(cur.at(-1).replace(/\([^)]*\)/g, ''))) { // „filety…” + „500 gramów”
-      cur[cur.length - 1] = `${raw.trim()} ${cur.at(-1)}`;
-      continue;
-    }
+    const cur = blocks.at(-1);
     cur.push(...expandList(raw, vocab, lang));
   }
   const groups = new Map();
+  const skipped = []; // linie, których nie umiemy odczytać – pokazujemy je zamiast po cichu gubić
   let lines = 0;
   for (const block of blocks) {
-    const parsed = block.map((l) => parseLine(l, { region })).filter(Boolean);
+    const parsed = [];
+    for (const l of block) { const p = parseLine(l, { region }); if (p) parsed.push(p); else skipped.push(l.trim()); }
     // pierwsza linia bez ilości, a reszta bloku ma ilości = tytuł przepisu
     if (parsed.length > 2 && !parsed[0].amounts.length && !parsed[0].toTaste
       && parsed.slice(1).filter((p) => p.amounts.length).length * 2 >= parsed.length - 1) parsed.shift();
@@ -269,7 +318,7 @@ export function buildGroups(text, { lang, vocab, multiplier = 1, region = 'metri
       groups.set(key, g);
     }
   }
-  return { groups: [...groups.values()], lines };
+  return { groups: [...groups.values()], lines, skipped };
 }
 
 /** Klucz produktu na liście (to samo pojęcie albo podobny tekst) – do wykrywania, że coś już tam jest. */

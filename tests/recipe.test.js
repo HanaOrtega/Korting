@@ -265,3 +265,35 @@ test('skopiowane ze strony: pusta linia między każdymi dwiema liniami', () => 
     assert.deepEqual(groups.find((g) => /mleko/.test(g.text)).amounts, [{ dim: 'ml', value: 150 }]);
   }
 });
+
+test('odporność na różne formaty wklejki: te same ilości niezależnie od formatu', () => {
+  const pairs = [['filety z piersi kurczaka', '500 gramów'], ['makaron tagliatelle', '250 gramów'], ['mleko', '150 mililitrów'], ['jajka', '3']];
+  const check = (text, label) => {
+    const { groups } = buildGroups(text, { lang: 'pl', vocab: buildVocab([]) });
+    const by = (re) => groups.find((g) => re.test(g.text))?.amounts.map((a) => `${a.value}${a.dim}`).join('+');
+    assert.equal(groups.length, 4, label);
+    assert.equal(by(/kurczak/), '500g', label);
+    assert.equal(by(/tagliatelle/), '250g', label);
+    assert.equal(by(/mleko/), '150ml', label);
+    assert.equal(by(/jaj/), '3piece', label);
+  };
+  const nameFirst = pairs.map(([n, q]) => `${n}\n${q}`).join('\n');
+  check(nameFirst, 'nazwa, ilość');
+  check(pairs.map(([n, q]) => `${q}\n${n}`).join('\n'), 'ilość, nazwa');
+  check(pairs.map(([n, q]) => `${n}\n\n${q}`).join('\n\n'), 'puste linie');
+  check(nameFirst.normalize('NFD'), 'NFD');
+  check(nameFirst.replace(/ /g, ' ').replace(/\n/g, '\r\n'), 'nbsp + CRLF');
+  check(pairs.map(([n, q]) => `<li>${n}</li><li>${q}</li>`).join(''), 'HTML');
+  check(pairs.map(([n, q]) => `<p>${n}&nbsp;</p>\n<p>${q}</p>`).join('\n'), 'HTML z encjami');
+  check(pairs.map(([n, q]) => `• **${n}**\n• ${q}`).join('\n'), 'punktory i markdown');
+  check(pairs.map(([n, q]) => `${n}\t${q}`).join('\n'), 'tabulator');
+  check(pairs.map(([n, q]) => `${n} ........ ${q}`).join('\n'), 'kropki');
+  check(pairs.map(([n, q]) => `${n}: ${q}`).join('\n'), 'dwukropek');
+  check(pairs.map(([n, q]) => `${n} - ${q}`).join('\n'), 'myślnik');
+  check(pairs.map(([n, q]) => `${n} (${q})`).join('\n'), 'nawias');
+});
+
+test('linie, których nie da się odczytać, są zgłaszane, nie gubione po cichu', () => {
+  const { skipped } = buildGroups('mleko 1 l\n500 gramów\n', { lang: 'pl', vocab: buildVocab([]) });
+  assert.deepEqual(skipped, ['500 gramów']);
+});

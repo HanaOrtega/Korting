@@ -11,7 +11,7 @@ export default function RecipeModal({ visible, onClose, c, t, lang, vocab, items
   const [mult, setMult] = useState(1);
   const [regionChoice, setRegionChoice] = useState('auto');
   const region = resolveRegion(regionChoice, text);
-  const { groups, lines } = useMemo(() => buildGroups(text, { lang, vocab, multiplier: mult, region }), [text, lang, vocab, mult, region]);
+  const { groups, lines, skipped } = useMemo(() => buildGroups(text, { lang, vocab, multiplier: mult, region }), [text, lang, vocab, mult, region]);
   const sizes = REGIONS[region];
   const regionName = (id) => (id === 'auto' ? t('regAuto') : id === 'metric' ? t('regMetric') : id === 'us' ? 'USA' : id === 'uk' ? 'UK' : 'AU');
   const onList = useMemo(() => new Set(items.map((it) => keyOfItem(it, { lang, vocab }))), [items, lang, vocab]);
@@ -63,6 +63,12 @@ export default function RecipeModal({ visible, onClose, c, t, lang, vocab, items
                   </View>
                 </View>
               ))}
+            </View>
+          )}
+          {skipped.length > 0 && (
+            <View style={{ backgroundColor: c.warn, borderRadius: 10, padding: 10, gap: 2 }}>
+              <Text style={{ color: c.warnFg, fontWeight: '600', fontSize: 13 }}>{t('recipeSkipped', { n: skipped.length })}</Text>
+              {skipped.slice(0, 8).map((l, i) => <Text key={i} style={{ color: c.warnFg, fontSize: 13 }}>• {l}</Text>)}
             </View>
           )}
           <Pressable onPress={add} disabled={groups.length === 0} style={[btn, { padding: 14, opacity: groups.length === 0 ? 0.4 : 1 }]}>
