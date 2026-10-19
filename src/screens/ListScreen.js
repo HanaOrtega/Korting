@@ -10,6 +10,7 @@ import { fmtAmounts, mergeIntoItems } from '../recipe.js';
 import { bestUnitId } from '../pricing.js';
 import { lookupRegular, regularStores } from '../regular.js';
 import { favoriteChains } from '../stores.js';
+import { fmtQty, neededAmount, sortByNeed } from '../need.js';
 import { translateToDutch } from '../translate.js';
 import { recordWord } from '../vocabLog.js';
 import { ACCENT } from '../theme.js';
@@ -50,7 +51,8 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
   const rows = useMemo(() => items.map((item) => {
     const r0 = resolve(item.text, vocab, tr[trKey(item.text)] ?? null, lang);
     const r = item.pick != null ? forConcept(item.pick, item.text) : r0; // r0 zostaje źródłem listy „czy chodziło o…”
-    return { item, r, r0, hits: matchDeals(r.terms, deals, r.ci) };
+    const need = neededAmount(item.amounts);
+    return { item, r, r0, need, hits: sortByNeed(matchDeals(r.terms, deals, r.ci), need) };
   }), [items, deals, vocab, tr, lang]);
 
   const chains = useMemo(() => favoriteChains(favorites), [favorites]);
@@ -164,10 +166,11 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
         <CompareView c={c} t={t} rows={rows} regular={regular} stores={chains} loading={regLoading} />
       )}
 
-      {view === 'items' && rows.map(({ item, r, r0, hits }) => {
+      {view === 'items' && rows.map(({ item, r, r0, hits, need }) => {
         const expanded = !!open[item.id];
         const shown = expanded ? hits : hits.slice(0, PREVIEW);
         const bestId = bestUnitId(hits);
+        const amountText = item.amounts?.length ? fmtAmounts(item.amounts, t) : '';
         const choices = r0.status === 'fuzzy' || r0.status === 'ambiguous'
           ? [r0.ci, ...r0.alts].map((ci) => ({ key: ci, label: `${displayName(ci, lang)} → ${dutchName(ci)}`, apply: displayName(ci, lang), pick: ci }))
           : r.status === 'dutch-fuzzy' ? [{ key: r.word, label: r.word, apply: r.word }] : [];
@@ -179,7 +182,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
                 <Text style={{ fontSize: 24, color: item.done ? ACCENT : c.mut }}>{item.done ? '☑' : '☐'}</Text>
               </Pressable>
               <Text style={{ flex: 1, color: c.fg, fontSize: 17, fontWeight: '600', textDecorationLine: item.done ? 'line-through' : 'none', opacity: item.done ? 0.5 : 1 }}>
-                {item.text}{item.amounts?.length ? <Text style={{ color: c.mut, fontWeight: '400', fontSize: 14 }}>  {fmtAmounts(item.amounts, t)}</Text> : null}
+                {item.text}{amountText ? <Text style={{ color: ACCENT, fontWeight: '700', fontSize: 16 }}>  {amountText}</Text> : null}
               </Text>
               <Pressable onPress={() => remove(item.id)} hitSlop={10}><Text style={{ color: c.mut, fontSize: 20 }}>✕</Text></Pressable>
             </View>
@@ -208,6 +211,8 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
             {r.partial && <Text style={{ color: c.mut, fontSize: 13, marginTop: 6 }}>{t('partialHint', { w: r.extra.join(' ') })}</Text>}
             {r.status === 'unknown' && <Text style={{ color: c.mut, fontSize: 13, marginTop: 6 }}>{t('unknownItem')}</Text>}
 
+            {need?.small && <Text style={{ color: c.mut, fontSize: 13, marginTop: 6 }}>{t('smallAmount', { a: amountText })}</Text>}
+
             {!item.done && (
               <View style={{ marginTop: 6 }}>
                 {hits.length === 0 ? (
@@ -215,7 +220,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
                 ) : (
                   <>
                     <Text style={{ color: ACCENT, fontWeight: '600', fontSize: 13 }}>{t('promoCount', { n: hits.length })}</Text>
-                    {shown.map((d) => <DealRow key={d.id} deal={d} c={c} t={t} lang={lang} best={d.id === bestId} />)}
+                    {shown.map((d) => <DealRow key={d.id} deal={d} c={c} t={t} lang={lang} best={d.id === bestId} need={need} />)}
                     {hits.length > PREVIEW && (
                       <Pressable onPress={() => setOpen((o) => ({ ...o, [item.id]: !expanded }))}>
                         <Text style={{ color: ACCENT, paddingVertical: 4 }}>

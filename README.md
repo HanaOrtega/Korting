@@ -152,3 +152,11 @@ Dirk i Plus. Promocje są ogólnokrajowe, więc ulubiony sklep służy do wyboru
   szczegółowy: w przepisie zostaje osobną pozycją, a na liście aplikacja tłumaczy całą frazę na holenderski (online, wynik
   zapamiętany) i szuka dokładnie tego. Bez internetu szuka ogólnie i pokazuje o tym informację.
 - Pomijane są słowa, które nie zmieniają produktu (świeży, duży, posiekany, natka, listki…).
+
+## Ilości z przepisu a zakupy
+
+- Ilość przy pozycji (np. „500 g”) jest wyróżniona kolorem na liście i w widoku „Wg sklepów”.
+- Przy każdej promocji aplikacja liczy, ile opakowań pokryje potrzebę („Potrzeba 500 g: 2 × 400 g = €6,00”), a promocje
+  są sortowane od najtańszej *za potrzebną ilość*, nie za sztukę. Liczy tylko gdy gramatura promocji jest w tej samej
+  jednostce (kg/g albo l/ml).
+- Małe ilości (poniżej 100 g/ml – łyżki, szczypty) nie są liczone na opakowania: „wystarczy najmniejsze opakowanie”.

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Image, Linking, Pressable, Text, View } from 'react-native';
 import { fmtUnit, saving, unitPrice } from '../pricing.js';
+import { fmtQty, packPlan } from '../need.js';
 import { UA } from '../providers/util.js';
 import { ACCENT } from '../theme.js';
 import { daysLeft, fmtDate, fmtPrice } from '../format.js';
@@ -19,7 +20,8 @@ function Thumb({ uri }) {
   );
 }
 
-export default function DealRow({ deal, c, t, lang, onAdd, best = false }) {
+export default function DealRow({ deal, c, t, lang, onAdd, best = false, need = null }) {
+  const pack = packPlan(need, deal);
   const save = saving(deal);
   const unit = unitPrice(deal);
   const n = deal.validUntil ? daysLeft(deal.validUntil) : null;
@@ -42,6 +44,11 @@ export default function DealRow({ deal, c, t, lang, onAdd, best = false }) {
           <Text style={{ color: urgent ? c.danger : c.mut, fontSize: 13 }}>{until}</Text>
         </View>
         {note ? <Text style={{ color: c.mut, fontSize: 12 }} numberOfLines={2}>{note}</Text> : null}
+        {pack ? (
+          <Text style={{ fontSize: 13, color: c.fg, fontWeight: '600' }}>
+            {t('packsCalc', { n: pack.n, size: fmtQty(pack.size, pack.per), total: fmtPrice(pack.total), need: fmtQty(need.amount, need.per) })}
+          </Text>
+        ) : null}
         {(save || unit) && (
           <Text style={{ fontSize: 12, color: c.mut }}>
             {save ? <Text style={{ color: '#2b8a3e', fontWeight: '600' }}>−{save.pct}% (−€{save.eur.toFixed(2).replace('.', ',')})</Text> : null}
