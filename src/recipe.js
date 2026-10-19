@@ -1,40 +1,73 @@
 // Składniki przepisu → pozycje listy zakupów: ilości, jednostki, sumowanie i usuwanie duplikatów.
-import { displayName, norm, resolve } from './match.js';
+import { densityOf } from './density.js';
+import { dutchName, displayName, norm, resolve } from './match.js';
 
-// ---- jednostki (słowa w 12 językach); masa → g, objętość → ml, reszta zostaje własną „wymiarową” jednostką ----
-// dim: g | ml | piece | clove | can | bunch | pack | pinch | slice | tbsp | tsp | cup | handful
-const UNITS = [
-  { dim: 'g', f: 1, w: 'g gr gram gramy gramow gramm grammes gramos grammi gramas грам грамів грамм граммов грамы' },
-  { dim: 'g', f: 1000, w: 'kg kilo kilogram kilogramy kilogramow kilogramm kilogrammes kilogramos kilogrammi quilograma кг кілограм килограмм' },
-  { dim: 'g', f: 28.35, w: 'oz ounce ounces uncja uncje' },
-  { dim: 'g', f: 453.6, w: 'lb lbs pound pounds funt funty' },
-  { dim: 'ml', f: 1, w: 'ml milliliter mililitr mililitry millilitres mililitros millilitri mililitro mililitri мл мілілітр миллилитр' },
-  { dim: 'ml', f: 10, w: 'cl centiliter centylitr centylitry centilitres centilitros centilitri' },
-  { dim: 'ml', f: 100, w: 'dl deciliter decylitr decylitry decilitres decilitros decilitri decilitro' },
-  { dim: 'ml', f: 1000, w: 'l lt ltr liter litr litry litrow litre litres litro litros litri л літр литр' },
-  { dim: 'piece', f: 1, w: 'szt sztuka sztuki sztuk pcs pc piece pieces stuk stuks st stk stuck stuck pièce pièces piece uds ud unidad unidades pz pezzo pezzi un unidade unidades adet шт штук штуки buc bucata bucati' },
-  { dim: 'clove', f: 1, w: 'zabek zabka zabki zabkow clove cloves teentje teentjes zehe zehen gousse gousses diente dientes spicchio spicchi dente dentes dis зубчик зубчики зубок catel catei зубчика' },
-  { dim: 'can', f: 1, w: 'puszka puszki puszke puszek can cans tin tins blik blikje blikken blikjes dose dosen boite boites lata latas lattina lattine scatola konserve банка банки conserva cutie' },
-  { dim: 'bunch', f: 1, w: 'peczek peczka peczki peczkow bunch bunches bos bosje bund botte bottes manojo manojos mazzo mazzi molho molhos demet пучок пучки legatura manunchi' },
-  { dim: 'pack', f: 1, w: 'opakowanie opakowania opakowan opak pack packs package pak pakje pakket packung packungen pkg paquet paquets paquete paquetes confezione confezioni pacote pacotes paket пачка пачки упаковка упаковки pachet pachete' },
-  { dim: 'pinch', f: 1, w: 'szczypta szczypty szczypte szczypt pinch pinches snufje snufjes mespunt prise pincee pincees pizca pizzico pitada tutam щіпка щепотка щепотки varf' },
-  { dim: 'slice', f: 1, w: 'plaster plastra plasterek plastry plasterki slice slices plak plakje plakjes scheibe scheiben tranche tranches loncha lonchas rebanada fetta fette fatia fatias dilim скибка ломтик ломтики felie felii' },
-  { dim: 'tbsp', f: 1, w: 'lyzka lyzki lyzek tbsp tbs tablespoon tablespoons el eetlepel eetlepels essloffel cs cucharada cucharadas cda cucchiaio cucchiai lingura linguri' },
-  { dim: 'tsp', f: 1, w: 'lyzeczka lyzeczki lyzeczek tsp teaspoon teaspoons tl theelepel theelepels teeloffel cc cucharadita cucharaditas cdta cucchiaino cucchiaini lingurita lingurite' },
-  { dim: 'cup', f: 1, w: 'szklanka szklanki szklanek cup cups kopje kopjes tasse tassen taza tazas tazza tazze chavena chavenas copo su bardagi склянка склянки стакан стакана ceasca cesti' },
-  { dim: 'handful', f: 1, w: 'garsc garsci handful handfuls handvol handvoll poignee poignees punado punados manciata manciate punhado avuc жменя горсть pumn maini' },
-];
-const UNIT_MAP = new Map(); // znormalizowane słowo/fraza -> { dim, f } (pojedyncze słowa; frazy poniżej)
-for (const u of UNITS) for (const w of u.w.split(' ')) UNIT_MAP.set(norm(w), u);
-// jednostki wielowyrazowe – osobno, żeby ich części („de”, „soupe”, „л”) nie zostały jednostkami
-const PHRASES = {
-  'łyżka stołowa': 'tbsp', 'łyżki stołowe': 'tbsp', 'cuillère à soupe': 'tbsp', 'cuillères à soupe': 'tbsp', 'colher de sopa': 'tbsp',
-  'colheres de sopa': 'tbsp', 'yemek kaşığı': 'tbsp', 'столова ложка': 'tbsp', 'столові ложки': 'tbsp', 'столовая ложка': 'tbsp',
-  'столовые ложки': 'tbsp', 'ст. л.': 'tbsp', 'ст.л.': 'tbsp',
-  'cuillère à café': 'tsp', 'cuillères à café': 'tsp', 'colher de chá': 'tsp', 'colheres de chá': 'tsp', 'çay kaşığı': 'tsp',
-  'чайна ложка': 'tsp', 'чайні ложки': 'tsp', 'чайная ложка': 'tsp', 'чайные ложки': 'tsp', 'ч. л.': 'tsp', 'ч.л.': 'tsp',
+// ---- jednostki (słowa w 12 językach); masa → g, objętość → ml ----
+// Łyżki, łyżeczki, szklanki, pinty itd. zamieniamy od razu na ml, a rozmiar zależy od REGIONU miar
+// (łyżka: USA 14,8 ml, Europa/UK 15 ml, Australia 20 ml; „cup”: USA 237 ml, Europa/Australia 250 ml, UK 284 ml).
+// Słowa nieangielskie mają stały rozmiar (polska łyżka = 15 ml, szklanka = 250 ml).
+export const REGIONS = {
+  metric: { tbsp: 15, tsp: 5, cup: 250, pint: 500, quart: 1000, gallon: 4000, floz: 30 },
+  us: { tbsp: 14.79, tsp: 4.93, cup: 236.59, pint: 473.18, quart: 946.35, gallon: 3785.41, floz: 29.57 },
+  uk: { tbsp: 15, tsp: 5, cup: 284.13, pint: 568.26, quart: 1136.52, gallon: 4546.09, floz: 28.41 },
+  au: { tbsp: 20, tsp: 5, cup: 250, pint: 568.26, quart: 1136.52, gallon: 4546.09, floz: 28.41 },
 };
-for (const [phrase, dim] of Object.entries(PHRASES)) if (dim) UNIT_MAP.set(norm(phrase), UNITS.find((u) => u.dim === dim));
+export const REGION_IDS = Object.keys(REGIONS);
+
+const G = (f) => ({ dim: 'g', f });
+const ML = (f) => ({ dim: 'ml', f });
+const REG = (reg) => ({ dim: 'ml', reg, approx: ['tbsp', 'tsp', 'cup'].includes(reg) }); // rozmiar zależy od regionu
+const FIXED = (f) => ({ dim: 'ml', f, approx: true }); // łyżka/szklanka w danym języku (przybliżenie)
+const COUNT = (dim) => ({ dim, f: 1 });
+
+const UNITS = [
+  [G(1), 'g gr gram gramy gramow gramm grammes gramos grammi gramas грам грамів грамм граммов грамы'],
+  [G(1000), 'kg kilo kilogram kilogramy kilogramow kilogramm kilogrammes kilogramos kilogrammi quilograma кг кілограм килограмм'],
+  [G(28.35), 'oz ounce ounces uncja uncje'],
+  [G(453.6), 'lb lbs pound pounds funt funty'],
+  [G(113.4), 'stick sticks'], // amerykańska kostka masła
+  [ML(1), 'ml milliliter mililitr mililitry millilitres mililitros millilitri mililitro mililitri мл мілілітр миллилитр'],
+  [ML(10), 'cl centiliter centylitr centylitry centilitres centilitros centilitri'],
+  [ML(100), 'dl deciliter decylitr decylitry decilitres decilitros decilitri decilitro'],
+  [ML(1000), 'l lt ltr liter litr litry litrow litre litres litro litros litri л літр литр'],
+  [REG('tbsp'), 'tbsp tbs tablespoon tablespoons'],
+  [REG('tsp'), 'tsp teaspoon teaspoons'],
+  [REG('cup'), 'cup cups'],
+  [REG('pint'), 'pint pints pt'],
+  [REG('quart'), 'quart quarts qt'],
+  [REG('gallon'), 'gallon gallons gal'],
+  [FIXED(15), 'lyzka lyzki lyzek el eetlepel eetlepels essloffel cs cucharada cucharadas cda cucchiaio cucchiai lingura linguri'],
+  [FIXED(5), 'lyzeczka lyzeczki lyzeczek tl theelepel theelepels teeloffel cc cucharadita cucharaditas cdta cucchiaino cucchiaini lingurita lingurite'],
+  [FIXED(250), 'szklanka szklanki szklanek tasse tassen taza tazas tazza tazze chavena chavenas стакан стакана склянка склянки ceasca cesti'],
+  [FIXED(150), 'kopje kopjes'],
+  [FIXED(200), 'bardagi'],
+  [COUNT('piece'), 'szt sztuka sztuki sztuk pcs pc piece pieces stuk stuks st stk stuck pièce pièces uds ud unidad unidades pz pezzo pezzi un unidade unidades adet шт штук штуки buc bucata bucati'],
+  [COUNT('clove'), 'zabek zabka zabki zabkow clove cloves teentje teentjes zehe zehen gousse gousses diente dientes spicchio spicchi dente dentes dis зубчик зубчики зубок catel catei зубчика'],
+  [COUNT('can'), 'puszka puszki puszke puszek can cans tin tins blik blikje blikken blikjes dose dosen boite boites lata latas lattina lattine scatola konserve банка банки conserva cutie'],
+  [COUNT('bunch'), 'peczek peczka peczki peczkow bunch bunches bos bosje bund botte bottes manojo manojos mazzo mazzi molho molhos demet пучок пучки legatura manunchi'],
+  [COUNT('pack'), 'opakowanie opakowania opakowan opak pack packs package pak pakje pakket packung packungen pkg paquet paquets paquete paquetes confezione confezioni pacote pacotes paket пачка пачки упаковка упаковки pachet pachete'],
+  [COUNT('pinch'), 'szczypta szczypty szczypte szczypt pinch pinches dash dashes snufje snufjes mespunt prise pincee pincees pizca pizzico pitada tutam щіпка щепотка щепотки varf'],
+  [COUNT('slice'), 'plaster plastra plasterek plastry plasterki slice slices plak plakje plakjes scheibe scheiben tranche tranches loncha lonchas rebanada fetta fette fatia fatias dilim скибка ломтик ломтики felie felii'],
+  [COUNT('handful'), 'garsc garsci handful handfuls handvol handvoll poignee poignees punado punados manciata manciate punhado avuc жменя горсть pumn maini'],
+];
+const UNIT_MAP = new Map(); // znormalizowane słowo/fraza -> specyfikacja jednostki
+for (const [spec, words] of UNITS) for (const w of words.split(' ')) UNIT_MAP.set(norm(w), spec);
+// jednostki wielowyrazowe – osobno, żeby ich części („de”, „soupe”, „л”) nie zostały jednostkami
+for (const [phrase, spec] of [
+  ['łyżka stołowa', FIXED(15)], ['łyżki stołowe', FIXED(15)], ['cuillère à soupe', FIXED(15)], ['cuillères à soupe', FIXED(15)],
+  ['colher de sopa', FIXED(15)], ['colheres de sopa', FIXED(15)], ['yemek kaşığı', FIXED(15)], ['столова ложка', FIXED(15)],
+  ['столові ложки', FIXED(15)], ['столовая ложка', FIXED(15)], ['столовые ложки', FIXED(15)], ['ст. л.', FIXED(15)], ['ст.л.', FIXED(15)],
+  ['cuillère à café', FIXED(5)], ['cuillères à café', FIXED(5)], ['colher de chá', FIXED(5)], ['colheres de chá', FIXED(5)],
+  ['çay kaşığı', FIXED(5)], ['чайна ложка', FIXED(5)], ['чайні ложки', FIXED(5)], ['чайная ложка', FIXED(5)], ['чайные ложки', FIXED(5)],
+  ['ч. л.', FIXED(5)], ['ч.л.', FIXED(5)], ['su bardağı', FIXED(200)],
+  ['fl oz', REG('floz')], ['fl. oz', REG('floz')], ['fluid ounce', REG('floz')], ['fluid ounces', REG('floz')], ['fluid oz', REG('floz')],
+]) UNIT_MAP.set(norm(phrase), spec);
+
+/** Region miar: 'us' gdy w tekście są jednostki amerykańskie (cups, oz, lb, stick, °F), inaczej 'metric'. */
+export function detectRegion(text) {
+  return /\b(cups?|sticks?|oz|ounces?|lbs?|pounds?|pints?|quarts?|gallons?|fahrenheit)\b|°\s*f\b/i.test(String(text)) ? 'us' : 'metric';
+}
+export const resolveRegion = (choice, text) => (choice && choice !== 'auto' && REGIONS[choice] ? choice : detectRegion(text));
 
 const HALF = new Set(['pol', 'polowa', 'half', 'halve', 'halb', 'halbe', 'demi', 'medio', 'media', 'mezzo', 'mezza', 'meio', 'meia', 'yarim', 'пів', 'половина', 'jumatate', 'пол'].map(norm));
 const TO_TASTE = ['do smaku', 'to taste', 'naar smaak', 'nach geschmack', 'au gout', 'al gusto', 'a gusto', 'al gusto', 'to tadina gore', 'по вкусу', 'за смаком', 'dupa gust', 'ao gosto', 'a gosto'].map(norm);
@@ -60,8 +93,8 @@ function takeQuantity(s) {
   return null;
 }
 
-/** Jedna linia składnika → { raw, name, amounts: [{dim, value}], toTaste } albo null (nagłówek / pusta). */
-export function parseLine(line) {
+/** Jedna linia składnika → { raw, name, amounts: [{dim, value, approx?}], toTaste } albo null (nagłówek / pusta). `region` decyduje o rozmiarze łyżki i „cup”. */
+export function parseLine(line, { region = 'metric' } = {}) {
   let s = String(line).replace(/ /g, ' ').trim();
   s = s.replace(/^[\s\-–—•*·▪●◦■□☐✓]+/, '').replace(/^\d+[.)]\s+/, '').trim(); // punktory i numeracja „1. ”
   s = s.replace(/(\d+)?\s*([½¼¾⅓⅔⅛])/g, (_, d, f) => ` ${(d ? Number(d) : 0) + FRAC[f]} `).replace(/\s+/g, ' ').trim();
@@ -95,7 +128,8 @@ export function parseLine(line) {
   let name = tokens.join(' ').split(/[,;]| - | – /)[0].replace(/^[\s.:]+|[\s.:]+$/g, '').trim();
   if (!name) return null;
 
-  const amounts = value === null ? [] : [{ dim: unit ? unit.dim : 'piece', value: round(value * (unit ? unit.f : 1)) }];
+  const factor = unit ? (unit.reg ? (REGIONS[region] ?? REGIONS.metric)[unit.reg] : unit.f) : 1;
+  const amounts = value === null ? [] : [{ dim: unit ? unit.dim : 'piece', value: round(value * factor), ...(unit?.approx ? { approx: true } : {}) }];
   return { raw: String(line).trim(), name, amounts, toTaste };
 }
 
@@ -103,23 +137,39 @@ export function parseLine(line) {
 export function addAmount(list, a) {
   const out = list.map((x) => ({ ...x }));
   const hit = out.find((x) => x.dim === a.dim);
-  if (hit) hit.value = round(hit.value + a.value); else out.push({ ...a });
+  if (hit) { hit.value = round(hit.value + a.value); if (hit.approx || a.approx) hit.approx = true; } else out.push({ ...a });
   return out;
 }
 
-export const scaleAmounts = (amounts, k) => amounts.map((a) => ({ ...a, value: round(a.value * k) }));
+/** Objętość ↔ masa dla znanych produktów: „2 cups flour” → g, „8 oz milk” → ml (wg tego, jak produkt się kupuje). */
+export function applyDensity(amounts, nlName) {
+  const dens = densityOf(nlName);
+  if (!dens) return amounts;
+  return amounts.map((a) => {
+    if (a.dim === 'ml' && dens.prefer === 'g') return { dim: 'g', value: a.value * dens.d, approx: true };
+    if (a.dim === 'g' && dens.prefer === 'ml') return { dim: 'ml', value: a.value / dens.d, approx: true };
+    return a;
+  });
+}
+
+export const scaleAmounts = (amounts, k) => amounts.map((a) => ({ ...a, value: a.approx ? a.value * k : round(a.value * k) }));
 
 const DIM_ORDER = ['g', 'ml', 'piece', 'tbsp', 'tsp', 'cup', 'handful', 'clove', 'pinch', 'slice', 'can', 'bunch', 'pack'];
 const fmtNum = (v) => String(round(v)).replace('.', ',');
 const UNIT_KEY = { piece: 'uPiece', clove: 'uClove', can: 'uCan', bunch: 'uBunch', pack: 'uPack', pinch: 'uPinch', slice: 'uSlice', tbsp: 'uTbsp', tsp: 'uTsp', cup: 'uCup', handful: 'uHandful' };
 
-/** [{dim, value}] → „450 g + 2 szt. + 3 × łyżka”; g i ml przeliczane na kg i l od 1000. */
+// wartości przeliczone (łyżki, szklanki, gęstość) zaokrąglamy do sensownej dokładności i oznaczamy „≈”
+const niceRound = (v) => (v < 10 ? Math.round(v * 2) / 2 : v < 50 ? Math.round(v) : v < 1000 ? Math.round(v / 5) * 5 : Math.round(v / 10) * 10);
+
+/** [{dim, value}] → „450 g + 2 szt.”; g i ml przeliczane na kg i l od 1000; przeliczone wartości z „≈”. */
 export function fmtAmounts(amounts, t) {
   return [...amounts].sort((a, b) => DIM_ORDER.indexOf(a.dim) - DIM_ORDER.indexOf(b.dim)).map((a) => {
-    if (a.dim === 'g') return a.value >= 1000 ? `${fmtNum(a.value / 1000)} kg` : `${fmtNum(a.value)} g`;
-    if (a.dim === 'ml') return a.value >= 1000 ? `${fmtNum(a.value / 1000)} l` : `${fmtNum(a.value)} ml`;
-    if (a.dim === 'piece') return `${fmtNum(a.value)} ${t('uPiece')}`;
-    return `${fmtNum(a.value)} × ${t(UNIT_KEY[a.dim])}`;
+    const v = a.approx ? niceRound(a.value) : a.value;
+    const tilde = a.approx ? '≈ ' : '';
+    if (a.dim === 'g') return tilde + (v >= 1000 ? `${fmtNum(v / 1000)} kg` : `${fmtNum(v)} g`);
+    if (a.dim === 'ml') return tilde + (v >= 1000 ? `${fmtNum(v / 1000)} l` : `${fmtNum(v)} ml`);
+    if (a.dim === 'piece') return `${fmtNum(v)} ${t('uPiece')}`;
+    return `${fmtNum(v)} × ${t(UNIT_KEY[a.dim])}`; // także zapisane wcześniej łyżki/szklanki
   }).join(' + ');
 }
 
@@ -149,7 +199,7 @@ function expandList(line, vocab, lang) {
  * Zwraca { groups: [{ key, ci, text, amounts, count, toTaste }], lines }. `multiplier` skaluje porcje.
  * Tytuły przepisów („Zapiekanka makaronowa”) i nagłówki („Składniki:”) są pomijane.
  */
-export function buildGroups(text, { lang, vocab, multiplier = 1 }) {
+export function buildGroups(text, { lang, vocab, multiplier = 1, region = 'metric' }) {
   const blocks = [[]];
   for (const raw of String(text).split(/\r?\n/)) {
     if (isHeading(raw)) { // „Składniki:” – jedyna linia tuż przed nim (bez liczb) to tytuł przepisu
@@ -164,7 +214,7 @@ export function buildGroups(text, { lang, vocab, multiplier = 1 }) {
   const groups = new Map();
   let lines = 0;
   for (const block of blocks) {
-    const parsed = block.map(parseLine).filter(Boolean);
+    const parsed = block.map((l) => parseLine(l, { region })).filter(Boolean);
     // pierwsza linia bez ilości, a reszta bloku ma ilości = tytuł przepisu
     if (parsed.length > 2 && !parsed[0].amounts.length && !parsed[0].toTaste
       && parsed.slice(1).filter((p) => p.amounts.length).length * 2 >= parsed.length - 1) parsed.shift();
@@ -173,8 +223,10 @@ export function buildGroups(text, { lang, vocab, multiplier = 1 }) {
       const r = resolve(p.name, vocab, null, lang);
       const sure = ['exact', 'stem', 'fuzzy'].includes(r.status) && r.alts.length === 0; // niejednoznaczne zostawiamy z wyborem (fuzzy bez konkurentów to zwykle odmiana: „mąki”)
       const key = r.ci != null ? `c:${r.ci}` : `t:${looseKey(p.name)}`;
-      const g = groups.get(key) ?? { key, ci: r.ci, text: sure ? displayName(r.ci, lang) : p.name, amounts: [], count: 0, toTaste: false };
-      for (const a of scaleAmounts(p.amounts, multiplier)) g.amounts = addAmount(g.amounts, a);
+      const g = groups.get(key) ?? { key, ci: r.ci, text: sure ? displayName(r.ci, lang) : p.name, amounts: [], sources: [], count: 0, toTaste: false };
+      const amounts = r.ci != null ? applyDensity(p.amounts, dutchName(r.ci)) : p.amounts;
+      for (const a of scaleAmounts(amounts, multiplier)) g.amounts = addAmount(g.amounts, a);
+      g.sources.push(p.raw);
       g.count++;
       g.toTaste = g.toTaste || p.toTaste;
       groups.set(key, g);

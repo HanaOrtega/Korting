@@ -133,7 +133,12 @@ Dirk i Plus. Promocje są ogólnokrajowe, więc ulubiony sklep służy do wyboru
 ## Składniki z przepisu: zasady sumowania
 
 - Sumowane są ilości w tej samej jednostce; masa (g, kg, oz, lb) i objętość (ml, l, dl, cl) są przeliczane na g i ml.
-- Łyżki, łyżeczki, szklanki, sztuki, ząbki, puszki itd. są osobnymi jednostkami (nie przeliczam ich na gramy, bo to zależy
-  od produktu), więc „200 g mąki” i „2 szklanki mąki” zostają obok siebie: „200 g + 2 × szklanka”.
+- Miary kuchenne zależą od kraju, więc przepis w obcym języku jest przeliczany według regionu: angielskie `tbsp/tsp/cup/pint/
+  quart/gallon/fl oz` mają inną wielkość w metrycznym (łyżka 15 ml, szklanka 250 ml), USA (14,79 ml, 236,6 ml), UK
+  (szklanka 284 ml) i Australii (łyżka 20 ml). „Auto” wykrywa region po tekście (cups, sticks, oz, lb, °F → USA), a w oknie
+  przepisu można go ustawić ręcznie. Łyżki/szklanki w innych językach używają wartości stałych (15/5/250 ml).
+- Przeliczone na g/ml są oz, lb, stick oraz – dla produktów ze znaną gęstością (mąka, cukier, masło, mleko, olej…) – także
+  łyżki i szklanki. Takie wartości są przybliżone i oznaczone „≈” (zaokrąglone, np. do 5 g).
+- Sztuki, ząbki, puszki itd. to osobne jednostki i zostają obok siebie.
 - Ten sam produkt rozpoznaję po słowniku (także w innym języku i w odmianie) albo, dla nieznanych słów, po podobnym początku
   nazwy („parmezan” ≈ „parmezanu”).

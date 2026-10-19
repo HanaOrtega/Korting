@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { buildGroups, fmtAmounts, keyOfItem } from '../recipe.js';
+import { REGIONS, REGION_IDS, buildGroups, fmtAmounts, keyOfItem, resolveRegion } from '../recipe.js';
 import { ACCENT } from '../theme.js';
 
 const STEP = 0.5;
@@ -9,11 +9,15 @@ const STEP = 0.5;
 export default function RecipeModal({ visible, onClose, c, t, lang, vocab, items, onAdd }) {
   const [text, setText] = useState('');
   const [mult, setMult] = useState(1);
-  const { groups, lines } = useMemo(() => buildGroups(text, { lang, vocab, multiplier: mult }), [text, lang, vocab, mult]);
+  const [regionChoice, setRegionChoice] = useState('auto');
+  const region = resolveRegion(regionChoice, text);
+  const { groups, lines } = useMemo(() => buildGroups(text, { lang, vocab, multiplier: mult, region }), [text, lang, vocab, mult, region]);
+  const sizes = REGIONS[region];
+  const regionName = (id) => (id === 'auto' ? t('regAuto') : id === 'metric' ? t('regMetric') : id === 'us' ? 'USA' : id === 'uk' ? 'UK' : 'AU');
   const onList = useMemo(() => new Set(items.map((it) => keyOfItem(it, { lang, vocab }))), [items, lang, vocab]);
   const btn = { backgroundColor: ACCENT, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center' };
 
-  const add = () => { onAdd(groups); setText(''); setMult(1); onClose(); };
+  const add = () => { onAdd(groups); setText(''); setMult(1); setRegionChoice('auto'); onClose(); };
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
@@ -32,6 +36,18 @@ export default function RecipeModal({ visible, onClose, c, t, lang, vocab, items
             <Pressable onPress={() => setMult((m) => Math.max(STEP, m - STEP))} style={[btn, { backgroundColor: c.chip }]}><Text style={{ color: c.fg, fontSize: 18 }}>−</Text></Pressable>
             <Text style={{ color: c.fg, fontWeight: '700', minWidth: 90, textAlign: 'center' }}>{t('recipeMult', { n: String(mult).replace('.', ',') })}</Text>
             <Pressable onPress={() => setMult((m) => m + STEP)} style={[btn, { backgroundColor: c.chip }]}><Text style={{ color: c.fg, fontSize: 18 }}>＋</Text></Pressable>
+          </View>
+
+          <View style={{ gap: 6 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
+              <Text style={{ color: c.mut, fontSize: 12 }}>{t('regionLabel')}:</Text>
+              {['auto', ...REGION_IDS].map((id) => (
+                <Pressable key={id} onPress={() => setRegionChoice(id)} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 14, backgroundColor: regionChoice === id ? ACCENT : c.chip }}>
+                  <Text style={{ color: regionChoice === id ? '#fff' : c.fg, fontSize: 13 }}>{regionName(id)}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <Text style={{ color: c.mut, fontSize: 12 }}>{regionName(region)}: {t('regInfo', { tbsp: sizes.tbsp, tsp: sizes.tsp, cup: sizes.cup })}</Text>
           </View>
 
           {groups.length === 0 ? (

@@ -9,13 +9,13 @@ test('parseLine: ilości, jednostki i nazwa po polsku', () => {
   assert.deepEqual(one('200 g mąki pszennej'), ['mąki pszennej', '200 g']);
   assert.deepEqual(one('1,5 kg ziemniaków'), ['ziemniaków', '1500 g']);
   assert.deepEqual(one('2 jajka'), ['jajka', '2 piece']);
-  assert.deepEqual(one('1 ½ szklanki mleka'), ['mleka', '1.5 cup']);
-  assert.deepEqual(one('pół szklanki cukru'), ['cukru', '0.5 cup']);
-  assert.deepEqual(one('2 łyżki oleju'), ['oleju', '2 tbsp']);
-  assert.deepEqual(one('1 łyżeczka soli'), ['soli', '1 tsp']);
+  assert.deepEqual(one('1 ½ szklanki mleka'), ['mleka', '375 ml']); // polska szklanka = 250 ml
+  assert.deepEqual(one('pół szklanki cukru'), ['cukru', '125 ml']);
+  assert.deepEqual(one('2 łyżki oleju'), ['oleju', '30 ml']);
+  assert.deepEqual(one('1 łyżeczka soli'), ['soli', '5 ml']);
   assert.deepEqual(one('3 ząbki czosnku'), ['czosnku', '3 clove']);
   assert.deepEqual(one('1 puszka pomidorów'), ['pomidorów', '1 can']);
-  assert.deepEqual(one('szklanka mleka'), ['mleka', '1 cup']);
+  assert.deepEqual(one('szklanka mleka'), ['mleka', '250 ml']);
   assert.deepEqual(one('2-3 cebule'), ['cebule', '3 piece']);
   assert.deepEqual(one('1/2 cytryny'), ['cytryny', '0.5 piece']);
   assert.deepEqual(one('500ml śmietanki'), ['śmietanki', '500 ml']);
@@ -37,17 +37,17 @@ test('parseLine: lista punktowana, numerowana, uwagi i „do smaku”', () => {
 });
 
 test('parseLine: inne języki', () => {
-  assert.deepEqual(one('2 cups flour'), ['flour', '2 cup']);
-  assert.deepEqual(one('1 tbsp olive oil'), ['olive oil', '1 tbsp']);
+  assert.deepEqual(one('2 cups flour'), ['flour', '500 ml']); // domyślnie miary metryczne (cup = 250 ml)
+  assert.deepEqual(one('1 tbsp olive oil'), ['olive oil', '15 ml']);
   assert.deepEqual(one('250g butter'), ['butter', '250 g']);
-  assert.deepEqual(one('2 EL Öl'), ['Öl', '2 tbsp']);
+  assert.deepEqual(one('2 EL Öl'), ['Öl', '30 ml']);
   assert.deepEqual(one('1 Prise Salz'), ['Salz', '1 pinch']);
-  assert.deepEqual(one('3 eetlepels olie'), ['olie', '3 tbsp']);
+  assert.deepEqual(one('3 eetlepels olie'), ['olie', '45 ml']);
   assert.deepEqual(one('1 blik tomaten'), ['tomaten', '1 can']);
   assert.deepEqual(one('2 gousses d\'ail'), ["ail", '2 clove']);
   assert.deepEqual(one('200 g de harina'), ['harina', '200 g']);
-  assert.deepEqual(one('2 ст. л. оливкового масла'), ['оливкового масла', '2 tbsp']);
-  assert.deepEqual(one('1 cuillère à soupe de miel'), ['miel', '1 tbsp']);
+  assert.deepEqual(one('2 ст. л. оливкового масла'), ['оливкового масла', '30 ml']);
+  assert.deepEqual(one('1 cuillère à soupe de miel'), ['miel', '15 ml']);
 });
 
 test('buildGroups: duplikaty z kilku linii są sumowane, rodzaj/odmiana nie ma znaczenia', () => {
@@ -62,11 +62,20 @@ test('buildGroups: duplikaty z kilku linii są sumowane, rodzaj/odmiana nie ma z
   assert.deepEqual(groups.find((g) => /cebul/.test(g.text)).amounts, [{ dim: 'piece', value: 3 }]);
 });
 
-test('buildGroups: różne jednostki tego samego produktu zostają obok siebie, g i kg się łączą', () => {
+test('buildGroups: g, kg i szklanki tego samego produktu sumują się (szklanka mąki ≈ 132 g)', () => {
   const { groups } = buildGroups('1 kg mąki\n500 g mąki\n2 szklanki mąki', { lang: 'pl' });
   assert.equal(groups.length, 1);
-  assert.deepEqual(groups[0].amounts, [{ dim: 'g', value: 1500 }, { dim: 'cup', value: 2 }]);
-  assert.equal(fmtAmounts(groups[0].amounts, makeT('pl')), '1,5 kg + 2 × szklanka');
+  assert.equal(groups[0].amounts.length, 1);
+  const [a] = groups[0].amounts;
+  assert.equal(a.dim, 'g');
+  assert.equal(a.approx, true); // przeliczone z objętości, więc „≈”
+  assert.ok(Math.abs(a.value - (1500 + 2 * 250 * 0.53)) < 1, `value=${a.value}`);
+  assert.equal(fmtAmounts(groups[0].amounts, makeT('pl')), '≈ 1,77 kg');
+});
+
+test('buildGroups: produkt bez znanej gęstości zostaje w ml i g osobno', () => {
+  const { groups } = buildGroups('200 g pieczarek\n2 łyżki pieczarek', { lang: 'pl' });
+  assert.deepEqual(groups[0].amounts.map((x) => x.dim).sort(), ['g', 'ml']);
 });
 
 test('buildGroups: składniki z różnych języków trafiają do tego samego produktu', () => {
@@ -102,8 +111,8 @@ test('addAmount i formatowanie', () => {
 test('parseLine: części fraz wielowyrazowych nie są jednostkami', () => {
   assert.deepEqual(one('2 de pommes'), ['pommes', '2 piece']); // „de” to spójnik, nie jednostka
   assert.deepEqual(one('1 l mleka'), ['mleka', '1000 ml']);
-  assert.deepEqual(one('1 ч. л. соли'), ['соли', '1 tsp']);
-  assert.deepEqual(one('2 colheres de sopa de azeite'), ['azeite', '2 tbsp']);
+  assert.deepEqual(one('1 ч. л. соли'), ['соли', '5 ml']);
+  assert.deepEqual(one('2 colheres de sopa de azeite'), ['azeite', '30 ml']);
 });
 
 test('buildGroups: tytuł przepisu i nagłówek „Składniki:” nie są składnikami', () => {
@@ -142,4 +151,80 @@ test('buildGroups: niejednoznaczna „śmietanka” zostaje z wyborem (nie jest 
 test('buildGroups: odmiana „mąki” i „mięsa wołowego” to pewne dopasowania, „śmietanki” zostaje z wyborem', () => {
   const { groups } = buildGroups('200 g mąki\n500 g mięsa wołowego\n250 ml śmietanki', { lang: 'pl' });
   assert.deepEqual(groups.map((g) => g.text), ['mąka', 'mięso', 'śmietanki']);
+});
+
+import { detectRegion, resolveRegion, REGIONS, applyDensity } from '../src/recipe.js';
+
+const ml = (line, region) => { const p = parseLine(line, { region }); return p.amounts[0]; };
+
+test('region miar: ta sama „tablespoon” to 15 ml (metryczny), 14,8 ml (USA), 20 ml (Australia)', () => {
+  assert.equal(ml('2 tbsp oil', 'metric').value, 30);
+  assert.equal(ml('2 tbsp oil', 'us').value, 29.58);
+  assert.equal(ml('2 tbsp oil', 'au').value, 40);
+  assert.equal(ml('2 tbsp oil', 'uk').value, 30);
+});
+
+test('region miar: cup = 250 ml (metryczny, AU), ≈237 ml (USA), ≈284 ml (UK); pinta i fl oz też', () => {
+  assert.equal(ml('1 cup milk', 'metric').value, 250);
+  assert.equal(ml('1 cup milk', 'us').value, 236.59);
+  assert.equal(ml('1 cup milk', 'uk').value, 284.13);
+  assert.equal(ml('1 pint milk', 'us').value, 473.18);
+  assert.equal(ml('1 pint milk', 'uk').value, 568.26);
+  assert.equal(ml('8 fl oz milk', 'us').value, 236.56);
+  assert.equal(ml('8 fl oz milk', 'uk').value, 227.28);
+});
+
+test('region nie zmienia słów nieangielskich: polska łyżka i szklanka są stałe', () => {
+  assert.equal(ml('2 łyżki oleju', 'us').value, 30);
+  assert.equal(ml('1 szklanka mleka', 'us').value, 250);
+  assert.equal(ml('1 EL Öl', 'au').value, 15);
+  assert.equal(ml('1 su bardağı süt', 'us').value, 200);
+});
+
+test('miary wagowe i kostka masła: uncje, funty, stick', () => {
+  assert.equal(ml('8 oz cheese', 'us').dim, 'g');
+  assert.equal(ml('8 oz cheese', 'us').value, 226.8);
+  assert.equal(ml('1 lb flour', 'us').value, 453.6);
+  assert.equal(ml('1 stick butter', 'us').value, 113.4);
+  assert.equal(ml('2 sticks butter', 'us').value, 226.8);
+});
+
+test('gęstość: „2 cups flour” (USA) i „200 g mąki” zsumują się w gramach', () => {
+  const { groups } = buildGroups('2 cups flour\n200 g mąki', { lang: 'pl', region: 'us' });
+  assert.equal(groups.length, 1);
+  const [a] = groups[0].amounts;
+  assert.equal(a.dim, 'g');
+  assert.ok(Math.abs(a.value - (2 * 236.59 * 0.53 + 200)) < 1, `value=${a.value}`); // ≈ 451 g
+});
+
+test('gęstość: płyny kupowane na objętość (mleko) – „8 oz milk” to ≈ 220 ml; masło na wagę – „1 cup butter” ≈ 227 g', () => {
+  const milk = applyDensity([{ dim: 'g', value: 226.8 }], 'melk')[0];
+  assert.equal(milk.dim, 'ml');
+  assert.ok(Math.abs(milk.value - 220.2) < 1);
+  const butter = buildGroups('1 cup butter', { lang: 'pl', region: 'us' }).groups[0].amounts[0];
+  assert.equal(butter.dim, 'g');
+  assert.ok(Math.abs(butter.value - 227) < 2, `value=${butter.value}`);
+});
+
+test('ta sama receptura w metrycznym i w USA daje różne ilości, bo „cup” się różni', () => {
+  const us = buildGroups('2 cups sugar', { lang: 'pl', region: 'us' }).groups[0].amounts[0].value;
+  const metric = buildGroups('2 cups sugar', { lang: 'pl', region: 'metric' }).groups[0].amounts[0].value;
+  assert.ok(metric > us); // 500 ml > 473 ml
+  assert.ok(Math.abs(metric / us - 250 / 236.59) < 0.001);
+});
+
+test('detectRegion/resolveRegion: jednostki amerykańskie → USA; ręczny wybór ma pierwszeństwo', () => {
+  assert.equal(detectRegion('2 cups flour\n1 stick butter'), 'us');
+  assert.equal(detectRegion('Preheat oven to 350 °F'), 'us');
+  assert.equal(detectRegion('200 g mąki\n2 łyżki oleju'), 'metric');
+  assert.equal(detectRegion('2 tablespoons oil\n500 ml milk'), 'metric');
+  assert.equal(resolveRegion('auto', '2 cups flour'), 'us');
+  assert.equal(resolveRegion('au', '2 cups flour'), 'au');
+  assert.equal(resolveRegion(undefined, '2 cups flour'), 'us');
+  assert.deepEqual(Object.keys(REGIONS).sort(), ['au', 'metric', 'uk', 'us']);
+});
+
+test('pomnożone przybliżone wartości nie są zaokrąglane przedwcześnie', () => {
+  const g = buildGroups('1 cup flour', { lang: 'pl', region: 'us', multiplier: 3 }).groups[0].amounts[0];
+  assert.ok(Math.abs(g.value - 3 * 236.59 * 0.53) < 0.5);
 });
