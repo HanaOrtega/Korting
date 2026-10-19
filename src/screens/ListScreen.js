@@ -98,7 +98,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
   useEffect(() => {
     for (const { item, r } of rows) {
       const key = trKey(item.text);
-      if (r.status !== 'unknown' || key in tr || asked.current.has(key)) continue;
+      if ((r.status !== 'unknown' && !r.partial) || key in tr || asked.current.has(key)) continue;
       asked.current.add(key);
       translateToDutch(item.text, lang).then((out) => {
         if (out) setTr((prev) => ({ ...prev, [key]: out }));
@@ -205,6 +205,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
                 {t('searchingFor')} {dutchName(r.ci)}
               </Text>
             )}
+            {r.partial && <Text style={{ color: c.mut, fontSize: 13, marginTop: 6 }}>{t('partialHint', { w: r.extra.join(' ') })}</Text>}
             {r.status === 'unknown' && <Text style={{ color: c.mut, fontSize: 13, marginTop: 6 }}>{t('unknownItem')}</Text>}
 
             {!item.done && (

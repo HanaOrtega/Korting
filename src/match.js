@@ -46,16 +46,33 @@ concepts.forEach((c) => {
 export const displayName = (ci, lang) => concepts[ci].names[lang]?.[0] ?? concepts[ci].names.en[0];
 export const dutchName = (ci) => concepts[ci].names.nl[0];
 // Pojęcie ogólne obejmuje szczegółowe („kurczak” → także filet i udka), a szczegółowe nie obejmuje ogólnego
-// („filet z piersi kurczaka” to nie „kurczak”).
-const PARENT_OF = { kipfilet: 'kip', kippendij: 'kip' };
+// („filet z piersi kurczaka” to nie „kurczak”). Klucze i wartości: pierwsza holenderska nazwa pojęcia.
+const PARENT_OF = {
+  kipfilet: 'kip', kippendij: 'kip', kip: 'vlees', gehakt: 'vlees', biefstuk: 'vlees', rundvlees: 'vlees', varkensvlees: 'vlees',
+  lamsvlees: 'vlees', kalkoen: 'vlees', rundergehakt: 'gehakt', 'half om half gehakt': 'gehakt', varkensgehakt: 'gehakt',
+  karbonade: 'varkensvlees', varkenshaas: 'varkensvlees', spareribs: 'varkensvlees',
+  zalm: 'vis', kabeljauw: 'vis', haring: 'vis', makreel: 'vis', 'gerookte zalm': 'zalm',
+  koolzaadolie: 'olie', zonnebloemolie: 'olie', kokosolie: 'olie', sesamolie: 'olie', olijfolie: 'olie',
+  'rode ui': 'uien', bosui: 'uien', sjalot: 'uien', kerstomaten: 'tomaten',
+  'geraspte kaas': 'kaas', parmezaan: 'kaas', geitenkaas: 'kaas', brie: 'kaas', cheddar: 'kaas', gouda: 'kaas',
+  'volle melk': 'melk', 'halfvolle melk': 'melk', 'magere melk': 'melk', 'griekse yoghurt': 'yoghurt',
+  spaghetti: 'pasta', tagliatelle: 'pasta', penne: 'pasta', lasagnebladen: 'pasta',
+  amandelen: 'noten', walnoten: 'noten', cashewnoten: 'noten', hazelnoten: 'noten', "pinda's": 'noten',
+  poedersuiker: 'suiker', 'bruine suiker': 'suiker', vanillesuiker: 'suiker', basmatirijst: 'rijst', risottorijst: 'rijst',
+  balsamicoazijn: 'azijn', appelazijn: 'azijn', wijnazijn: 'azijn',
+  'pure chocolade': 'chocolade', melkchocolade: 'chocolade', 'witte chocolade': 'chocolade',
+  volkorenbrood: 'brood', witbrood: 'brood',
+};
 const idByNl = new Map(concepts.map((c) => [c.names.nl[0], c.id]));
-const childrenOf = new Map();
+const parentId = new Map();
 for (const [child, parent] of Object.entries(PARENT_OF)) {
-  const p = idByNl.get(parent), k = idByNl.get(child);
-  if (p != null && k != null) childrenOf.set(p, [...(childrenOf.get(p) ?? []), k]);
+  const k = idByNl.get(child), p = idByNl.get(parent);
+  if (k != null && p != null) parentId.set(k, p);
 }
-const isChildOf = (child, parent) => childrenOf.get(parent)?.includes(child) ?? false;
-export const nlTerms = (ci) => [...new Set([ci, ...(childrenOf.get(ci) ?? [])].flatMap((id) => concepts[id].names.nl).map(norm).filter(Boolean))];
+/** Czy `anc` jest przodkiem `ci` (bezpośrednim lub dalszym). */
+const isChildOf = (ci, anc) => { for (let x = parentId.get(ci); x != null; x = parentId.get(x)) if (x === anc) return true; return false; };
+const descendants = (anc) => concepts.map((c) => c.id).filter((id) => isChildOf(id, anc));
+export const nlTerms = (ci) => [...new Set([ci, ...descendants(ci)].flatMap((id) => concepts[id].names.nl).map(norm).filter(Boolean))];
 
 // ---- odległość edycyjna (Damerau-Levenshtein, wariant OSA) ----
 export function distance(a, b, limit = 3) {
@@ -159,7 +176,37 @@ function candidates(term, lang) {
 /** Wynik dla ręcznie wybranego produktu (chip „czy chodziło o…”): bez zgadywania i bez zapętleń. */
 export const forConcept = (ci, raw = '') => ({ raw, status: 'exact', ci, alts: [], terms: nlTerms(ci) });
 
-export function resolve(raw, vocab = new Set(), translated = null, lang = null) {
+
+// Słowa określające ilość, świeżość, sposób pocięcia itp. – nie zmieniają produktu, więc nie robią z niego innego.
+const NEUTRAL = ['swiez', 'duz', 'mal', 'sredni', 'drobn', 'grub', 'cienk', 'posiek', 'pokrojon', 'pokroj', 'starty', 'umyt', 'obran', 'natk', 'listk', 'lisc', 'galazk', 'lodyg',
+  'kawalk', 'plaster', 'kostk', 'garsc', 'peczek', 'peczk', 'sztuk', 'ekolog', 'organic', 'bio', 'fresh', 'large', 'small', 'medium', 'chopped', 'sliced', 'diced', 'whole',
+  'leaves', 'leaf', 'sprig', 'piece', 'pieces', 'vers', 'verse', 'groot', 'grote', 'klein', 'kleine', 'gesneden', 'gehakte', 'biologisch', 'frisch', 'frische', 'gross', 'grosse',
+  'klein', 'kleine', 'gehackt', 'gehackte', 'frais', 'fraiche', 'grand', 'petit', 'fresco', 'fresca', 'grande', 'pequeno', 'pequena', 'fresc', 'proaspat', 'mare', 'taze', 'buyuk',
+  'kucuk', 'свеж', 'свіж', 'крупн', 'велик', 'мал', 'дрібн', 'мелк', 'нарез', 'нарізан', 'листья', 'листя', 'веточк', 'пучок', 'пучк'];
+const ownWordsCache = new Map();
+function ownWords(ci) {
+  let w = ownWordsCache.get(ci);
+  if (!w) {
+    w = new Set();
+    for (const lang of LANGS) for (const name of concepts[ci].names[lang]) for (const t of norm(name).split(' ')) if (t.length >= 3) w.add(t);
+    ownWordsCache.set(ci, w);
+  }
+  return w;
+}
+const covered = (tok, ci) => {
+  if (tok.length < 4 || NEUTRAL.some((n) => tok.startsWith(norm(n)))) return true;
+  for (const w of ownWords(ci)) {
+    if (w === tok) return true;
+    let cp = 0;
+    while (cp < tok.length && cp < w.length && tok[cp] === w[cp]) cp++;
+    if (cp >= 4 && cp >= Math.min(tok.length, w.length) - 2 && Math.max(tok.length, w.length) - cp <= 3) return true;
+  }
+  return false;
+};
+/** Słowa z wpisu, których wybrane pojęcie nie tłumaczy („olej ARGANOWY”, „cebula CZERWONA”) – wpis jest bardziej szczegółowy niż pojęcie. */
+const extraWords = (tokens, ci) => (ci == null ? [] : tokens.filter((t) => !covered(t, ci)));
+
+function resolveCore(raw, vocab = new Set(), translated = null, lang = null) {
   const tokens = norm(raw).split(' ').filter((t) => t && !isQty(t));
   const phrase = tokens.join(' ');
   const out = (status, ci, alts = [], extra = {}) =>
@@ -214,11 +261,31 @@ export function resolve(raw, vocab = new Set(), translated = null, lang = null) 
 
   // 6. nic nie pasuje: jeśli mamy tłumaczenie na holenderski (translate.js), rozpoznajemy je
   if (translated) {
-    const r = resolve(translated, vocab, null, 'nl');
+    const r = resolveCore(translated, vocab, null, 'nl');
     if (r.status !== 'unknown') return { ...r, raw, status: 'translated', word: norm(translated) };
     return { raw, status: 'translated', ci: null, alts: [], terms: norm(translated).split(' ').filter(Boolean), word: norm(translated) };
   }
   return out('unknown', null);
+}
+
+/**
+ * Jak resolveCore, ale gdy wpis jest bardziej szczegółowy niż znalezione pojęcie („olej arganowy” → olej), ustawia
+ * `partial` i `extra`. Z tłumaczeniem na holenderski (z internetu) szukamy wtedy dokładnie tego, co wpisano.
+ */
+export function resolve(raw, vocab = new Set(), translated = null, lang = null) {
+  const r = resolveCore(raw, vocab, null, lang);
+  if (!['exact', 'stem', 'ambiguous'].includes(r.status) || r.ci == null) return translated && r.status === 'unknown' ? resolveCore(raw, vocab, translated, lang) : r;
+  const tokens = norm(raw).split(' ').filter((t) => t && !isQty(t));
+  if (tokens.length < 2 || candidates(tokens.join(' '), lang)) return r; // pojedyncze słowo albo cała fraza ze słownika
+  const extra = extraWords(tokens, r.ci);
+  if (!extra.length) return r;
+  if (!translated) return { ...r, partial: true, extra };
+  const t2 = resolveCore(translated, vocab, null, 'nl');
+  const specific = ['exact', 'stem'].includes(t2.status) && t2.ci != null && t2.ci !== r.ci && isChildOf(t2.ci, r.ci);
+  if (specific) return { ...t2, raw, status: 'translated', word: norm(translated), partial: false };
+  const words = norm(translated).split(' ').filter(Boolean);
+  const terms = [...new Set([words.join(' '), words.join('')])].filter((x) => x.length >= 4);
+  return { raw, status: 'translated', ci: null, alts: [], terms, word: norm(translated), partial: false };
 }
 
 /** Podpowiedzi podczas pisania: początek słowa albo słowo z literówką. */
@@ -302,7 +369,7 @@ function scoreDeal(deal, terms, ci) {
   // („roomboter CROISSANTS”, „CHOCOLADEMELK”), szukane słowo to tylko dodatek – pomijamy.
   if (best && ci != null) {
     const hc = conceptOfWord(head[head.length - 1]);
-    if (hc != null && hc !== ci && !isChildOf(hc, ci)) return 0;
+    if (hc != null && hc !== ci && !isChildOf(hc, ci) && !isChildOf(ci, hc)) return 0; // „Parmezaanse KAAS” dla parmezanu jest w porządku
   }
   return best;
 }

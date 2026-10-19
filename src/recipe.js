@@ -235,10 +235,11 @@ export function buildGroups(text, { lang, vocab, multiplier = 1, region = 'metri
     for (const p of parsed) {
       lines++;
       const r = resolve(p.name, vocab, null, lang);
-      const sure = ['exact', 'stem', 'fuzzy'].includes(r.status) && r.alts.length === 0; // niejednoznaczne zostawiamy z wyborem (fuzzy bez konkurentów to zwykle odmiana: „mąki”)
-      const key = r.ci != null ? `c:${r.ci}` : `t:${looseKey(p.name)}`;
+      const sure = ['exact', 'stem', 'fuzzy'].includes(r.status) && r.alts.length === 0 && !r.partial; // niejednoznaczne zostawiamy z wyborem (fuzzy bez konkurentów to zwykle odmiana: „mąki”)
+      const general = r.ci != null && !r.partial; // „olej arganowy” to nie „olej” – osobna pozycja, dokładnie z tego, co wpisano
+      const key = general ? `c:${r.ci}` : `t:${looseKey(p.name)}`;
       const g = groups.get(key) ?? { key, ci: r.ci, text: sure ? displayName(r.ci, lang) : p.name, amounts: [], sources: [], count: 0, toTaste: false };
-      const amounts = r.ci != null ? applyDensity(p.amounts, dutchName(r.ci)) : p.amounts;
+      const amounts = general ? applyDensity(p.amounts, dutchName(r.ci)) : p.amounts;
       for (const a of scaleAmounts(amounts, multiplier)) g.amounts = addAmount(g.amounts, a);
       g.sources.push(p.raw);
       g.count++;
@@ -253,7 +254,7 @@ export function buildGroups(text, { lang, vocab, multiplier = 1, region = 'metri
 export function keyOfItem(it, { lang, vocab }) {
   const r = resolve(it.text, vocab, null, lang);
   const ci = it.pick ?? r.ci;
-  return ci != null ? `c:${ci}` : `t:${looseKey(it.text)}`;
+  return ci != null && (it.pick != null || !r.partial) ? `c:${ci}` : `t:${looseKey(it.text)}`;
 }
 
 /** Dodaje grupy do listy: ten sam produkt, który już jest na liście, dostaje zsumowane ilości zamiast duplikatu. */

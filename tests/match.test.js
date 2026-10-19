@@ -35,7 +35,7 @@ for (const [input, nl] of cases) {
 
 test('ilości i jednostki są ignorowane', () => {
   assert.equal(dutchName(resolve('2 x mleko 1,5 l').ci), 'melk');
-  assert.equal(dutchName(resolve('chleb razowy').ci), 'brood');
+  assert.equal(dutchName(resolve('chleb razowy').ci), 'volkorenbrood');
 });
 
 test('literówki są poprawiane i oznaczane jako fuzzy', () => {
@@ -247,4 +247,26 @@ test('kurczak obejmuje filet i udka, ale filet z piersi to nie cały kurczak', (
   assert.equal(matchDeals(resolve('kurczak').terms, list, resolve('kurczak').ci).length, 3);
   const r = resolve('filet z piersi kurczaka');
   assert.deepEqual(matchDeals(r.terms, list, r.ci).map((d) => d.name), ['Kipfilet 500 g']);
+});
+
+test('wpis bardziej szczegółowy niż pojęcie: „olej arganowy” nie jest „olejem”; tłumaczenie doprecyzowuje', () => {
+  const r = resolve('olej arganowy', new Set(), null, 'pl');
+  assert.ok(r.partial);
+  assert.deepEqual(r.extra, ['arganowy']);
+  const tr = resolve('olej arganowy', new Set(), 'arganolie', 'pl');
+  assert.deepEqual(tr.terms, ['arganolie']);
+  const list = [{ name: 'Arganolie 100 ml', price: 5 }, { name: 'Zonnebloemolie', price: 2 }];
+  assert.deepEqual(matchDeals(tr.terms, list, tr.ci).map((d) => d.name), ['Arganolie 100 ml']);
+  assert.ok(!resolve('świeża natka pietruszki', new Set(), null, 'pl').partial); // przymiotniki bez znaczenia nie dzielą
+  assert.equal(dutchName(resolve('olej rzepakowy', new Set(), null, 'pl').ci), 'koolzaadolie');
+});
+
+test('hierarchia: ogólne obejmuje szczegółowe, nie odwrotnie', () => {
+  const deals = [{ name: 'Zonnebloemolie 1 l', price: 2 }, { name: 'Olijfolie extra vierge', price: 5 }, { name: 'Koolzaadolie', price: 3 }];
+  const g = resolve('olej', new Set(), null, 'pl');
+  assert.equal(matchDeals(g.terms, deals, g.ci).length, 3);
+  const k = resolve('olej rzepakowy', new Set(), null, 'pl');
+  assert.deepEqual(matchDeals(k.terms, deals, k.ci).map((d) => d.name), ['Koolzaadolie']);
+  const ui = resolve('czerwona cebula', new Set(), null, 'pl');
+  assert.deepEqual(matchDeals(ui.terms, [{ name: 'Rode uien 1 kg', price: 1 }, { name: 'Gele uien 1 kg', price: 1 }], ui.ci).map((d) => d.name), ['Rode uien 1 kg']);
 });

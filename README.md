@@ -142,3 +142,13 @@ Dirk i Plus. Promocje są ogólnokrajowe, więc ulubiony sklep służy do wyboru
 - Sztuki, ząbki, puszki itd. to osobne jednostki i zostają obok siebie.
 - Ten sam produkt rozpoznaję po słowniku (także w innym języku i w odmianie) albo, dla nieznanych słów, po podobnym początku
   nazwy („parmezan” ≈ „parmezanu”).
+
+## Produkty ogólne i szczegółowe
+
+- Słownik ma hierarchię (`PARENT_OF` w `src/match.js`): „olej”, „ser”, „mleko”, „makaron”, „orzechy”, „mięso”, „kurczak”… obejmują
+  odmiany, ale odmiana nie obejmuje ogólnego produktu: „olej rzepakowy”, „filet z piersi kurczaka”, „czerwona cebula”,
+  „ser parmezan”, „cukier puder” to osobne pozycje, szukane i sumowane osobno.
+- Wpis, który jest dokładniejszy niż znalezione pojęcie, a nie ma go w słowniku („olej arganowy”), jest oznaczany jako
+  szczegółowy: w przepisie zostaje osobną pozycją, a na liście aplikacja tłumaczy całą frazę na holenderski (online, wynik
+  zapamiętany) i szuka dokładnie tego. Bez internetu szuka ogólnie i pokazuje o tym informację.
+- Pomijane są słowa, które nie zmieniają produktu (świeży, duży, posiekany, natka, listki…).

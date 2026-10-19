@@ -120,7 +120,8 @@ test('buildGroups: tytuł przepisu i nagłówek „Składniki:” nie są skład
   const text = 'Spaghetti bolognese (4 porcje)\nSkładniki:\n- 400 g spaghetti\n- 2 ząbki czosnku\n\nZapiekanka makaronowa\nSkładniki:\n1. 200 g makaronu penne\n2. 3 ząbki czosnku';
   const { groups, lines } = buildGroups(text, { lang: 'pl' });
   assert.equal(lines, 4);
-  assert.deepEqual(groups.find((g) => /makaron|spaghetti/.test(g.text)).amounts, [{ dim: 'g', value: 600 }]);
+  assert.deepEqual(groups.find((g) => /spaghetti/.test(g.text)).amounts, [{ dim: 'g', value: 400 }]); // inny makaron = osobna pozycja
+  assert.deepEqual(groups.find((g) => /penne/.test(g.text)).amounts, [{ dim: 'g', value: 200 }]);
   assert.deepEqual(groups.find((g) => /czosnek/.test(g.text)).amounts, [{ dim: 'clove', value: 5 }]);
 });
 
@@ -151,7 +152,7 @@ test('buildGroups: niejednoznaczna „śmietanka” zostaje z wyborem (nie jest 
 
 test('buildGroups: odmiana „mąki” i „mięsa wołowego” to pewne dopasowania, „śmietanki” zostaje z wyborem', () => {
   const { groups } = buildGroups('200 g mąki\n500 g mięsa wołowego\n250 ml śmietanki', { lang: 'pl' });
-  assert.deepEqual(groups.map((g) => g.text), ['mąka', 'mięso', 'śmietanki']);
+  assert.deepEqual(groups.map((g) => g.text), ['mąka', 'wołowina', 'śmietanki']);
 });
 
 import { detectRegion, resolveRegion, REGIONS, applyDensity } from '../src/recipe.js';
@@ -247,4 +248,10 @@ test('filet z piersi kurczaka to nie kurczak', () => {
   assert.equal(groups.length, 3);
   assert.deepEqual(groups.map((g) => g.text).sort(), groups.map((g) => g.text).sort());
   assert.equal(new Set(groups.map((g) => g.ci)).size, 3);
+});
+
+test('przepis: różne rodzaje tego samego produktu nie są sumowane', () => {
+  const { groups } = buildGroups('2 łyżki oleju rzepakowego\n1 łyżka oliwy z oliwek\n100 g czerwonej cebuli\n200 g cebuli\n50 g cukru pudru\n100 g cukru\n2 łyżki oleju arganowego', { lang: 'pl' });
+  assert.equal(groups.length, 7);
+  assert.ok(groups.some((g) => /argan/.test(g.text)));
 });
