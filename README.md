@@ -165,3 +165,12 @@ a nie gubione po cichu.
 
 Przy każdej pozycji na liście jest ✎: pozwala zmienić nazwę i ilość (np. „500 g”, „2 szt + 30 ml”, „1,5 l”). Zmiana nazwy
 uruchamia rozpoznawanie od nowa; pusta ilość usuwa ilość.
+
+## Automatyczne odświeżanie i motyw
+
+- Promocje odświeżają się same: przy starcie, po powrocie do aplikacji i co 15 minut, gdy jest otwarta. Pobierane są tylko
+  dane starsze niż 6 godzin (osobno dla każdego sklepu) albo brakujące, więc nie ma zbędnego transferu. Czas ostatniej
+  aktualizacji widać pod nazwą aplikacji; w zakładce Promocje działa też przeciągnięcie listy w dół. Odświeżanie działa
+  tylko przy otwartej aplikacji (bez zadań w tle).
+- Motyw jasny/ciemny podąża za ustawieniem telefonu i zmienia się na bieżąco. W menu języka (🌐) można wymusić „Jasny” lub
+  „Ciemny”; wybór jest zapamiętany.

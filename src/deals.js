@@ -23,6 +23,13 @@ const stillValid = (d, now) => !d.validUntil || Date.parse(d.validUntil) >= now;
 const collect = (all, stores, now) =>
   stores.flatMap((s) => (all[s]?.deals ?? [])).filter((d) => stillValid(d, now));
 
+/** Czy któryś z wybranych sklepów nie ma świeżych danych (wtedy odświeżamy automatycznie). */
+export async function needsRefresh(stores) {
+  const all = await readAll();
+  const now = Date.now();
+  return providers.filter((p) => !stores || stores.includes(p.name)).some((p) => !all[p.name] || now - all[p.name].at >= TTL);
+}
+
 /** Promocje z pamięci telefonu dla wybranych sklepów (do natychmiastowego pokazania). */
 export async function readCache(stores) {
   const all = await readAll();
