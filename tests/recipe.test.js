@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseLine, buildGroups, mergeIntoItems, addAmount, fmtAmounts } from '../src/recipe.js';
+import { buildVocab } from '../src/match.js';
 import { makeT } from '../src/i18n.js';
 
 const one = (line) => { const p = parseLine(line); return p && [p.name, p.amounts.map((a) => `${a.value} ${a.dim}`).join('+') || '–']; };
@@ -227,4 +228,15 @@ test('detectRegion/resolveRegion: jednostki amerykańskie → USA; ręczny wybó
 test('pomnożone przybliżone wartości nie są zaokrąglane przedwcześnie', () => {
   const g = buildGroups('1 cup flour', { lang: 'pl', region: 'us', multiplier: 3 }).groups[0].amounts[0];
   assert.ok(Math.abs(g.value - 3 * 236.59 * 0.53) < 0.5);
+});
+
+test('skopiowane ze strony: nazwa i ilość w osobnych liniach', () => {
+  const text = ['filety z piersi kurczaka', '500 gramów', 'makaron tagliatelle', '250 gramów', 'mleko', '150 mililitrów',
+    'cebula', '1 sztuka', 'musztarda', '2 łyżki', 'olej rzepakowy', '1 łyżka'].join('\n');
+  const { groups } = buildGroups(text, { lang: 'pl', vocab: buildVocab([]) });
+  const by = (re) => groups.find((g) => re.test(g.text));
+  assert.equal(groups.length, 6);
+  assert.deepEqual(by(/mleko/i).amounts.map((a) => [a.dim, Math.round(a.value)]), [['ml', 150]]);
+  assert.deepEqual(by(/kurczak/i).amounts.map((a) => [a.dim, a.value]), [['g', 500]]);
+  assert.ok(!groups.some((g) => /mililitr|gram/i.test(g.text)));
 });

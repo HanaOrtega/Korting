@@ -26,9 +26,9 @@ const UNITS = [
   [G(28.35), 'oz ounce ounces uncja uncje'],
   [G(453.6), 'lb lbs pound pounds funt funty'],
   [G(113.4), 'stick sticks'], // amerykańska kostka masła
-  [ML(1), 'ml milliliter mililitr mililitry millilitres mililitros millilitri mililitro mililitri мл мілілітр миллилитр'],
-  [ML(10), 'cl centiliter centylitr centylitry centilitres centilitros centilitri'],
-  [ML(100), 'dl deciliter decylitr decylitry decilitres decilitros decilitri decilitro'],
+  [ML(1), 'ml milliliter mililitr mililitry mililitrow millilitres mililitros millilitri mililitro mililitri мл мілілітр миллилитр'],
+  [ML(10), 'cl centiliter centylitr centylitry centylitrow centilitres centilitros centilitri'],
+  [ML(100), 'dl deciliter decylitr decylitry decylitrow decilitres decilitros decilitri decilitro'],
   [ML(1000), 'l lt ltr liter litr litry litrow litre litres litro litros litri л літр литр'],
   [REG('tbsp'), 'tbsp tbs tablespoon tablespoons'],
   [REG('tsp'), 'tsp teaspoon teaspoons'],
@@ -91,6 +91,15 @@ function takeQuantity(s) {
   const first = s.split(/\s+/)[0] ?? '';
   if (HALF.has(norm(first))) return { value: 0.5, rest: s.slice(first.length).trimStart() };
   return null;
+}
+
+/** Linia z samą ilością i jednostką („500 gramów”, „2 łyżki”) – przy kopiowaniu ze stron nazwa i ilość lądują w osobnych liniach. */
+export function isQuantityOnly(line) {
+  const s = String(line).replace(/ /g, ' ').replace(/^[\s\-–—•*·▪●◦■□☐✓]+/, '').replace(/\([^)]*\)/g, ' ').trim();
+  const q = s && takeQuantity(s.replace(/([½¼¾⅓⅔⅛])/g, (f) => ` ${FRAC[f]} `).trim());
+  if (!q) return false;
+  const rest = q.rest.trim();
+  return !!rest && UNIT_MAP.has(norm(rest));
 }
 
 /** Jedna linia składnika → { raw, name, amounts: [{dim, value, approx?}], toTaste } albo null (nagłówek / pusta). `region` decyduje o rozmiarze łyżki i „cup”. */
@@ -209,7 +218,12 @@ export function buildGroups(text, { lang, vocab, multiplier = 1, region = 'metri
       continue;
     }
     if (!raw.trim()) { if (blocks.at(-1).length) blocks.push([]); continue; }
-    blocks.at(-1).push(...expandList(raw, vocab, lang));
+    const cur = blocks.at(-1);
+    if (isQuantityOnly(raw) && cur.length && !/\d/.test(cur.at(-1).replace(/\([^)]*\)/g, ''))) { // „filety…” + „500 gramów”
+      cur[cur.length - 1] = `${raw.trim()} ${cur.at(-1)}`;
+      continue;
+    }
+    cur.push(...expandList(raw, vocab, lang));
   }
   const groups = new Map();
   let lines = 0;
