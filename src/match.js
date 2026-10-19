@@ -45,7 +45,17 @@ concepts.forEach((c) => {
 
 export const displayName = (ci, lang) => concepts[ci].names[lang]?.[0] ?? concepts[ci].names.en[0];
 export const dutchName = (ci) => concepts[ci].names.nl[0];
-export const nlTerms = (ci) => [...new Set(concepts[ci].names.nl.map(norm).filter(Boolean))];
+// Pojęcie ogólne obejmuje szczegółowe („kurczak” → także filet i udka), a szczegółowe nie obejmuje ogólnego
+// („filet z piersi kurczaka” to nie „kurczak”).
+const PARENT_OF = { kipfilet: 'kip', kippendij: 'kip' };
+const idByNl = new Map(concepts.map((c) => [c.names.nl[0], c.id]));
+const childrenOf = new Map();
+for (const [child, parent] of Object.entries(PARENT_OF)) {
+  const p = idByNl.get(parent), k = idByNl.get(child);
+  if (p != null && k != null) childrenOf.set(p, [...(childrenOf.get(p) ?? []), k]);
+}
+const isChildOf = (child, parent) => childrenOf.get(parent)?.includes(child) ?? false;
+export const nlTerms = (ci) => [...new Set([ci, ...(childrenOf.get(ci) ?? [])].flatMap((id) => concepts[id].names.nl).map(norm).filter(Boolean))];
 
 // ---- odległość edycyjna (Damerau-Levenshtein, wariant OSA) ----
 export function distance(a, b, limit = 3) {
@@ -292,7 +302,7 @@ function scoreDeal(deal, terms, ci) {
   // („roomboter CROISSANTS”, „CHOCOLADEMELK”), szukane słowo to tylko dodatek – pomijamy.
   if (best && ci != null) {
     const hc = conceptOfWord(head[head.length - 1]);
-    if (hc != null && hc !== ci) return 0;
+    if (hc != null && hc !== ci && !isChildOf(hc, ci)) return 0;
   }
   return best;
 }

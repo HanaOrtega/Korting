@@ -22,7 +22,7 @@ test('distance obsługuje zamianę sąsiednich liter', () => {
 
 const cases = [
   ['mleko', 'melk'], ['Milch', 'melk'], ['lait', 'melk'], ['молоко', 'melk'], ['süt', 'melk'],
-  ['chleb', 'brood'], ['kurczak', 'kipfilet'], ['ser', 'kaas'], ['jajka', 'eieren'],
+  ['chleb', 'brood'], ['kurczak', 'kip'], ['ser', 'kaas'], ['jajka', 'eieren'],
   ['pomidory', 'tomaten'], ['κ', null],
 ];
 for (const [input, nl] of cases) {
@@ -39,7 +39,7 @@ test('ilości i jednostki są ignorowane', () => {
 });
 
 test('literówki są poprawiane i oznaczane jako fuzzy', () => {
-  for (const [typo, nl] of [['mlko', 'melk'], ['kurzcak', 'kipfilet'], ['pomidroy', 'tomaten'], ['bananny', 'bananen'], ['cebula', 'uien']]) {
+  for (const [typo, nl] of [['mlko', 'melk'], ['kurzcak', 'kip'], ['pomidroy', 'tomaten'], ['bananny', 'bananen'], ['cebula', 'uien']]) {
     const r = resolve(typo);
     assert.equal(dutchName(r.ci), nl, typo);
   }
@@ -93,7 +93,7 @@ test('karma dla zwierząt nie jest pokazywana przy szukaniu mięsa', () => {
 
 test('odmiana: końcówki fleksyjne nie psują rozpoznania', () => {
   for (const [input, nl] of [['pomidorów', 'tomaten'], ['masła', 'boter'], ['chleba', 'brood'], ['jabłek', 'appels'],
-    ['ziemniaków', 'aardappelen'], ['kurczaka', 'kipfilet'], ['sera', 'kaas'], ['jajek', 'eieren']]) {
+    ['ziemniaków', 'aardappelen'], ['kurczaka', 'kip'], ['sera', 'kaas'], ['jajek', 'eieren']]) {
     assert.equal(dutchName(resolve(input).ci), nl, input);
   }
 });
@@ -240,4 +240,11 @@ test('kondycja słownika: produkty bez ofert, zbyt szerokie hasła, niejednoznac
 test('listStats: statusy z listy zliczane do czterech grup', () => {
   assert.deepEqual(listStats(['exact', 'stem', 'ambiguous', 'fuzzy', 'dutch-fuzzy', 'translated', 'unknown', 'dutch']),
     { recognized: 4, fuzzy: 2, translated: 1, unknown: 1 });
+});
+
+test('kurczak obejmuje filet i udka, ale filet z piersi to nie cały kurczak', () => {
+  const list = [{ name: 'Kipfilet 500 g', price: 4 }, { name: 'Kippendij', price: 3 }, { name: 'Hele kip', price: 5 }];
+  assert.equal(matchDeals(resolve('kurczak').terms, list, resolve('kurczak').ci).length, 3);
+  const r = resolve('filet z piersi kurczaka');
+  assert.deepEqual(matchDeals(r.terms, list, r.ci).map((d) => d.name), ['Kipfilet 500 g']);
 });

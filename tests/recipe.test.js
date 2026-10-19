@@ -240,3 +240,11 @@ test('skopiowane ze strony: nazwa i ilość w osobnych liniach', () => {
   assert.deepEqual(by(/kurczak/i).amounts.map((a) => [a.dim, a.value]), [['g', 500]]);
   assert.ok(!groups.some((g) => /mililitr|gram/i.test(g.text)));
 });
+
+test('filet z piersi kurczaka to nie kurczak', () => {
+  const vocab = buildVocab([]);
+  const { groups } = buildGroups('filety z piersi kurczaka\n500 g\nudka z kurczaka\n2 szt.\nkurczak\n1 szt.', { lang: 'pl', vocab });
+  assert.equal(groups.length, 3);
+  assert.deepEqual(groups.map((g) => g.text).sort(), groups.map((g) => g.text).sort());
+  assert.equal(new Set(groups.map((g) => g.ci)).size, 3);
+});
