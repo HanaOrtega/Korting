@@ -77,6 +77,26 @@ const UNITS = new Set(['kg', 'g', 'gr', 'l', 'ml', 'szt', 'sztuk', 'st', 'stuks'
   'pack', 'paczka', 'opakowanie', 'litr', 'litry', 'litrow', 'gram', 'kilo']);
 const isQty = (t) => /^\d+[a-z]*$/.test(t) || UNITS.has(t);
 
+// Odmieniona fraza: każde słowo terminu ma w tekście słowo o tym samym początku („koncentratu pomidorowego”).
+const sameStem = (a, b) => {
+  if (a === b) return true;
+  let cp = 0;
+  while (cp < a.length && cp < b.length && a[cp] === b[cp]) cp++;
+  return cp >= 4 && cp >= Math.min(a.length, b.length) - 2;
+};
+function phraseConcepts(tokens) {
+  if (tokens.length < 2) return [];
+  const found = new Map();
+  for (const { t, ci } of allTerms) {
+    if (!t.includes(' ')) continue;
+    const parts = t.split(' ');
+    if (parts.length > tokens.length + 1 || !parts.every((p) => tokens.some((s) => sameStem(s, p)))) continue;
+    found.set(ci, Math.max(found.get(ci) ?? 0, parts.length)); // dłuższa fraza = pewniejsze dopasowanie
+  }
+  const best = Math.max(0, ...found.values());
+  return [...found].filter(([, n]) => n === best).map(([ci]) => ci);
+}
+
 // Odmiana: „pomidorów”/„pomidory”, „jabłek”/„jabłka”, „masła”/„masło” – wspólny początek, różni się końcówka.
 function stemConcepts(token) {
   if (token.length < 3) return [];
@@ -140,12 +160,17 @@ export function resolve(raw, vocab = new Set(), translated = null, lang = null) 
   const exact = candidates(phrase, lang) ?? tokens.map((t) => candidates(t, lang)).find(Boolean);
   if (exact) return out(exact.length > 1 ? 'ambiguous' : 'exact', exact[0], exact.slice(1));
 
-  // 2. odmieniona forma (końcówka inna niż w słowniku)
+  // 2a. odmieniona fraza wielowyrazowa (przed pojedynczymi słowami, bo jest dokładniejsza)
+  const phrases = phraseConcepts(tokens);
+  if (phrases.length) return out('stem', phrases[0], phrases.slice(1, 4));
+
+  // 2b. odmieniona forma (końcówka inna niż w słowniku)
   // (z kilku słów wygrywa najlepsze dopasowanie, a przy remisie dłuższe słowo: „piersi z kurczaka” → kurczak)
   const stems = tokens.flatMap((t) => stemConcepts(t).map((s) => ({ ...s, len: t.length })))
     .sort((a, b) => a.rest - b.rest || b.len - a.len);
   if (stems.length) {
-    const ids = [...new Set(stems.map((s) => s.ci))];
+    // alternatywy tylko równie dobre jak najlepsze dopasowanie (inaczej „mięsa” dostawałoby przypadkowe „makaron chiński”)
+    const ids = [...new Set(stems.filter((s) => s.rest === stems[0].rest && s.len === stems[0].len).map((s) => s.ci))];
     return out('stem', ids[0], ids.slice(1, 4));
   }
 

@@ -3,8 +3,10 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import ByStoreView from '../components/ByStoreView.js';
 import CompareView from '../components/CompareView.js';
 import DealRow from '../components/DealRow.js';
+import RecipeModal from '../components/RecipeModal.js';
 import { dutchName, displayName, forConcept, matchDeals, resolve, suggest } from '../match.js';
 import { planShopping } from '../plan.js';
+import { fmtAmounts, mergeIntoItems } from '../recipe.js';
 import { bestUnitId } from '../pricing.js';
 import { lookupRegular, regularStores } from '../regular.js';
 import { favoriteChains } from '../stores.js';
@@ -28,6 +30,7 @@ function Chip({ label, onPress, selected, c }) {
 export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, view, setView, favorites }) {
   const [text, setText] = useState('');
   const [open, setOpen] = useState({});
+  const [recipeOpen, setRecipeOpen] = useState(false);
   const [tr, setTr] = useState({}); // „język|tekst” -> tłumaczenie na holenderski (albo null)
   const asked = useRef(new Set());
   const trKey = (text) => `${lang}|${text.trim().toLowerCase()}`;
@@ -134,13 +137,17 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
         </View>
       )}
 
-      {rows.length > 0 && (
-        <View style={{ flexDirection: 'row', gap: 8 }}>
+      <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+        <Chip c={c} label={`📋 ${t('recipeBtn')}`} onPress={() => setRecipeOpen(true)} />
+        {rows.length > 0 && (<>
           <Chip c={c} label={t('viewItems')} selected={view === 'items'} onPress={() => setView('items')} />
           <Chip c={c} label={t('viewStores')} selected={view === 'stores'} onPress={() => setView('stores')} />
           <Chip c={c} label={t('viewCompare')} selected={view === 'compare'} onPress={() => setView('compare')} />
-        </View>
-      )}
+        </>)}
+      </View>
+
+      <RecipeModal visible={recipeOpen} onClose={() => setRecipeOpen(false)} c={c} t={t} lang={lang} vocab={vocab} items={items}
+        onAdd={(groups) => setItems((prev) => mergeIntoItems(prev, groups, { lang, vocab, makeId: () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}` }).items)} />
 
       {rows.length === 0 && (
         <View style={{ alignItems: 'center', paddingVertical: 40, gap: 6 }}>
@@ -172,7 +179,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
                 <Text style={{ fontSize: 24, color: item.done ? ACCENT : c.mut }}>{item.done ? '☑' : '☐'}</Text>
               </Pressable>
               <Text style={{ flex: 1, color: c.fg, fontSize: 17, fontWeight: '600', textDecorationLine: item.done ? 'line-through' : 'none', opacity: item.done ? 0.5 : 1 }}>
-                {item.text}
+                {item.text}{item.amounts?.length ? <Text style={{ color: c.mut, fontWeight: '400', fontSize: 14 }}>  {fmtAmounts(item.amounts, t)}</Text> : null}
               </Text>
               <Pressable onPress={() => remove(item.id)} hitSlop={10}><Text style={{ color: c.mut, fontSize: 20 }}>✕</Text></Pressable>
             </View>

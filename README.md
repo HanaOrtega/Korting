@@ -43,6 +43,11 @@ pobiera promocje ze stron sklepów i trzyma je w pamięci telefonu.
   i takie z podejrzanie dużo ofert (możliwe fałszywe trafienia), słowa wspólne dla kilku języków oraz nauczone
   tłumaczenia. Słowa, z którymi słownik miał problem, zapisują się w telefonie, a przyciskiem „Wyślij listę słów” możesz
   je komuś przekazać (np. żeby je dopisać do słownika).
+- **Lista z przepisu:** przycisk „📋 Z przepisu” – wklejasz składniki (jeden lub kilka przepisów naraz), a aplikacja robi
+  z nich listę zakupów: rozumie ilości i jednostki w 12 językach („1 ½ szklanki”, „2 ząbki”, „200g”, „2 x 200 g”,
+  „pół pęczka”, „sól do smaku”), pomija tytuły i nagłówki („Składniki:”), **sumuje te same produkty** („2 jajka” + „3 jajka”
+  = 5 szt., „1 kg” + „500 g” = 1,5 kg) i łączy je z tym, co już masz na liście. Podgląd pokazuje wynik przed dodaniem,
+  a przycisk ± skaluje porcje. Niejednoznaczne słowa („śmietanka”) zostają z wyborem.
 - Zakładka **Promocje**: wszystkie promocje, wyszukiwarka, filtr sklepu, sortowanie (koniec promocji, cena,
   sklep, nazwa), „＋” dodaje produkt do listy.
 - Dane są zapamiętywane na telefonie (lista, język, ulubione, ostatnie promocje – działa offline) i odświeżane
@@ -124,3 +129,11 @@ Dirk i Plus. Promocje są ogólnokrajowe, więc ulubiony sklep służy do wyboru
   nie wystawiają ich w tych samych danych. Zwykłe ceny pobieramy tylko z Albert Heijn (niesprawdzone na żywo).
 - Jumbo często podaje tylko mechanizm („25% korting”, „1+1 gratis”) bez ceny bazowej – takie oferty nie mają ceny,
   więc nie wchodzą do porównania („2 voor 6,49” liczymy jako 3,25 za sztukę).
+
+## Składniki z przepisu: zasady sumowania
+
+- Sumowane są ilości w tej samej jednostce; masa (g, kg, oz, lb) i objętość (ml, l, dl, cl) są przeliczane na g i ml.
+- Łyżki, łyżeczki, szklanki, sztuki, ząbki, puszki itd. są osobnymi jednostkami (nie przeliczam ich na gramy, bo to zależy
+  od produktu), więc „200 g mąki” i „2 szklanki mąki” zostają obok siebie: „200 g + 2 × szklanka”.
+- Ten sam produkt rozpoznaję po słowniku (także w innym języku i w odmianie) albo, dla nieznanych słów, po podobnym początku
+  nazwy („parmezan” ≈ „parmezanu”).
