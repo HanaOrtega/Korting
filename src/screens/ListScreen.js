@@ -1,31 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import ByStoreView from '../components/ByStoreView.js';
-import CompareView from '../components/CompareView.js';
 import DealRow from '../components/DealRow.js';
 import RecipeModal from '../components/RecipeModal.js';
 import { dutchName, displayName, forConcept, matchDeals, resolve, suggest } from '../match.js';
 import { planShopping } from '../plan.js';
 import { amountsToText, fmtAmounts, mergeIntoItems, parseAmounts } from '../recipe.js';
 import { bestUnitId } from '../pricing.js';
-import { lookupRegular, regularStores } from '../regular.js';
 import { favoriteChains } from '../stores.js';
 import { translateToDutch } from '../translate.js';
 import { recordWord } from '../vocabLog.js';
-import { ACCENT } from '../theme.js';
+import { radius, space, type } from '../theme.js';
+import { Badge, Button, Card, Chip, EmptyState, Icon, IconButton, Segmented } from '../components/ui.js';
 
 const PREVIEW = 3;
-
-function Chip({ label, onPress, selected, c }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1,
-        borderColor: selected ? ACCENT : c.border, backgroundColor: selected ? ACCENT : c.chip }}>
-      <Text style={{ color: selected ? '#fff' : c.fg }}>{label}</Text>
-    </Pressable>
-  );
-}
 
 export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, view, setView, favorites }) {
   const [text, setText] = useState('');
@@ -70,29 +58,6 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
   const chains = useMemo(() => favoriteChains(favorites), [favorites]);
   const plan = useMemo(() => planShopping(rows, chains), [rows, chains]);
 
-  // zwykłe ceny (bez promocji) pobieramy dopiero po otwarciu porównania – to osobne zapytania do sklepów
-  const [regular, setRegular] = useState({});
-  const [regLoading, setRegLoading] = useState(false);
-  const regKey = rows.filter((x) => !x.item.done).map((x) => x.r.terms[0]).join('|') + '#' + chains.join(',');
-  useEffect(() => {
-    if (view !== 'compare') return undefined;
-    const sources = regularStores().filter((s) => chains.includes(s));
-    if (!sources.length) return undefined;
-    let cancelled = false;
-    (async () => {
-      setRegLoading(true);
-      for (const { item, r } of rows.filter((x) => !x.item.done)) {
-        const found = [];
-        for (const store of sources) {
-          try { found.push(...await lookupRegular(store, r.terms, r.ci)); } catch { /* brak danych z tego sklepu */ }
-        }
-        if (cancelled) return;
-        setRegular((prev) => ({ ...prev, [item.id]: found }));
-      }
-      if (!cancelled) setRegLoading(false);
-    })();
-    return () => { cancelled = true; setRegLoading(false); };
-  }, [view, regKey]);
   const toggleDone = (id) => setItems((prev) => prev.map((it) => (it.id === id ? { ...it, done: !it.done } : it)));
 
   // słowa, z którymi słownik miał problem, trafiają do dziennika (widać je w zakładce Słownik – nie na tej stronie)
@@ -124,49 +89,64 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
   const lastPart = text.split(/[,;\n]/).pop();
   const suggestions = useMemo(() => suggest(lastPart, lang), [lastPart, lang]);
   const doneCount = items.filter((i) => i.done).length;
+  const remaining = items.length - doneCount;
+  const withPromo = rows.filter((x) => !x.item.done && x.hits.length > 0).length;
+  const input = { borderWidth: 1, borderColor: c.border, borderRadius: radius.md, paddingHorizontal: space.md, paddingVertical: 11, color: c.fg, backgroundColor: c.bg, fontSize: 16 };
 
   return (
-    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, gap: 10 }}>
-      <View style={{ flexDirection: 'row', gap: 8 }}>
-        <TextInput
-          value={text}
-          onChangeText={setText}
-          onSubmitEditing={() => add(text)}
-          placeholder={t('addPh')}
-          placeholderTextColor={c.mut}
-          returnKeyType="done"
-          autoCorrect={false}
-          style={{ flex: 1, borderWidth: 1, borderColor: c.border, borderRadius: 12, padding: 12, color: c.fg, backgroundColor: c.card, fontSize: 16 }}
-        />
-        <Pressable onPress={() => add(text)} style={{ backgroundColor: ACCENT, borderRadius: 12, paddingHorizontal: 16, justifyContent: 'center' }}>
-          <Text style={{ color: '#fff', fontSize: 22 }}>＋</Text>
-        </Pressable>
-      </View>
-
-      {suggestions.length > 0 && (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {suggestions.map((ci) => (
-            <Chip key={ci} c={c} label={displayName(ci, lang)} onPress={() => add(displayName(ci, lang))} />
-          ))}
+    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: space.lg, paddingTop: space.xs, paddingBottom: 32, gap: space.md }}>
+      <Card c={c} pad={space.md} level={2} style={{ gap: space.sm }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+          <View style={{ flex: 1, minWidth: 0, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.bg, borderRadius: radius.md, paddingLeft: space.md, borderWidth: 1, borderColor: c.border }}>
+            <View style={{ flexShrink: 0 }}><Icon name="search" size={18} color={c.mut} /></View>
+            <TextInput
+              value={text}
+              onChangeText={setText}
+              onSubmitEditing={() => add(text)}
+              placeholder={t('addPh')}
+              placeholderTextColor={c.mut}
+              returnKeyType="done"
+              autoCorrect={false}
+              style={{ flex: 1, minWidth: 0, paddingVertical: 12, paddingRight: space.md, color: c.fg, fontSize: 16 }}
+            />
+          </View>
+          <IconButton c={c} icon="plus" tone="primary" size={48} iconSize={24} label="+" onPress={() => add(text)} />
         </View>
-      )}
+        {suggestions.length > 0 && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: space.sm }}>
+            {suggestions.map((ci) => <Chip key={ci} c={c} label={displayName(ci, lang)} onPress={() => add(displayName(ci, lang))} />)}
+          </ScrollView>
+        )}
+      </Card>
 
-      <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-        <Chip c={c} label={`📋 ${t('recipeBtn')}`} onPress={() => setRecipeOpen(true)} />
-        {rows.length > 0 && (<>
-          <Chip c={c} label={t('viewItems')} selected={view === 'items'} onPress={() => setView('items')} />
-          <Chip c={c} label={t('viewStores')} selected={view === 'stores'} onPress={() => setView('stores')} />
-          <Chip c={c} label={t('viewCompare')} selected={view === 'compare'} onPress={() => setView('compare')} />
-        </>)}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+        {rows.length > 0 && (
+          <View style={{ flex: 1 }}>
+            <Segmented c={c} value={view} onChange={setView}
+              options={[{ id: 'items', label: t('viewItems'), icon: 'list' }, { id: 'stores', label: t('viewStores'), icon: 'store' }]} />
+          </View>
+        )}
+        <Button c={c} small variant="soft" icon="clip" label={t('recipeBtn')} onPress={() => setRecipeOpen(true)} />
       </View>
 
       <RecipeModal visible={recipeOpen} onClose={() => setRecipeOpen(false)} c={c} t={t} lang={lang} vocab={vocab} items={items}
         onAdd={(groups) => setItems((prev) => mergeIntoItems(prev, groups, { lang, vocab, makeId: () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}` }).items)} />
 
       {rows.length === 0 && (
-        <View style={{ alignItems: 'center', paddingVertical: 40, gap: 6 }}>
-          <Text style={{ color: c.fg, fontSize: 18, fontWeight: '600' }}>{t('emptyTitle')}</Text>
-          <Text style={{ color: c.mut, textAlign: 'center' }}>{t('emptyHint')}</Text>
+        <EmptyState c={c} icon="cart" title={t('emptyTitle')} hint={t('emptyHint')}
+          action={<Button c={c} variant="soft" icon="clip" label={t('recipeBtn')} onPress={() => setRecipeOpen(true)} style={{ marginTop: space.sm }} />} />
+      )}
+
+      {rows.length > 0 && (
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: space.xs }}>
+          <Text style={{ color: c.ink2, ...type.small }}>
+            {t('products', { n: remaining })}{withPromo ? ` · ` : ''}{withPromo ? <Text style={{ color: c.success, fontWeight: '800' }}>{t('promoCount', { n: withPromo })}</Text> : null}
+          </Text>
+          {doneCount > 0 && (
+            <Pressable onPress={() => setItems((prev) => prev.filter((i) => !i.done))} hitSlop={8}>
+              <Text style={{ color: c.primary, fontWeight: '700', fontSize: 13 }}>{t('clearDone')} ({doneCount})</Text>
+            </Pressable>
+          )}
         </View>
       )}
 
@@ -174,11 +154,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
         <ByStoreView plan={plan} c={c} t={t} lang={lang} favorites={favorites} onToggleDone={toggleDone} />
       )}
 
-      {view === 'compare' && rows.length > 0 && (
-        <CompareView c={c} t={t} rows={rows} regular={regular} stores={chains} loading={regLoading} />
-      )}
-
-      {view === 'items' && rows.map(({ item, r, r0, hits }) => {
+      {view !== 'stores' && rows.map(({ item, r, r0, hits }) => {
         const expanded = !!open[item.id];
         const shown = expanded ? hits : hits.slice(0, PREVIEW);
         const bestId = bestUnitId(hits);
@@ -187,91 +163,83 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
           ? [r0.ci, ...r0.alts].map((ci) => ({ key: ci, label: `${displayName(ci, lang)} → ${dutchName(ci)}`, apply: displayName(ci, lang), pick: ci }))
           : r.status === 'dutch-fuzzy' ? [{ key: r.word, label: r.word, apply: r.word }] : [];
         const chosen = item.pick ?? r0.ci;
+        const searching = r.status === 'translated' ? `${t('translated')} ${r.word}` : r.ci != null ? `${t('searchingFor')} ${dutchName(r.ci)}` : '';
         return (
-          <View key={item.id} style={{ backgroundColor: c.card, borderRadius: 14, borderWidth: 1, borderColor: c.border, padding: 12 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Pressable onPress={() => update(item.id, { done: !item.done })} hitSlop={8}>
-                <Text style={{ fontSize: 24, color: item.done ? ACCENT : c.mut }}>{item.done ? '☑' : '☐'}</Text>
-              </Pressable>
-              <Text style={{ flex: 1, color: c.fg, fontSize: 17, fontWeight: '600', textDecorationLine: item.done ? 'line-through' : 'none', opacity: item.done ? 0.5 : 1 }}>
-                {item.text}{amountText ? <Text style={{ color: ACCENT, fontWeight: '700', fontSize: 16 }}>  {amountText}</Text> : null}
-              </Text>
-              <Pressable onPress={() => startEdit(item)} hitSlop={10} accessibilityLabel={t('editItem')}><Text style={{ color: c.mut, fontSize: 18 }}>✎</Text></Pressable>
-              <Pressable onPress={() => remove(item.id)} hitSlop={10}><Text style={{ color: c.mut, fontSize: 20 }}>✕</Text></Pressable>
+          <Card key={item.id} c={c} pad={0} style={{ opacity: item.done ? 0.55 : 1 }}>
+            <View style={{ padding: space.lg, gap: space.sm }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+                <Pressable onPress={() => update(item.id, { done: !item.done })} hitSlop={8} accessibilityRole="checkbox" accessibilityState={{ checked: item.done }}
+                  style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: item.done ? c.primary : c.border, backgroundColor: item.done ? c.primary : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                  {item.done ? <Icon name="check" size={16} color={c.primaryInk} stroke={3} /> : null}
+                </Pressable>
+                <View style={{ flex: 1, gap: 6 }}>
+                  <Text style={{ color: c.fg, fontSize: 17, fontWeight: '700', textDecorationLine: item.done ? 'line-through' : 'none' }}>{item.text}</Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                    {amountText ? <Badge c={c} tone="brand" label={amountText} /> : null}
+                    {!item.done && hits.length > 0 ? <Badge c={c} tone="success" icon="tag" label={t('promoCount', { n: hits.length })} /> : null}
+                  </View>
+                </View>
+                <IconButton c={c} icon="edit" tone="ghost" size={36} iconSize={18} label={t('editItem')} onPress={() => startEdit(item)} />
+                <IconButton c={c} icon="x" tone="ghost" size={36} iconSize={18} label="✕" onPress={() => remove(item.id)} />
+              </View>
+
+              {edit?.id === item.id && (
+                <View style={{ gap: space.sm, backgroundColor: c.surfaceAlt, borderRadius: radius.md, padding: space.md }}>
+                  <TextInput value={edit.name} onChangeText={(v) => setEdit({ ...edit, name: v })} autoCorrect={false} autoFocus
+                    placeholder={t('editName')} placeholderTextColor={c.mut} style={input} />
+                  <TextInput value={edit.qty} onChangeText={(v) => setEdit({ ...edit, qty: v, bad: false })} autoCorrect={false}
+                    placeholder={t('editQty')} placeholderTextColor={c.mut} style={[input, edit.bad && { borderColor: c.danger }]} />
+                  {edit.bad && <Text style={{ color: c.danger, ...type.small }}>{t('editQtyBad')}</Text>}
+                  <View style={{ flexDirection: 'row', gap: space.sm, justifyContent: 'flex-end' }}>
+                    <Button c={c} small variant="neutral" label={t('editCancel')} onPress={() => setEdit(null)} />
+                    <Button c={c} small label={t('editSave')} onPress={saveEdit} />
+                  </View>
+                </View>
+              )}
+
+              {choices.length > 0 && (
+                <View style={{ gap: 6 }}>
+                  <Text style={{ color: c.mut, ...type.small }}>{t('didYouMean')}</Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+                    {choices.map((ch, i) => (
+                      <Chip key={ch.key} c={c} label={ch.label} selected={ch.pick != null ? ch.pick === chosen : i === 0}
+                        onPress={() => update(item.id, ch.pick != null
+                          ? { pick: ch.pick, ...(r0.status === 'fuzzy' ? { text: ch.apply } : {}) } // literówkę poprawiamy w tekście
+                          : { text: ch.apply })} />
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {searching ? <Text style={{ color: c.mut, ...type.small }}>{searching}</Text> : null}
+              {r.partial && <Text style={{ color: c.warnFg, ...type.small }}>{t('partialHint', { w: r.extra.join(' ') })}</Text>}
+              {r.status === 'unknown' && <Text style={{ color: c.mut, ...type.small }}>{t('unknownItem')}</Text>}
             </View>
 
-            {edit?.id === item.id && (
-              <View style={{ marginTop: 10, gap: 8 }}>
-                <TextInput value={edit.name} onChangeText={(v) => setEdit({ ...edit, name: v })} autoCorrect={false} autoFocus
-                  placeholder={t('editName')} placeholderTextColor={c.mut}
-                  style={{ borderWidth: 1, borderColor: c.border, borderRadius: 10, padding: 10, color: c.fg, backgroundColor: c.bg, fontSize: 16 }} />
-                <TextInput value={edit.qty} onChangeText={(v) => setEdit({ ...edit, qty: v, bad: false })} autoCorrect={false}
-                  placeholder={t('editQty')} placeholderTextColor={c.mut}
-                  style={{ borderWidth: 1, borderColor: edit.bad ? c.danger : c.border, borderRadius: 10, padding: 10, color: c.fg, backgroundColor: c.bg, fontSize: 16 }} />
-                {edit.bad && <Text style={{ color: c.danger, fontSize: 13 }}>{t('editQtyBad')}</Text>}
-                <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'flex-end' }}>
-                  <Pressable onPress={() => setEdit(null)} style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: c.chip }}>
-                    <Text style={{ color: c.fg }}>{t('editCancel')}</Text>
-                  </Pressable>
-                  <Pressable onPress={saveEdit} style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: ACCENT }}>
-                    <Text style={{ color: '#fff', fontWeight: '700' }}>{t('editSave')}</Text>
-                  </Pressable>
-                </View>
-              </View>
-            )}
-
-            {choices.length > 0 && (
-              <View style={{ marginTop: 8, gap: 6 }}>
-                <Text style={{ color: c.mut, fontSize: 13 }}>{t('didYouMean')}</Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                  {choices.map((ch, i) => (
-                    <Chip key={ch.key} c={c} label={ch.label} selected={ch.pick != null ? ch.pick === chosen : i === 0}
-                      onPress={() => update(item.id, ch.pick != null
-                        ? { pick: ch.pick, ...(r0.status === 'fuzzy' ? { text: ch.apply } : {}) } // literówkę poprawiamy w tekście
-                        : { text: ch.apply })} />
-                  ))}
-                </View>
-              </View>
-            )}
-            {r.status === 'translated' && (
-              <Text style={{ color: c.mut, fontSize: 13, marginTop: 6 }}>{t('translated')} {r.word}</Text>
-            )}
-            {r.ci != null && r.status !== 'translated' && (
-              <Text style={{ color: c.mut, fontSize: 13, marginTop: 6 }}>
-                {t('searchingFor')} {dutchName(r.ci)}
-              </Text>
-            )}
-            {r.partial && <Text style={{ color: c.mut, fontSize: 13, marginTop: 6 }}>{t('partialHint', { w: r.extra.join(' ') })}</Text>}
-            {r.status === 'unknown' && <Text style={{ color: c.mut, fontSize: 13, marginTop: 6 }}>{t('unknownItem')}</Text>}
-
             {!item.done && (
-              <View style={{ marginTop: 6 }}>
+              <View style={{ borderTopWidth: 1, borderTopColor: c.line, paddingHorizontal: space.lg }}>
                 {hits.length === 0 ? (
-                  <Text style={{ color: c.mut, fontStyle: 'italic' }}>{t('noPromo')}</Text>
+                  <Text style={{ color: c.mut, fontStyle: 'italic', paddingVertical: space.md }}>{t('noPromo')}</Text>
                 ) : (
                   <>
-                    <Text style={{ color: ACCENT, fontWeight: '600', fontSize: 13 }}>{t('promoCount', { n: hits.length })}</Text>
-                    {shown.map((d) => <DealRow key={d.id} deal={d} c={c} t={t} lang={lang} best={d.id === bestId} />)}
+                    {shown.map((d, i) => (
+                      <View key={d.id} style={i > 0 ? { borderTopWidth: 1, borderTopColor: c.line } : null}>
+                        <DealRow deal={d} c={c} t={t} lang={lang} best={d.id === bestId} />
+                      </View>
+                    ))}
                     {hits.length > PREVIEW && (
-                      <Pressable onPress={() => setOpen((o) => ({ ...o, [item.id]: !expanded }))}>
-                        <Text style={{ color: ACCENT, paddingVertical: 4 }}>
-                          {expanded ? t('less') : t('more', { n: hits.length - PREVIEW })}
-                        </Text>
+                      <Pressable onPress={() => setOpen((o) => ({ ...o, [item.id]: !expanded }))} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: space.md, borderTopWidth: 1, borderTopColor: c.line }}>
+                        <Text style={{ color: c.primary, fontWeight: '700' }}>{expanded ? t('less') : t('more', { n: hits.length - PREVIEW })}</Text>
+                        <View style={{ transform: [{ rotate: expanded ? '180deg' : '0deg' }] }}><Icon name="chevron" size={16} color={c.primary} /></View>
                       </Pressable>
                     )}
                   </>
                 )}
               </View>
             )}
-          </View>
+          </Card>
         );
       })}
-
-      {doneCount > 0 && (
-        <Pressable onPress={() => setItems((prev) => prev.filter((i) => !i.done))} style={{ alignItems: 'center', padding: 12 }}>
-          <Text style={{ color: c.mut }}>{t('clearDone')} ({doneCount})</Text>
-        </Pressable>
-      )}
     </ScrollView>
   );
 }

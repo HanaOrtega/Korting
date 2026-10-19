@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Modal, ScrollView, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { REGIONS, REGION_IDS, buildGroups, fmtAmounts, keyOfItem, resolveRegion } from '../recipe.js';
-import { ACCENT } from '../theme.js';
+import { elevation, radius, space, type } from '../theme.js';
+import { Badge, Button, Card, Chip, Icon, IconButton, SectionLabel } from './ui.js';
 
 const STEP = 0.5;
 
 /** Wklej składniki przepisu → podgląd listy zakupów (zsumowane, bez duplikatów) → dodaj do listy. */
 export default function RecipeModal({ visible, onClose, c, t, lang, vocab, items, onAdd }) {
+  const insets = useSafeAreaInsets();
   const [text, setText] = useState('');
   const [mult, setMult] = useState(1);
   const [regionChoice, setRegionChoice] = useState('auto');
@@ -15,66 +18,82 @@ export default function RecipeModal({ visible, onClose, c, t, lang, vocab, items
   const sizes = REGIONS[region];
   const regionName = (id) => (id === 'auto' ? t('regAuto') : id === 'metric' ? t('regMetric') : id === 'us' ? 'USA' : id === 'uk' ? 'UK' : 'AU');
   const onList = useMemo(() => new Set(items.map((it) => keyOfItem(it, { lang, vocab }))), [items, lang, vocab]);
-  const btn = { backgroundColor: ACCENT, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center' };
 
   const add = () => { onAdd(groups); setText(''); setMult(1); setRegionChoice('auto'); onClose(); };
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: 36 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8 }}>
-          <Text style={{ color: c.fg, fontSize: 18, fontWeight: '800', flex: 1 }}>{t('recipeTitle')}</Text>
-          <Pressable onPress={onClose} style={[btn, { backgroundColor: c.chip }]}><Text style={{ color: c.fg, fontWeight: '600' }}>✕</Text></Pressable>
+      <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.md }}>
+          <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: c.primaryTint, alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="clip" size={20} color={c.primary} />
+          </View>
+          <Text style={{ color: c.fg, ...type.title, flex: 1 }}>{t('recipeTitle')}</Text>
+          <IconButton c={c} icon="x" label="✕" onPress={onClose} />
         </View>
-        <ScrollView contentContainerStyle={{ padding: 16, gap: 10 }} keyboardShouldPersistTaps="handled">
-          <TextInput value={text} onChangeText={setText} multiline placeholder={t('recipePh')} placeholderTextColor={c.mut}
-            autoCorrect={false} textAlignVertical="top"
-            style={{ minHeight: 150, borderWidth: 1, borderColor: c.border, borderRadius: 12, padding: 12, color: c.fg, backgroundColor: c.card, fontSize: 15 }} />
-          <Text style={{ color: c.mut, fontSize: 12 }}>{t('recipeHint')}</Text>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Pressable onPress={() => setMult((m) => Math.max(STEP, m - STEP))} style={[btn, { backgroundColor: c.chip }]}><Text style={{ color: c.fg, fontSize: 18 }}>−</Text></Pressable>
-            <Text style={{ color: c.fg, fontWeight: '700', minWidth: 90, textAlign: 'center' }}>{t('recipeMult', { n: String(mult).replace('.', ',') })}</Text>
-            <Pressable onPress={() => setMult((m) => m + STEP)} style={[btn, { backgroundColor: c.chip }]}><Text style={{ color: c.fg, fontSize: 18 }}>＋</Text></Pressable>
-          </View>
+        <ScrollView contentContainerStyle={{ paddingHorizontal: space.lg, paddingBottom: space.xl, gap: space.md }} keyboardShouldPersistTaps="handled">
+          <Card c={c} pad={space.md} level={2} style={{ gap: space.sm }}>
+            <TextInput value={text} onChangeText={setText} multiline placeholder={t('recipePh')} placeholderTextColor={c.mut}
+              autoCorrect={false} textAlignVertical="top"
+              style={{ minHeight: 140, maxHeight: 240, color: c.fg, fontSize: 15, lineHeight: 22 }} />
+            <Text style={{ color: c.mut, ...type.caption }}>{t('recipeHint')}</Text>
+          </Card>
 
-          <View style={{ gap: 6 }}>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
-              <Text style={{ color: c.mut, fontSize: 12 }}>{t('regionLabel')}:</Text>
-              {['auto', ...REGION_IDS].map((id) => (
-                <Pressable key={id} onPress={() => setRegionChoice(id)} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 14, backgroundColor: regionChoice === id ? ACCENT : c.chip }}>
-                  <Text style={{ color: regionChoice === id ? '#fff' : c.fg, fontSize: 13 }}>{regionName(id)}</Text>
-                </Pressable>
-              ))}
+          <Card c={c} style={{ gap: space.md }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={{ color: c.fg, ...type.strong }}>{t('recipeMult', { n: String(mult).replace('.', ',') })}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+                <Button c={c} variant="neutral" small label="−" onPress={() => setMult((m) => Math.max(STEP, m - STEP))} />
+                <Button c={c} variant="neutral" small label="＋" onPress={() => setMult((m) => m + STEP)} />
+              </View>
             </View>
-            <Text style={{ color: c.mut, fontSize: 12 }}>{regionName(region)}: {t('regInfo', { tbsp: sizes.tbsp, tsp: sizes.tsp, cup: sizes.cup })}</Text>
-          </View>
+            <View style={{ gap: space.sm }}>
+              <Text style={{ color: c.mut, ...type.overline }}>{t('regionLabel')}</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+                {['auto', ...REGION_IDS].map((id) => <Chip key={id} c={c} label={regionName(id)} selected={regionChoice === id} onPress={() => setRegionChoice(id)} />)}
+              </View>
+              <Text style={{ color: c.mut, ...type.small }}>{regionName(region)}: {t('regInfo', { tbsp: sizes.tbsp, tsp: sizes.tsp, cup: sizes.cup })}</Text>
+            </View>
+          </Card>
 
           {groups.length === 0 ? (
-            <Text style={{ color: c.mut, textAlign: 'center', paddingVertical: 20 }}>{t('recipeEmpty')}</Text>
+            <Text style={{ color: c.mut, textAlign: 'center', paddingVertical: space.xl }}>{t('recipeEmpty')}</Text>
           ) : (
-            <View style={{ backgroundColor: c.card, borderRadius: 14, borderWidth: 1, borderColor: c.border, padding: 12, gap: 8 }}>
-              <Text style={{ color: c.mut, fontSize: 12 }}>{t('recipeLines', { n: lines, m: groups.length })}</Text>
-              {groups.map((g) => (
-                <View key={g.key} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ color: c.fg, fontWeight: '600' }}>{g.text}{g.amounts.length ? <Text style={{ color: ACCENT, fontWeight: '700' }}>  {fmtAmounts(g.amounts, t)}</Text> : g.toTaste ? <Text style={{ color: c.mut, fontWeight: '400' }}>  {t('toTaste')}</Text> : null}{g.count > 1 ? <Text style={{ color: c.mut, fontWeight: '400' }}>  ×{g.count}</Text> : null}</Text>
-                    {onList.has(g.key) && <Text style={{ color: ACCENT, fontSize: 12 }}>{t('recipeOnList')}</Text>}
+            <>
+              <SectionLabel c={c}>{t('recipeLines', { n: lines, m: groups.length })}</SectionLabel>
+              <Card c={c} pad={0}>
+                {groups.map((g, i) => (
+                  <View key={g.key} style={{ paddingVertical: space.md, paddingHorizontal: space.lg, borderTopWidth: i ? 1 : 0, borderTopColor: c.line, gap: 6 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+                      <Text style={{ color: c.fg, ...type.strong, flexShrink: 1 }}>{g.text}</Text>
+                      {g.count > 1 ? <Text style={{ color: c.mut, fontSize: 13 }}>×{g.count}</Text> : null}
+                    </View>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                      {g.amounts.length ? <Badge c={c} tone="brand" label={fmtAmounts(g.amounts, t)} /> : null}
+                      {!g.amounts.length && g.toTaste ? <Badge c={c} label={t('toTaste')} /> : null}
+                      {onList.has(g.key) ? <Badge c={c} tone="success" icon="check" label={t('recipeOnList')} /> : null}
+                    </View>
                   </View>
-                </View>
-              ))}
-            </View>
+                ))}
+              </Card>
+            </>
           )}
+
           {skipped.length > 0 && (
-            <View style={{ backgroundColor: c.warn, borderRadius: 10, padding: 10, gap: 2 }}>
-              <Text style={{ color: c.warnFg, fontWeight: '600', fontSize: 13 }}>{t('recipeSkipped', { n: skipped.length })}</Text>
+            <View style={{ backgroundColor: c.warnTint, borderRadius: radius.md, padding: space.md, gap: 2 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Icon name="alert" size={16} color={c.warnFg} />
+                <Text style={{ color: c.warnFg, fontWeight: '700', fontSize: 13, flex: 1 }}>{t('recipeSkipped', { n: skipped.length })}</Text>
+              </View>
               {skipped.slice(0, 8).map((l, i) => <Text key={i} style={{ color: c.warnFg, fontSize: 13 }}>• {l}</Text>)}
             </View>
           )}
-          <Pressable onPress={add} disabled={groups.length === 0} style={[btn, { padding: 14, opacity: groups.length === 0 ? 0.4 : 1 }]}>
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>{t('recipeAdd', { n: groups.length })}</Text>
-          </Pressable>
         </ScrollView>
+
+        <View style={{ padding: space.lg, paddingBottom: Math.max(insets.bottom, space.lg), backgroundColor: c.surface, borderTopWidth: 1, borderTopColor: c.line, ...elevation(c, 2) }}>
+          <Button c={c} icon="plus" label={t('recipeAdd', { n: groups.length })} onPress={add} disabled={groups.length === 0} />
+        </View>
       </View>
     </Modal>
   );

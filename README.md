@@ -34,10 +34,7 @@ pobiera promocje ze stron sklepów i trzyma je w pamięci telefonu.
   (albo przesuwasz mapę), dotykasz „Szukaj sklepów tutaj” i zaznaczasz pinezki konkretnych sklepów – także w innym
   mieście niż to, w którym jesteś. Wybrany konkretny sklep jest celem nawigacji.
 - **Ile taniej i gdzie:** przy każdej ofercie widać oszczędność względem zwykłej ceny („−20% (−€0,40)”, gdy sklep ją
-  podaje; dla Aldi liczona z „−33%”) oraz cenę za kg/l, z oznaczeniem najtańszej oferty. Widok **Porównanie** na liście
-  zestawia sklepy: koszt tych samych produktów w każdym sklepie (przy znanej gramaturze – tej samej ilości) i zdanie typu
-  „te same produkty kosztują o X% mniej w Lidlu niż w Jumbo”. Porównywane są tylko produkty z ceną w obu sklepach,
-  a w tabeli widać, jaka oferta za tym stoi.
+  podaje; dla Aldi liczona z „−33%”) oraz cenę za kg/l, z oznaczeniem najtańszej oferty.
 - **Zakładka Słownik** (osobno, żeby nie zaśmiecać listy): kondycja słownika – ile rozpoznano z Twojej listy (z poprawką
   literówki, przetłumaczonych online, nierozpoznanych), słowa niejednoznaczne, produkty bez ofert w tym tygodniu
   i takie z podejrzanie dużo ofert (możliwe fałszywe trafienia), słowa wspólne dla kilku języków oraz nauczone
@@ -121,14 +118,12 @@ Lokalizacja jest używana wyłącznie po dotknięciu „Znajdź sklepy w pobliż
 OpenStreetMap (Overpass API; kilka serwerów zapasowych); rozpoznawane są sieci Albert Heijn, Aldi, Lidl, Jumbo,
 Dirk i Plus. Promocje są ogólnokrajowe, więc ulubiony sklep służy do wyboru sieci i nawigacji.
 
-## Ograniczenia porównania cen
+## Interfejs
 
-- Porównujemy **najtańszą ofertę pasującą do produktu** w każdym sklepie – to nie zawsze ten sam artykuł (np. „kawa”
-  może być rozpuszczalna w jednym sklepie i mrożona w drugim); dlatego w tabeli widać nazwę oferty.
-- **Zwykłych cen (bez promocji) prawie nie mamy**: lidl.nl poza promocjami pokazuje tylko sprzęt, a Aldi, Jumbo, Dirk i Plus
-  nie wystawiają ich w tych samych danych. Zwykłe ceny pobieramy tylko z Albert Heijn (niesprawdzone na żywo).
-- Jumbo często podaje tylko mechanizm („25% korting”, „1+1 gratis”) bez ceny bazowej – takie oferty nie mają ceny,
-  więc nie wchodzą do porównania („2 voor 6,49” liczymy jako 3,25 za sztukę).
+Dolny pasek zakładek z ikonami (Lista, Promocje, Sklepy, Słownik) uwzględnia pasek nawigacji systemu
+(`react-native-safe-area-context`), ikony rysuje `react-native-svg`. Kolory, typografia, promienie i cienie są w
+`src/theme.js` (jasny i ciemny motyw), wspólne klocki w `src/components/ui.js`. Sieci mają własne barwy.
+Widok porównania cen został usunięty.
 
 ## Składniki z przepisu: zasady sumowania
 

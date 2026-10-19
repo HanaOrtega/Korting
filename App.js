@@ -2,7 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Modal, Platform, Pressable, StatusBar as RNStatusBar, Text, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Pressable, Text, useColorScheme, View } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Icon, IconButton, TabBar } from './src/components/ui.js';
 import WebViewHost from './src/components/WebViewHost.js';
 import { loadDeals, readCache } from './src/deals.js';
 import { LANG_CODES, LANG_NAMES, makeT, pickLanguage } from './src/i18n.js';
@@ -12,7 +14,7 @@ import DealsScreen from './src/screens/DealsScreen.js';
 import ListScreen from './src/screens/ListScreen.js';
 import StoresScreen from './src/screens/StoresScreen.js';
 import VocabScreen from './src/screens/VocabScreen.js';
-import { ACCENT, dark, light } from './src/theme.js';
+import { dark, elevation, light, radius, space, type } from './src/theme.js';
 
 const store = {
   async get(key, fallback) {
@@ -22,6 +24,15 @@ const store = {
 };
 
 export default function App() {
+  return (
+    <SafeAreaProvider>
+      <Root />
+    </SafeAreaProvider>
+  );
+}
+
+function Root() {
+  const insets = useSafeAreaInsets();
   const c = useColorScheme() === 'dark' ? dark : light;
   const [lang, setLang] = useState(() => pickLanguage(getLocales()[0]?.languageCode));
   const [items, setItems] = useState([]);
@@ -44,7 +55,8 @@ export default function App() {
       setFavorites(favs);
       // kto miał już wybrane sklepy (starsza wersja), nie musi wybierać drugi raz
       setConfirmed(await store.get('korting.confirmed', favs.length > 0));
-      setView(await store.get('korting.view', 'items'));
+      const v = await store.get('korting.view', 'items');
+      setView(v === 'stores' ? 'stores' : 'items'); // widok porównania został usunięty
       setReady(true);
     })();
   }, []);
@@ -76,62 +88,68 @@ export default function App() {
     setTab('list');
   };
 
-  const top = Platform.OS === 'android' ? (RNStatusBar.currentHeight ?? 24) : 50;
-  const tabBtn = (id, label) => (
-    <Pressable key={id} onPress={() => setTab(id)} style={{ flex: 1, paddingVertical: 10, paddingHorizontal: 2, borderRadius: 12, alignItems: 'center',
-      backgroundColor: tab === id ? ACCENT : c.chip }}>
-      <Text numberOfLines={1} adjustsFontSizeToFit style={{ color: tab === id ? '#fff' : c.fg, fontWeight: '600', fontSize: 14 }}>{label}</Text>
-    </Pressable>
-  );
+  const onList = items.filter((i) => !i.done).length;
+  const subtitle = chains.length ? chains.map((ch) => ch).join(' · ') : '';
 
   return (
-    <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: top }}>
+    <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top }}>
       <StatusBar style={c === dark ? 'light' : 'dark'} />
-      <View style={{ paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: c.border, gap: 8 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Text style={{ color: ACCENT, fontSize: 24, fontWeight: '800' }}>Korting</Text>
-          <Pressable onPress={() => setPickLang(true)} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: c.chip }}>
-            <Text style={{ color: c.fg }}>🌐 {lang.toUpperCase()}</Text>
+      <View style={{ paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.md, gap: space.sm }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+          <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center', ...elevation(c, 1) }}>
+            <Icon name="cart" size={22} color={c.primaryInk} stroke={2.2} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: c.fg, ...type.title }}>Korting</Text>
+            {subtitle ? <Text numberOfLines={1} style={{ color: c.mut, ...type.caption }}>{subtitle}</Text> : null}
+          </View>
+          {!needStores && <IconButton c={c} icon="refresh" label={t('refresh')} onPress={() => refresh(true)} />}
+          <Pressable onPress={() => setPickLang(true)} accessibilityRole="button" accessibilityLabel="language"
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 40, borderRadius: 20, backgroundColor: c.chip }}>
+            <Icon name="globe" size={16} color={c.ink2} />
+            <Text style={{ color: c.fg, fontWeight: '700', fontSize: 13 }}>{lang.toUpperCase()}</Text>
           </Pressable>
         </View>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          {tabBtn('list', t('tabList'))}
-          {tabBtn('deals', t('tabDeals'))}
-          {tabBtn('stores', t('tabStores'))}
-          {tabBtn('vocab', t('tabVocab'))}
-        </View>
-        {loading && !needStores && <Text style={{ color: c.mut, fontSize: 13 }}>{t('loading')}</Text>}
+        {loading && !needStores && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <ActivityIndicator size="small" color={c.primary} />
+            <Text style={{ color: c.mut, ...type.small }}>{t('loading')}</Text>
+          </View>
+        )}
         {!loading && errors.length > 0 && (
-          <Pressable onPress={() => Alert.alert('Korting', errors.map((e) => `${e.store}: ${e.error}`).join('\n\n'))}>
-            <Text style={{ backgroundColor: c.warn, color: c.warnFg, padding: 8, borderRadius: 10, fontSize: 13 }}>
-              {t('failed', { stores: errors.map((e) => e.store).join(', ') })} · {t('details')}
-            </Text>
+          <Pressable onPress={() => Alert.alert('Korting', errors.map((e) => `${e.store}: ${e.error}`).join('\n\n'))}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.warnTint, borderRadius: radius.md, padding: space.md }}>
+            <Icon name="alert" size={18} color={c.warnFg} />
+            <Text style={{ color: c.warnFg, ...type.small, flex: 1 }}>{t('failed', { stores: errors.map((e) => e.store).join(', ') })} · {t('details')}</Text>
           </Pressable>
         )}
       </View>
 
-      {tab === 'vocab' ? (
-        <VocabScreen c={c} t={t} lang={lang} items={items} deals={deals} vocab={vocab} />
-      ) : tab === 'stores' ? (
-        <StoresScreen c={c} t={t} favorites={favorites} setFavorites={setFavorites} />
-      ) : needStores ? (
-        // najpierw wybór sklepów – dopiero potem lista i promocje
-        <StoresScreen c={c} t={t} favorites={favorites} setFavorites={setFavorites} intro onContinue={() => setConfirmed(true)} />
-      ) : tab === 'list' ? (
-        <ListScreen c={c} t={t} lang={lang} items={items} setItems={setItems} deals={deals} vocab={vocab}
-          view={view} setView={setView} favorites={favorites} />
-      ) : (
-        <DealsScreen c={c} t={t} lang={lang} deals={deals} onAdd={addFromDeal} refreshing={loading} onRefresh={() => refresh(true)} />
-      )}
+      <View style={{ flex: 1, paddingBottom: needStores ? insets.bottom : 0 }}>
+        {needStores ? (
+          // najpierw wybór sklepów – dopiero potem lista i promocje
+          <StoresScreen c={c} t={t} favorites={favorites} setFavorites={setFavorites} intro onContinue={() => setConfirmed(true)} />
+        ) : tab === 'vocab' ? (
+          <VocabScreen c={c} t={t} lang={lang} items={items} deals={deals} vocab={vocab} />
+        ) : tab === 'stores' ? (
+          <StoresScreen c={c} t={t} favorites={favorites} setFavorites={setFavorites} />
+        ) : tab === 'list' ? (
+          <ListScreen c={c} t={t} lang={lang} items={items} setItems={setItems} deals={deals} vocab={vocab}
+            view={view} setView={setView} favorites={favorites} />
+        ) : (
+          <DealsScreen c={c} t={t} lang={lang} deals={deals} onAdd={addFromDeal} refreshing={loading} onRefresh={() => refresh(true)} />
+        )}
+      </View>
+
+      {!needStores && <TabBar c={c} t={t} tab={tab} setTab={setTab} badge={{ list: onList || 0 }} />}
 
       <Modal visible={pickLang} transparent animationType="fade" onRequestClose={() => setPickLang(false)}>
-        <Pressable onPress={() => setPickLang(false)} style={{ flex: 1, backgroundColor: '#0008', justifyContent: 'center', padding: 24 }}>
-          <View style={{ backgroundColor: c.card, borderRadius: 16, padding: 8 }}>
+        <Pressable onPress={() => setPickLang(false)} style={{ flex: 1, backgroundColor: c.overlay, justifyContent: 'center', padding: 24 }}>
+          <View style={{ backgroundColor: c.surface, borderRadius: radius.lg, padding: space.sm, ...elevation(c, 2) }}>
             {LANG_CODES.map((code) => (
-              <Pressable key={code} onPress={() => changeLang(code)} style={{ padding: 12 }}>
-                <Text style={{ color: code === lang ? ACCENT : c.fg, fontSize: 17, fontWeight: code === lang ? '700' : '400' }}>
-                  {LANG_NAMES[code]}
-                </Text>
+              <Pressable key={code} onPress={() => changeLang(code)} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, paddingHorizontal: space.md, borderRadius: radius.sm, backgroundColor: code === lang ? c.primaryTint : 'transparent' }}>
+                <Text style={{ color: code === lang ? c.primaryDeep : c.fg, fontSize: 17, fontWeight: code === lang ? '800' : '500' }}>{LANG_NAMES[code]}</Text>
+                {code === lang && <Icon name="check" size={18} color={c.primary} stroke={2.6} />}
               </Pressable>
             ))}
           </View>

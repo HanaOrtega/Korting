@@ -4,12 +4,15 @@ import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, View 
 import { WebView } from 'react-native-webview';
 import { mapHtml } from '../mapHtml.js';
 import { fmtDistance, findNearbyStores, geocode } from '../stores.js';
-import { ACCENT } from '../theme.js';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { elevation, radius, space, type } from '../theme.js';
+import { Button, IconButton } from './ui.js';
 
 const MAX_RADIUS = 6000; // m – większy obszar Overpass odrzuca albo zwraca za dużo
 
 /** Pełnoekranowa mapa: przesuń do dowolnego miasta, wyszukaj sklepy i zaznacz konkretne pinezki. */
 export default function MapPicker({ visible, onClose, c, t, favorites, setFavorites }) {
+  const insets = useSafeAreaInsets();
   const web = useRef(null);
   const ready = useRef(false);
   const [view, setView] = useState(null);
@@ -95,34 +98,30 @@ export default function MapPicker({ visible, onClose, c, t, favorites, setFavori
     ? prev.filter((f) => f.id !== s.id)
     : [...prev, { id: s.id, chain: s.chain, name: s.name, address: s.address, lat: s.lat, lon: s.lon }]));
   const isSel = (s) => favorites.some((f) => f.id === s.id);
-  const btn = { backgroundColor: ACCENT, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, alignItems: 'center' };
-
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: c.bg }}>
-        <View style={{ paddingTop: 36, paddingHorizontal: 12, paddingBottom: 8, gap: 8, backgroundColor: c.bg, zIndex: 2 }}>
-          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+        <View style={{ paddingTop: insets.top + space.sm, paddingHorizontal: space.md, paddingBottom: space.sm, gap: space.sm, backgroundColor: c.surface, zIndex: 2, ...elevation(c, 1) }}>
+          <View style={{ flexDirection: 'row', gap: space.sm, alignItems: 'center' }}>
             <TextInput value={query} onChangeText={setQuery} onSubmitEditing={findPlace} placeholder={t('searchPlace')} placeholderTextColor={c.mut}
-              returnKeyType="search" style={{ flex: 1, borderWidth: 1, borderColor: c.border, borderRadius: 12, padding: 10, color: c.fg, backgroundColor: c.card, fontSize: 16 }} />
-            <Pressable onPress={findPlace} style={btn}><Text style={{ color: '#fff' }}>🔍</Text></Pressable>
-            <Pressable onPress={onClose} style={[btn, { backgroundColor: c.chip }]}><Text style={{ color: c.fg, fontWeight: '600' }}>{t('closeBtn')}</Text></Pressable>
+              returnKeyType="search" style={{ flex: 1, borderWidth: 1, borderColor: c.border, borderRadius: radius.md, paddingHorizontal: space.md, paddingVertical: 11, color: c.fg, backgroundColor: c.bg, fontSize: 16 }} />
+            <IconButton c={c} icon="search" tone="primary" label="search" onPress={findPlace} />
+            <IconButton c={c} icon="x" label={t('closeBtn')} onPress={onClose} />
           </View>
           {places.length > 0 && (
-            <ScrollView style={{ maxHeight: 190, backgroundColor: c.card, borderRadius: 12, borderWidth: 1, borderColor: c.border }} keyboardShouldPersistTaps="handled">
+            <ScrollView style={{ maxHeight: 190, backgroundColor: c.bg, borderRadius: radius.md, borderWidth: 1, borderColor: c.border }} keyboardShouldPersistTaps="handled">
               {places.map((p, i) => (
-                <Pressable key={i} onPress={() => goTo(p)} style={{ padding: 10 }}>
+                <Pressable key={i} onPress={() => goTo(p)} style={{ padding: space.md, borderTopWidth: i ? 1 : 0, borderTopColor: c.line }}>
                   <Text style={{ color: c.fg }} numberOfLines={2}>{p.name}</Text>
                 </Pressable>
               ))}
             </ScrollView>
           )}
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <Pressable onPress={myLocation} style={[btn, { backgroundColor: c.chip }]}><Text style={{ color: c.fg }}>📍 {t('myLocation')}</Text></Pressable>
-            <Pressable onPress={() => searchStores()} disabled={!view || busy === 'stores'} style={[btn, { flex: 1, opacity: !view ? 0.5 : 1 }]}>
-              {busy === 'stores' ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '700' }}>{t('searchHere')}</Text>}
-            </Pressable>
+          <View style={{ flexDirection: 'row', gap: space.sm }}>
+            <Button c={c} small variant="neutral" icon="pin" label={t('myLocation')} onPress={myLocation} />
+            <Button c={c} small label={busy === 'stores' ? '…' : t('searchHere')} icon="store" onPress={() => searchStores()} disabled={!view || busy === 'stores'} style={{ flex: 1 }} />
           </View>
-          <Text style={{ color: error ? c.danger : c.mut, fontSize: 12 }}>{error || t('mapHint')}</Text>
+          <Text style={{ color: error ? c.danger : c.mut, ...type.caption }}>{error || t('mapHint')}</Text>
         </View>
 
         <View style={{ flex: 1 }}>
@@ -130,17 +129,15 @@ export default function MapPicker({ visible, onClose, c, t, favorites, setFavori
             originWhitelist={['*']} javaScriptEnabled domStorageEnabled style={{ flex: 1 }} />
         </View>
 
-        <View style={{ padding: 12, paddingBottom: 40, gap: 8, backgroundColor: c.card, borderTopWidth: 1, borderTopColor: c.border }}>
-          <Text style={{ color: c.mut, fontSize: 12 }}>{t('selectedCount', { n: favorites.filter((f) => f.lat != null).length })}</Text>
+        <View style={{ padding: space.md, paddingBottom: Math.max(insets.bottom, space.md), gap: space.sm, backgroundColor: c.surface, ...elevation(c, 2) }}>
+          <Text style={{ color: c.mut, ...type.caption }}>{t('selectedCount', { n: favorites.filter((f) => f.lat != null).length })}</Text>
           {tapped ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
               <View style={{ flex: 1 }}>
-                <Text style={{ color: c.fg, fontWeight: '700' }}>{tapped.name}</Text>
-                <Text style={{ color: c.mut, fontSize: 13 }}>{[tapped.address, tapped.distance != null ? fmtDistance(tapped.distance) : ''].filter(Boolean).join(' · ') || tapped.chain}</Text>
+                <Text style={{ color: c.fg, ...type.strong }}>{tapped.name}</Text>
+                <Text style={{ color: c.mut, ...type.small }}>{[tapped.address, tapped.distance != null ? fmtDistance(tapped.distance) : ''].filter(Boolean).join(' · ') || tapped.chain}</Text>
               </View>
-              <Pressable onPress={() => toggle(tapped)} style={[btn, isSel(tapped) && { backgroundColor: c.chip }]}>
-                <Text style={{ color: isSel(tapped) ? c.fg : '#fff', fontWeight: '600' }}>{isSel(tapped) ? t('removeStore') : t('addStore')}</Text>
-              </Pressable>
+              <Button c={c} small variant={isSel(tapped) ? 'neutral' : 'primary'} label={isSel(tapped) ? t('removeStore') : t('addStore')} onPress={() => toggle(tapped)} />
             </View>
           ) : null}
         </View>

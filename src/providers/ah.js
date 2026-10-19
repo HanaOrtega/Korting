@@ -80,23 +80,8 @@ async function search(q) {
   throw new Error(`AH wyszukiwanie: ${tried.join(' | ')}`);
 }
 
-/** Produkty z wyszukiwarki jako zwykłe ceny (przy produkcie w bonusie – cena sprzed bonusu). */
-export function parseAhRegular(json) {
-  return (json?.products ?? [])
-    .map((p) => ({ p, price: p.priceBeforeBonus ?? p.currentPrice ?? p.price?.now ?? null }))
-    .filter(({ p, price }) => p.title && price != null)
-    .map(({ p, price }) => ({
-      id: `ah-${p.webshopId ?? p.id}`, store: 'Albert Heijn', name: p.title, description: '', oldPrice: null,
-      unit: p.salesUnitSize ?? '', price, promoText: '', validFrom: null, validUntil: null,
-      image: p.images?.[0]?.url ?? null, url: `https://www.ah.nl/producten/product/wi${p.webshopId ?? p.id}`,
-    }));
-}
-
 export default {
   name: 'Albert Heijn',
-  async regular(term) {
-    return parseAhRegular(await search(term));
-  },
   async fetch() {
     const first = await search(QUERIES[0]);
     const sample = first?.products?.[0];

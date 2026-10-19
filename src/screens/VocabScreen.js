@@ -3,7 +3,8 @@ import { Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { listStats, vocabHealth } from '../health.js';
 import { displayName, resolve } from '../match.js';
 import { clearTranslations, listTranslations } from '../translate.js';
-import { ACCENT } from '../theme.js';
+import { Icon } from '../components/ui.js';
+import { elevation, radius, space, type } from '../theme.js';
 import { clearLog, readLog } from '../vocabLog.js';
 
 const PREVIEW = 12;
@@ -26,14 +27,15 @@ export default function VocabScreen({ c, t, lang, items, deals, vocab }) {
   const stats = listStats(rows.map((x) => x.r.status));
   const problems = rows.filter((x) => ['unknown', 'translated', 'fuzzy', 'dutch-fuzzy'].includes(x.r.status));
 
-  const card = { backgroundColor: c.card, borderRadius: 14, borderWidth: 1, borderColor: c.border, padding: 12 };
-  const mut = { color: c.mut, fontSize: 13 };
+  const card = { backgroundColor: c.surface, borderRadius: radius.lg, padding: space.lg, ...elevation(c, 1) };
+  const ACCENT = c.primary;
+  const mut = { color: c.mut, ...type.small };
 
   const Section = ({ id, title, count, children, action }) => (
     <View style={card}>
       <Pressable onPress={() => setOpen((o) => ({ ...o, [id]: !o[id] }))} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <Text style={{ color: c.fg, fontWeight: '700', flex: 1 }}>{title}</Text>
-        <Text style={{ color: ACCENT, fontWeight: '700' }}>{count === 0 ? '✓' : open[id] ? '▾' : '▸'}</Text>
+        {count === 0 ? <Icon name="check" size={18} color={c.success} stroke={2.6} /> : <View style={{ transform: [{ rotate: open[id] ? '180deg' : '0deg' }] }}><Icon name="chevron" size={18} color={c.mut} /></View>}
       </Pressable>
       {open[id] && count !== 0 && <View style={{ marginTop: 8, gap: 4 }}>{children}{action}</View>}
     </View>
@@ -58,7 +60,8 @@ export default function VocabScreen({ c, t, lang, items, deals, vocab }) {
   };
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, gap: 10 }}>
+    <ScrollView contentContainerStyle={{ paddingHorizontal: space.lg, paddingBottom: 32, gap: space.md }}>
+      <Text style={{ color: c.fg, ...type.title, marginTop: space.xs }}>{t('tabVocab')}</Text>
       <Text style={mut}>{t('vHint')}</Text>
       {health && <Text style={{ color: c.fg, fontWeight: '600' }}>{t('vSummary', { n: health.products, t: health.terms, l: health.languages })}</Text>}
 
