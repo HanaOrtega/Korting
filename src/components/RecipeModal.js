@@ -58,12 +58,9 @@ export default function RecipeModal({ visible, onClose, c, t, lang, vocab, items
               {groups.map((g) => (
                 <View key={g.key} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ color: c.fg, fontWeight: '600' }}>{g.text}{g.count > 1 ? <Text style={{ color: c.mut, fontWeight: '400' }}>  ×{g.count}</Text> : null}</Text>
+                    <Text style={{ color: c.fg, fontWeight: '600' }}>{g.text}{g.amounts.length ? <Text style={{ color: ACCENT, fontWeight: '700' }}>  {fmtAmounts(g.amounts, t)}</Text> : g.toTaste ? <Text style={{ color: c.mut, fontWeight: '400' }}>  {t('toTaste')}</Text> : null}{g.count > 1 ? <Text style={{ color: c.mut, fontWeight: '400' }}>  ×{g.count}</Text> : null}</Text>
                     {onList.has(g.key) && <Text style={{ color: ACCENT, fontSize: 12 }}>{t('recipeOnList')}</Text>}
                   </View>
-                  <Text style={{ color: g.amounts.length ? c.fg : c.mut }}>
-                    {g.amounts.length ? fmtAmounts(g.amounts, t) : g.toTaste ? t('toTaste') : ''}
-                  </Text>
                 </View>
               ))}
             </View>

@@ -203,6 +203,27 @@ function expandList(line, vocab, lang) {
   return parts.length > 1 && parts.every(known) ? parts.map((x) => (taste ? `${x} ${taste}` : x)) : [line];
 }
 
+/** Strony WWW wklejają listę z pustą linią między każdymi dwiema – gdy tak jest prawie wszędzie, to odstęp, nie podział na przepisy. */
+function dropSpacerLines(lines) {
+  const gaps = [];
+  let blanks = 0; let seen = false;
+  for (const l of lines) {
+    if (!l.trim()) { blanks++; continue; }
+    if (seen) gaps.push(blanks);
+    seen = true; blanks = 0;
+  }
+  if (gaps.length < 3 || gaps.filter((g) => g === 1).length / gaps.length < 0.7) return lines;
+  const out = [];
+  let pendingBlank = 0;
+  for (const l of lines) {
+    if (!l.trim()) { pendingBlank++; continue; }
+    if (pendingBlank > 1) out.push(''); // większy odstęp nadal dzieli przepisy
+    pendingBlank = 0;
+    out.push(l);
+  }
+  return out;
+}
+
 /**
  * Wklejony tekst → grupy: ten sam produkt (to samo pojęcie ze słownika albo podobny tekst) z zsumowanymi ilościami.
  * Zwraca { groups: [{ key, ci, text, amounts, count, toTaste }], lines }. `multiplier` skaluje porcje.
@@ -210,7 +231,7 @@ function expandList(line, vocab, lang) {
  */
 export function buildGroups(text, { lang, vocab, multiplier = 1, region = 'metric' }) {
   const blocks = [[]];
-  for (const raw of String(text).split(/\r?\n/)) {
+  for (const raw of dropSpacerLines(String(text).replace(/[\u200b\ufeff]/g, '').split(/\r\n|\n|\r|\u2028|\u2029/))) {
     if (isHeading(raw)) { // „Składniki:” – jedyna linia tuż przed nim (bez liczb) to tytuł przepisu
       const cur = blocks.at(-1);
       if (cur.length === 1 && !/\d/.test(cur[0].replace(/\([^)]*\)/g, ''))) cur.pop(); // „(4 porcje)” nie liczy się jako ilość
@@ -218,7 +239,8 @@ export function buildGroups(text, { lang, vocab, multiplier = 1, region = 'metri
       continue;
     }
     if (!raw.trim()) { if (blocks.at(-1).length) blocks.push([]); continue; }
-    const cur = blocks.at(-1);
+    let cur = blocks.at(-1);
+    if (!cur.length && blocks.length > 1 && isQuantityOnly(raw) && blocks.at(-2).length) { blocks.pop(); cur = blocks.at(-1); } // ilość po pustej linii
     if (isQuantityOnly(raw) && cur.length && !/\d/.test(cur.at(-1).replace(/\([^)]*\)/g, ''))) { // „filety…” + „500 gramów”
       cur[cur.length - 1] = `${raw.trim()} ${cur.at(-1)}`;
       continue;

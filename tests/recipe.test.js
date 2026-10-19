@@ -255,3 +255,13 @@ test('przepis: różne rodzaje tego samego produktu nie są sumowane', () => {
   assert.equal(groups.length, 7);
   assert.ok(groups.some((g) => /argan/.test(g.text)));
 });
+
+test('skopiowane ze strony: pusta linia między każdymi dwiema liniami', () => {
+  const lines = ['filety z piersi kurczaka', '500 gramów', 'makaron tagliatelle', '250 gramów', 'mleko', '150 mililitrów', 'musztarda', '2 łyżki', 'olej rzepakowy', '1 łyżka'];
+  for (const sep of ['\n\n', '\r\n\r\n', '\n \n', ' ']) {
+    const { groups } = buildGroups(lines.join(sep), { lang: 'pl', vocab: buildVocab([]) });
+    assert.equal(groups.length, 5, JSON.stringify(sep));
+    assert.deepEqual(groups.find((g) => /kurczak/.test(g.text)).amounts, [{ dim: 'g', value: 500 }]);
+    assert.deepEqual(groups.find((g) => /mleko/.test(g.text)).amounts, [{ dim: 'ml', value: 150 }]);
+  }
+});
