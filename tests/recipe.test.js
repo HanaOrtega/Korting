@@ -297,3 +297,17 @@ test('linie, których nie da się odczytać, są zgłaszane, nie gubione po cich
   const { skipped } = buildGroups('mleko 1 l\n500 gramów\n', { lang: 'pl', vocab: buildVocab([]) });
   assert.deepEqual(skipped, ['500 gramów']);
 });
+
+import { amountsToText, parseAmounts } from '../src/recipe.js';
+
+test('edycja ilości: tekst ↔ ilości', () => {
+  const am = [{ dim: 'g', value: 500 }, { dim: 'piece', value: 2 }, { dim: 'ml', value: 1500 }];
+  assert.equal(amountsToText(am), '500 g + 2 szt + 1,5 l');
+  assert.deepEqual(parseAmounts('500 g + 2 szt + 1,5 l'), [{ dim: 'g', value: 500 }, { dim: 'piece', value: 2 }, { dim: 'ml', value: 1500 }]);
+  assert.deepEqual(parseAmounts('1,5 kg'), [{ dim: 'g', value: 1500 }]);
+  assert.deepEqual(parseAmounts('2 łyżki').map((a) => a.dim), ['ml']);
+  assert.deepEqual(parseAmounts('3'), [{ dim: 'piece', value: 3 }]);
+  assert.deepEqual(parseAmounts(''), []);
+  assert.equal(parseAmounts('dużo'), null);
+  assert.deepEqual(parseAmounts(amountsToText([{ dim: 'clove', value: 3 }])), [{ dim: 'clove', value: 3 }]);
+});

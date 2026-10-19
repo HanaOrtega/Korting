@@ -180,6 +180,30 @@ const UNIT_KEY = { piece: 'uPiece', clove: 'uClove', can: 'uCan', bunch: 'uBunch
 // wartości przeliczone (łyżki, szklanki, gęstość) zaokrąglamy do sensownej dokładności i oznaczamy „≈”
 const niceRound = (v) => (v < 10 ? Math.round(v * 2) / 2 : v < 50 ? Math.round(v) : v < 1000 ? Math.round(v / 5) * 5 : Math.round(v / 10) * 10);
 
+const DIM_WORD = { piece: 'szt', clove: 'clove', can: 'can', bunch: 'bunch', pack: 'pack', pinch: 'pinch', slice: 'slice', handful: 'handful', tbsp: 'tbsp', tsp: 'tsp', cup: 'cup' };
+
+/** Ilości → tekst do edycji („500 g”, „2 szt + 30 ml”); wspólne słowa jednostek są rozumiane w każdym języku. */
+export function amountsToText(amounts = []) {
+  return amounts.map((a) => {
+    const v = a.approx ? niceRound(a.value) : a.value;
+    if (a.dim === 'g') return v >= 1000 ? `${fmtNum(v / 1000)} kg` : `${fmtNum(v)} g`;
+    if (a.dim === 'ml') return v >= 1000 ? `${fmtNum(v / 1000)} l` : `${fmtNum(v)} ml`;
+    return `${fmtNum(v)} ${DIM_WORD[a.dim] ?? 'szt'}`;
+  }).join(' + ');
+}
+
+/** Tekst z pola edycji → ilości; pusty tekst = brak ilości; null, gdy części nie da się odczytać. */
+export function parseAmounts(text, { region = 'metric' } = {}) {
+  const parts = String(text ?? '').replace(/≈/g, ' ').split(/\s\+\s|\s*;\s*/).map((x) => x.trim()).filter(Boolean);
+  let out = [];
+  for (const part of parts) {
+    const p = parseLine(`${cleanText(part)[0] ?? ''} x`, { region });
+    if (!p?.amounts.length) return null;
+    for (const a of p.amounts) out = addAmount(out, a);
+  }
+  return out;
+}
+
 /** [{dim, value}] → „450 g + 2 szt.”; g i ml przeliczane na kg i l od 1000; przeliczone wartości z „≈”. */
 export function fmtAmounts(amounts, t) {
   return [...amounts].sort((a, b) => DIM_ORDER.indexOf(a.dim) - DIM_ORDER.indexOf(b.dim)).map((a) => {

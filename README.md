@@ -165,3 +165,8 @@ Tekst jest najpierw ujednolicany (Unicode NFKC, twarde/wąskie spacje, niewidocz
 doklejane do najbliższej nazwy (poprzedniej albo następnej). Ilość może też stać na końcu linii („kurczak: 500 g”,
 „kurczak – 500 g”, „kurczak (500 g)”, „jajka 3”). Linie, których nie da się odczytać, są wypisane w oknie przepisu,
 a nie gubione po cichu.
+
+## Edycja pozycji
+
+Przy każdej pozycji na liście jest ✎: pozwala zmienić nazwę i ilość (np. „500 g”, „2 szt + 30 ml”, „1,5 l”). Zmiana nazwy
+uruchamia rozpoznawanie od nowa; pusta ilość usuwa ilość.

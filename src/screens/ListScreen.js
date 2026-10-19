@@ -6,7 +6,7 @@ import DealRow from '../components/DealRow.js';
 import RecipeModal from '../components/RecipeModal.js';
 import { dutchName, displayName, forConcept, matchDeals, resolve, suggest } from '../match.js';
 import { planShopping } from '../plan.js';
-import { fmtAmounts, mergeIntoItems } from '../recipe.js';
+import { amountsToText, fmtAmounts, mergeIntoItems, parseAmounts } from '../recipe.js';
 import { bestUnitId } from '../pricing.js';
 import { lookupRegular, regularStores } from '../regular.js';
 import { favoriteChains } from '../stores.js';
@@ -31,6 +31,20 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
   const [text, setText] = useState('');
   const [open, setOpen] = useState({});
   const [recipeOpen, setRecipeOpen] = useState(false);
+  const [edit, setEdit] = useState(null); // { id, name, qty, bad }
+  const startEdit = (item) => setEdit({ id: item.id, name: item.text, qty: amountsToText(item.amounts), bad: false });
+  const saveEdit = () => {
+    const name = edit.name.trim();
+    const amounts = parseAmounts(edit.qty);
+    if (!name) return;
+    if (amounts === null) { setEdit({ ...edit, bad: true }); return; }
+    setItems((prev) => prev.map((it) => {
+      if (it.id !== edit.id) return it;
+      const { pick, ...rest } = it;
+      return { ...rest, text: name, amounts: amounts.length ? amounts : undefined, ...(name === it.text && pick != null ? { pick } : {}) }; // inna nazwa = nowe rozpoznanie
+    }));
+    setEdit(null);
+  };
   const [tr, setTr] = useState({}); // „język|tekst” -> tłumaczenie na holenderski (albo null)
   const asked = useRef(new Set());
   const trKey = (text) => `${lang}|${text.trim().toLowerCase()}`;
@@ -182,8 +196,29 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
               <Text style={{ flex: 1, color: c.fg, fontSize: 17, fontWeight: '600', textDecorationLine: item.done ? 'line-through' : 'none', opacity: item.done ? 0.5 : 1 }}>
                 {item.text}{amountText ? <Text style={{ color: ACCENT, fontWeight: '700', fontSize: 16 }}>  {amountText}</Text> : null}
               </Text>
+              <Pressable onPress={() => startEdit(item)} hitSlop={10} accessibilityLabel={t('editItem')}><Text style={{ color: c.mut, fontSize: 18 }}>✎</Text></Pressable>
               <Pressable onPress={() => remove(item.id)} hitSlop={10}><Text style={{ color: c.mut, fontSize: 20 }}>✕</Text></Pressable>
             </View>
+
+            {edit?.id === item.id && (
+              <View style={{ marginTop: 10, gap: 8 }}>
+                <TextInput value={edit.name} onChangeText={(v) => setEdit({ ...edit, name: v })} autoCorrect={false} autoFocus
+                  placeholder={t('editName')} placeholderTextColor={c.mut}
+                  style={{ borderWidth: 1, borderColor: c.border, borderRadius: 10, padding: 10, color: c.fg, backgroundColor: c.bg, fontSize: 16 }} />
+                <TextInput value={edit.qty} onChangeText={(v) => setEdit({ ...edit, qty: v, bad: false })} autoCorrect={false}
+                  placeholder={t('editQty')} placeholderTextColor={c.mut}
+                  style={{ borderWidth: 1, borderColor: edit.bad ? c.danger : c.border, borderRadius: 10, padding: 10, color: c.fg, backgroundColor: c.bg, fontSize: 16 }} />
+                {edit.bad && <Text style={{ color: c.danger, fontSize: 13 }}>{t('editQtyBad')}</Text>}
+                <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'flex-end' }}>
+                  <Pressable onPress={() => setEdit(null)} style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: c.chip }}>
+                    <Text style={{ color: c.fg }}>{t('editCancel')}</Text>
+                  </Pressable>
+                  <Pressable onPress={saveEdit} style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: ACCENT }}>
+                    <Text style={{ color: '#fff', fontWeight: '700' }}>{t('editSave')}</Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
 
             {choices.length > 0 && (
               <View style={{ marginTop: 8, gap: 6 }}>
