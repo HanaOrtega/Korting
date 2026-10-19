@@ -155,8 +155,5 @@ Dirk i Plus. Promocje są ogólnokrajowe, więc ulubiony sklep służy do wyboru
 
 ## Ilości z przepisu a zakupy
 
-- Ilość przy pozycji (np. „500 g”) jest wyróżniona kolorem na liście i w widoku „Wg sklepów”.
-- Przy każdej promocji aplikacja liczy, ile opakowań pokryje potrzebę („Potrzeba 500 g: 2 × 400 g = €6,00”), a promocje
-  są sortowane od najtańszej *za potrzebną ilość*, nie za sztukę. Liczy tylko gdy gramatura promocji jest w tej samej
-  jednostce (kg/g albo l/ml).
-- Małe ilości (poniżej 100 g/ml – łyżki, szczypty) nie są liczone na opakowania: „wystarczy najmniejsze opakowanie”.
+- Ilość z przepisu (np. „500 g”) jest wyróżniona kolorem przy pozycji na liście i w widoku „Wg sklepów”. Aplikacja niczego
+  nie przelicza na gramatury promocji – pokazuje tylko to, co wynika z przepisu (po zsumowaniu).

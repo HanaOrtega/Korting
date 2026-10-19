@@ -10,7 +10,6 @@ import { fmtAmounts, mergeIntoItems } from '../recipe.js';
 import { bestUnitId } from '../pricing.js';
 import { lookupRegular, regularStores } from '../regular.js';
 import { favoriteChains } from '../stores.js';
-import { fmtQty, neededAmount, sortByNeed } from '../need.js';
 import { translateToDutch } from '../translate.js';
 import { recordWord } from '../vocabLog.js';
 import { ACCENT } from '../theme.js';
@@ -51,8 +50,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
   const rows = useMemo(() => items.map((item) => {
     const r0 = resolve(item.text, vocab, tr[trKey(item.text)] ?? null, lang);
     const r = item.pick != null ? forConcept(item.pick, item.text) : r0; // r0 zostaje źródłem listy „czy chodziło o…”
-    const need = neededAmount(item.amounts);
-    return { item, r, r0, need, hits: sortByNeed(matchDeals(r.terms, deals, r.ci), need) };
+    return { item, r, r0, hits: matchDeals(r.terms, deals, r.ci) };
   }), [items, deals, vocab, tr, lang]);
 
   const chains = useMemo(() => favoriteChains(favorites), [favorites]);
@@ -166,7 +164,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
         <CompareView c={c} t={t} rows={rows} regular={regular} stores={chains} loading={regLoading} />
       )}
 
-      {view === 'items' && rows.map(({ item, r, r0, hits, need }) => {
+      {view === 'items' && rows.map(({ item, r, r0, hits }) => {
         const expanded = !!open[item.id];
         const shown = expanded ? hits : hits.slice(0, PREVIEW);
         const bestId = bestUnitId(hits);
@@ -211,8 +209,6 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
             {r.partial && <Text style={{ color: c.mut, fontSize: 13, marginTop: 6 }}>{t('partialHint', { w: r.extra.join(' ') })}</Text>}
             {r.status === 'unknown' && <Text style={{ color: c.mut, fontSize: 13, marginTop: 6 }}>{t('unknownItem')}</Text>}
 
-            {need?.small && <Text style={{ color: c.mut, fontSize: 13, marginTop: 6 }}>{t('smallAmount', { a: amountText })}</Text>}
-
             {!item.done && (
               <View style={{ marginTop: 6 }}>
                 {hits.length === 0 ? (
@@ -220,7 +216,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
                 ) : (
                   <>
                     <Text style={{ color: ACCENT, fontWeight: '600', fontSize: 13 }}>{t('promoCount', { n: hits.length })}</Text>
-                    {shown.map((d) => <DealRow key={d.id} deal={d} c={c} t={t} lang={lang} best={d.id === bestId} need={need} />)}
+                    {shown.map((d) => <DealRow key={d.id} deal={d} c={c} t={t} lang={lang} best={d.id === bestId} />)}
                     {hits.length > PREVIEW && (
                       <Pressable onPress={() => setOpen((o) => ({ ...o, [item.id]: !expanded }))}>
                         <Text style={{ color: ACCENT, paddingVertical: 4 }}>

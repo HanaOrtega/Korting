@@ -3,7 +3,6 @@ import { fmtPrice } from '../format.js';
 import { fmtAmounts } from '../recipe.js';
 import { navigationUrl } from '../stores.js';
 import { ACCENT } from '../theme.js';
-import { neededAmount } from '../need.js';
 import DealRow from './DealRow.js';
 
 function Check({ item, onToggle, c }) {
@@ -44,7 +43,7 @@ export default function ByStoreView({ plan, c, t, lang, favorites, onToggleDone 
                 <Check item={item} onToggle={onToggleDone} c={c} />
                 <Text style={{ color: c.fg, fontWeight: '600', textDecorationLine: item.done ? 'line-through' : 'none' }}>{item.text}{item.amounts?.length ? <Text style={{ color: ACCENT, fontWeight: '700' }}>  {fmtAmounts(item.amounts, t)}</Text> : null}</Text>
               </View>
-              <DealRow deal={deal} c={c} t={t} lang={lang} need={neededAmount(item.amounts)} />
+              <DealRow deal={deal} c={c} t={t} lang={lang} />
               {others.length > 0 && <Text style={{ color: c.mut, fontSize: 12 }}>{t('alsoAt')} {others.join(', ')}</Text>}
             </View>
           ))}
