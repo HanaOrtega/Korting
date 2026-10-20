@@ -21,7 +21,7 @@ function Row({ c, title, hint, value, onChange, disabled }) {
   );
 }
 
-/** „Komfort i skupienie”: opcje dla osób z ADHD / autyzmem. Wszystko opcjonalne, domyślnie wyłączone. */
+/** „Komfort i skupienie”: dodatkowe opcje ułatwiające zakupy. Wszystko opcjonalne, domyślnie wyłączone. */
 export default function ComfortScreen({ visible, onClose, c, t, lang, comfort, setComfort }) {
   const insets = useSafeAreaInsets();
   const { animated } = useContext(ComfortContext);

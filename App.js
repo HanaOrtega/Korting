@@ -135,7 +135,7 @@ function Root() {
 
   const vocab = useMemo(() => buildVocab(deals), [deals]);
 
-  // przypomnienia (ADHD): tygodniowe i „jutro kończy się promocja” – ustawiane w tle po zmianie listy, promocji albo opcji
+  // przypomnienia: tygodniowe i „jutro kończy się promocja” – ustawiane w tle po zmianie listy, promocji albo opcji
   useEffect(() => {
     if (!ready || needStores) return undefined;
     const id = setTimeout(() => {

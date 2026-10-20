@@ -1,4 +1,4 @@
-// Ustawienia „komfortu” (ADHD / autyzm): wszystkie opcjonalne i domyślnie wyłączone. Czysta logika bez UI.
+// Ustawienia „komfortu” (skupienie i spokój): wszystkie opcjonalne i domyślnie wyłączone. Czysta logika bez UI.
 export const SCALES = [1, 1.15, 1.3];
 
 export const DEFAULTS = {

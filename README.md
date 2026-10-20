@@ -234,7 +234,7 @@ grafiki: `assets/source/logo-circle-crop.png`; wszystkie rozmiary (ikona Expo, a
 mipmapy Androida) generuje `python3 deploy/generuj_ikony.py` (Pillow + numpy). Identyfikator pakietu (`com.hanaortega.korting`)
 i klucz podpisu zostają bez zmian, więc aktualizacja instaluje się na istniejącej aplikacji.
 
-## Komfort i skupienie (ADHD / autyzm)
+## Komfort i skupienie
 
 Menu (☰ w nagłówku) → **Komfort i skupienie**. Wszystko jest opcjonalne i domyślnie wyłączone; ustawienia są zapamiętane.
 
