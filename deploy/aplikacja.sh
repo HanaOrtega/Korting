@@ -51,6 +51,9 @@ if ! key_check="$(keytool -list -keystore "$KEYSTORE" -storepass:env KORTING_KEY
     exit 1
 fi
 
+sha1="$(keytool -list -v -keystore "$KEYSTORE" -storepass:env KORTING_KEY_PASSWORD -alias korting 2>/dev/null | sed -n 's/^ *SHA1: *//p' | head -1)"
+[ -n "$sha1" ] && echo "==> SHA-1 certyfikatu (do klienta OAuth 'Android' w Google Cloud - Wspolna lista): $sha1"
+
 echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 echo "==> Buduje aplikacje (pierwszy raz kilkanascie minut - pobiera Gradle, biblioteki i kompiluje kod natywny)"
 if ! (cd android && ./gradlew -q --no-daemon :app:bundleRelease :app:assembleRelease); then

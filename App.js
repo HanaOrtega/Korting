@@ -2,15 +2,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, AppState, Modal, Pressable, Text, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Alert, AppState, Linking, Modal, Pressable, Text, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Icon, Segmented, TabBar } from './src/components/ui.js';
+import { Icon, IconButton, Segmented, TabBar } from './src/components/ui.js';
 import WebViewHost from './src/components/WebViewHost.js';
 import { loadDeals, needsRefresh, readCache } from './src/deals.js';
 import { LANG_CODES, LANG_NAMES, makeT, pickLanguage } from './src/i18n.js';
 import { buildVocab } from './src/match.js';
 import { favoriteChains } from './src/stores.js';
 import DealsScreen from './src/screens/DealsScreen.js';
+import ShareScreen from './src/screens/ShareScreen.js';
+import { useShare } from './src/share/useShare.js';
 import ListScreen from './src/screens/ListScreen.js';
 import StoresScreen from './src/screens/StoresScreen.js';
 import VocabScreen from './src/screens/VocabScreen.js';
@@ -47,6 +49,17 @@ function Root() {
   const [loading, setLoading] = useState(true);
   const [pickLang, setPickLang] = useState(false);
   const t = useMemo(() => makeT(lang), [lang]);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [pendingInvite, setPendingInvite] = useState('');
+  const share = useShare({ items, setItems, ready });
+
+  // link zaproszenia (korting://join/…) otwiera okno dołączania
+  useEffect(() => {
+    const open = (url) => { if (url && url.startsWith('korting://join/')) { setPendingInvite(url); setShareOpen(true); } };
+    Linking.getInitialURL().then(open).catch(() => {});
+    const sub = Linking.addEventListener('url', ({ url }) => open(url));
+    return () => sub.remove();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -123,6 +136,13 @@ function Root() {
             <Text style={{ color: c.fg, ...type.title }}>Korting</Text>
             {subtitle ? <Text numberOfLines={1} style={{ color: c.mut, ...type.caption }}>{subtitle}</Text> : null}
           </View>
+          {!needStores && (
+            <View>
+              <IconButton c={c} icon="users" label={t('shTitle')} onPress={() => setShareOpen(true)} />
+              {share.group ? <View style={{ position: 'absolute', top: 2, right: 2, width: 11, height: 11, borderRadius: 6, borderWidth: 2, borderColor: c.bg,
+                backgroundColor: share.status === 'ok' || share.status === 'syncing' ? c.success : share.status === 'offline' || share.status === 'idle' ? c.mut : c.danger }} /> : null}
+            </View>
+          )}
           <Pressable onPress={() => setPickLang(true)} accessibilityRole="button" accessibilityLabel="language"
             style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 40, borderRadius: 20, backgroundColor: c.chip }}>
             <Icon name="globe" size={16} color={c.ink2} />
@@ -159,6 +179,8 @@ function Root() {
           <DealsScreen c={c} t={t} lang={lang} deals={deals} onAdd={addFromDeal} refreshing={loading} onRefresh={() => refresh(true)} />
         )}
       </View>
+
+      <ShareScreen visible={shareOpen} onClose={() => { setShareOpen(false); setPendingInvite(''); }} c={c} t={t} lang={lang} share={share} pendingInvite={pendingInvite} />
 
       {!needStores && <TabBar c={c} t={t} tab={tab} setTab={setTab} badge={{ list: onList || 0 }} />}
 

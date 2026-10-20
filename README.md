@@ -174,3 +174,40 @@ uruchamia rozpoznawanie od nowa; pusta ilość usuwa ilość.
   tylko przy otwartej aplikacji (bez zadań w tle).
 - Motyw jasny/ciemny podąża za ustawieniem telefonu i zmienia się na bieżąco. W menu języka (🌐) można wymusić „Jasny” lub
   „Ciemny”; wybór jest zapamiętany.
+
+## Wspólna lista (rodzina)
+
+Lista może być współdzielona przez zaszyfrowany plik na Dysku Google osoby „głównej” (ikona 👥 w nagłówku). Nie ma żadnego
+serwera: każdy telefon rozmawia bezpośrednio z Dyskiem Google.
+
+**Jak to działa**
+- Plik `korting-…` na Dysku zawiera całą listę zaszyfrowaną XChaCha20-Poly1305 kluczem grupy (256 bit). Google widzi
+  tylko szyfrogram. Klucz jest w zaproszeniu i w Android Keystore telefonu – nigdy na Dysku (poza opakowaniem przy rotacji).
+- **Odczyt na bieżąco:** telefon z otwartą aplikacją pyta Dysk co 8 s o numer wersji pliku (jedno tanie zapytanie) i pobiera
+  plik tylko, gdy się zmienił; własne zmiany wysyła ~1,2 s po edycji. Dysk Google nie ma powiadomień push bez serwera,
+  więc to odpytywanie – opóźnienie zwykle kilka sekund; przy zamkniętej aplikacji synchronizacja nie działa.
+- **Równoczesne edycje:** każda pozycja ma czas ostatniej zmiany, usunięcia to znaczniki (30 dni). Scalanie jest
+  przemienne i idempotentne, a każdy telefon podtrzymuje swój stan, więc wszystkie zbiegają się do tej samej listy nawet
+  bez blokad (testy: `tests/share.test.js`). Przy sprzecznych zmianach tej samej pozycji wygrywa późniejsza.
+- **Dodawanie osoby:** właściciel wpisuje jej e-mail Google → aplikacja udostępnia plik (rola edytora; Google wysyła
+  powiadomienie) i generuje kod `korting://join/…` (id pliku + klucz + Client ID). Kod wysyłasz prywatnie (np. komunikatorem);
+  druga osoba otwiera link albo wkleja kod w Wspólna lista → Dołącz, loguje się do Google i jej lista łączy się z grupową.
+- **Usunięcie osoby:** cofnięcie dostępu do pliku + rotacja klucza (nowy klucz opakowany starym w nagłówku pliku, więc
+  pozostali członkowie przechodzą na niego automatycznie). Osoba usunięta zachowuje tylko to, co już miała na telefonie.
+- **Opuszczenie grupy** odłącza telefon (lista zostaje); właściciel może też rozwiązać grupę (usuwa plik).
+
+**Jednorazowa konfiguracja Google (właściciel, ~5 min)**
+1. console.cloud.google.com → nowy projekt → *APIs & Services* → włącz **Google Drive API**.
+2. *OAuth consent screen* → External; dodaj zakres `.../auth/drive`; dodaj e-maile rodziny jako *Test users* **albo**
+   ustaw *Publishing status: In production* (aplikacja „niezweryfikowana” – dla kilku osób to normalne; w trybie Testing
+   Google unieważnia logowanie co 7 dni).
+3. *Credentials* → *Create OAuth client ID* → typ **Android**, pakiet `com.hanaortega.korting`, SHA-1 wypisany na końcu
+   sprawdzania klucza przez `./deploy/aplikacja.sh`; w *Advanced settings* włącz **Custom URI scheme**.
+4. Client ID (`…apps.googleusercontent.com`) wklejasz raz przy tworzeniu grupy; członkowie dostają go w kodzie zaproszenia.
+Wszyscy muszą mieć **ten sam plik APK** (podpisany Twoim kluczem), bo Google weryfikuje podpis aplikacji.
+
+**Zakres `drive`:** pozwala otworzyć plik udostępniony przez właściciela (węższy `drive.file` nie dotyka plików
+udostępnionych przez kogoś innego). Aplikacja używa wyłącznie pliku, którego id zna z zaproszenia.
+
+**Niesprawdzone na żywo:** logowanie OAuth, wywołania Dysku i rotacja klucza zostały sprawdzone testami z atrapą Dysku,
+ale nie z prawdziwym kontem Google (w środowisku budowania nie ma dostępu do Google).
