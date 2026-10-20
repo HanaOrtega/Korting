@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Korting: aplikacja na Androida (.apk do telefonu i .aab do Google Play), budowana na TYM komputerze
+# Kortinglijst: aplikacja na Androida (.apk do telefonu i .aab do Google Play), budowana na TYM komputerze
 # (serwer nie jest potrzebny - aplikacja sama pobiera promocje na telefonie).
 #
 #   ./deploy/aplikacja.sh
@@ -81,7 +81,7 @@ apk=android/app/build/outputs/apk/release/app-release.apk
 aab=android/app/build/outputs/bundle/release/app-release.aab
 [ -f "$apk" ] || { echo "[!] Brak pliku $apk"; exit 1; }
 mkdir -p android/dist
-cp "$apk" android/dist/Korting.apk
-cp "$aab" android/dist/Korting.aab
-echo "Gotowe: android/dist/Korting.apk (na telefon) i android/dist/Korting.aab (do Google Play Console)"
-echo "Instalacja przez USB (debugowanie USB wlaczone):  adb install -r android/dist/Korting.apk"
+cp "$apk" android/dist/Kortinglijst.apk
+cp "$aab" android/dist/Kortinglijst.aab
+echo "Gotowe: android/dist/Kortinglijst.apk (na telefon) i android/dist/Kortinglijst.aab (do Google Play Console)"
+echo "Instalacja przez USB (debugowanie USB wlaczone):  adb install -r android/dist/Kortinglijst.apk"

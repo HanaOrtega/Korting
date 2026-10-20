@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Korting",
+    "name": "Kortinglijst",
     "slug": "korting",
     "version": "0.2.0",
     "orientation": "portrait",
@@ -11,7 +11,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Korting używa lokalizacji tylko do znalezienia sklepów w Twojej okolicy."
+          "locationWhenInUsePermission": "Kortinglijst używa lokalizacji tylko do znalezienia sklepów w Twojej okolicy."
         }
       ]
     ],

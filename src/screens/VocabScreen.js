@@ -56,7 +56,7 @@ export default function VocabScreen({ c, t, lang, items, deals, vocab }) {
 
   const shareWords = () => {
     const lines = [...problems.map((x) => `${lang}: ${x.it.text} [${x.r.status}]`), ...log.map((x) => `${x.lang}: ${x.word} [${x.kind} ×${x.count}]`)];
-    Share.share({ message: `Korting – słowa do poprawy:\n${[...new Set(lines)].join('\n')}` });
+    Share.share({ message: `Kortinglijst – słowa do poprawy:\n${[...new Set(lines)].join('\n')}` });
   };
 
   return (

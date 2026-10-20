@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, AppState, Linking, Modal, Pressable, Text, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Alert, AppState, Image, Linking, Modal, Pressable, Text, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, IconButton, Segmented, TabBar } from './src/components/ui.js';
 import WebViewHost from './src/components/WebViewHost.js';
@@ -134,11 +134,9 @@ function Root() {
       <StatusBar style={c === dark ? 'light' : 'dark'} />
       <View style={{ paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.md, gap: space.sm }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-          <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center', ...elevation(c, 1) }}>
-            <Icon name="cart" size={22} color={c.primaryInk} stroke={2.2} />
-          </View>
+          <Image source={require('./assets/logo-circle.png')} style={{ width: 42, height: 42 }} accessibilityLabel="Kortinglijst" />
           <View style={{ flex: 1 }}>
-            <Text style={{ color: c.fg, ...type.title }}>Korting</Text>
+            <Text style={{ color: c.fg, ...type.title }}>Kortinglijst</Text>
             {subtitle ? <Text numberOfLines={1} style={{ color: c.mut, ...type.caption }}>{subtitle}</Text> : null}
           </View>
           {!needStores && <IconButton c={c} icon="history" label={t('hTitle')} onPress={() => setHistoryOpen(true)} />}
@@ -162,7 +160,7 @@ function Root() {
           </View>
         )}
         {!loading && errors.length > 0 && (
-          <Pressable onPress={() => Alert.alert('Korting', errors.map((e) => `${e.store}: ${e.error}`).join('\n\n'))}
+          <Pressable onPress={() => Alert.alert('Kortinglijst', errors.map((e) => `${e.store}: ${e.error}`).join('\n\n'))}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.warnTint, borderRadius: radius.md, padding: space.md }}>
             <Icon name="alert" size={18} color={c.warnFg} />
             <Text style={{ color: c.warnFg, ...type.small, flex: 1 }}>{t('failed', { stores: errors.map((e) => e.store).join(', ') })} · {t('details')}</Text>

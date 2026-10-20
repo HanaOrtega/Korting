@@ -1,4 +1,4 @@
-# Korting
+# Kortinglijst
 
 Aplikacja na telefon (React Native / Expo), która z listy zakupów szuka promocji w holenderskich
 sklepach. **Działa wyłącznie na telefonie** – bez własnego serwera i bez przeglądarki: aplikacja sama
@@ -84,9 +84,9 @@ Skrypt:
    nie zainstalujesz aktualizacji ani nie wydasz jej w Google Play); przy każdym budowaniu pyta o hasło
    i je sprawdza;
 4. buduje `./gradlew :app:bundleRelease :app:assembleRelease` (pierwszy raz kilkanaście minut);
-5. kopiuje wyniki do `android/dist/`: `Korting.apk` (na telefon) i `Korting.aab` (do Google Play Console).
+5. kopiuje wyniki do `android/dist/`: `Kortinglijst.apk` (na telefon) i `Kortinglijst.aab` (do Google Play Console).
 
-Instalacja przez USB (z włączonym debugowaniem): `adb install -r android/dist/Korting.apk`.
+Instalacja przez USB (z włączonym debugowaniem): `adb install -r android/dist/Kortinglijst.apk`.
 Budowany jest tylko `arm64-v8a` (współczesne telefony); inne architektury w `android/gradle.properties`
 (`reactNativeArchitectures`). Alternatywnie można otworzyć folder `android/` w Android Studio.
 
@@ -226,3 +226,10 @@ ale nie z prawdziwym kontem Google (w środowisku budowania nie ma dostępu do G
 - Zmiany przychodzące od grupy (wspólna lista) nie trafiają do „cofania” tego telefonu; przywrócone pozycje wracają do
   grupy jako nowsza zmiana. Napisy wspólnej listy i historii są we wszystkich 12 językach (test `tests/i18n.test.js`
   pilnuje kompletności i zmiennych `{n}`, `{name}`…).
+
+## Nazwa i ikona
+
+Nazwa aplikacji to **Kortinglijst** („Slimme Boodschappen”). Ikona (wózek z listą i metką %) pochodzi z dostarczonej
+grafiki: `assets/source/logo-circle-crop.png`; wszystkie rozmiary (ikona Expo, adaptacyjna, monochromatyczna, ekran startowy,
+mipmapy Androida) generuje `python3 deploy/generuj_ikony.py` (Pillow + numpy). Identyfikator pakietu (`com.hanaortega.korting`)
+i klucz podpisu zostają bez zmian, więc aktualizacja instaluje się na istniejącej aplikacji.
