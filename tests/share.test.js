@@ -153,3 +153,21 @@ test('klient Dysku: adresy, nagłówki, odświeżenie po 401 i mapowanie błęd�
   const bad = createDrive(async () => 't', async () => { throw new Error('offline'); });
   await assert.rejects(bad.meta('X'), (e) => e instanceof DriveError && e.code === 'NETWORK');
 });
+
+test('klient Dysku: zaproszenie linkiem (anyone/writer) jest idempotentne i odwracalne', async () => {
+  const calls = []; const queue = [];
+  const res = (status, body) => ({ status, ok: status < 300, json: async () => body, text: async () => '' });
+  const drive = createDrive(async () => 't', async (url, init) => { calls.push({ url, init }); return queue.shift(); });
+  queue.push(res(200, { permissions: [{ id: 'p0', type: 'user', role: 'owner' }] }), res(200, { id: 'pA' }));
+  assert.equal(await drive.shareAnyone('F'), 'pA');
+  assert.deepEqual(JSON.parse(calls.at(-1).init.body), { type: 'anyone', role: 'writer', allowFileDiscovery: false });
+  queue.push(res(200, { permissions: [{ id: 'pA', type: 'anyone', role: 'writer' }] }));
+  assert.equal(await drive.shareAnyone('F'), 'pA'); // już otwarte – bez drugiego POST
+  assert.equal(calls.length, 3);
+  queue.push(res(200, { permissions: [{ id: 'pA', type: 'anyone' }] }), res(204, {}));
+  await drive.unshareAnyone('F');
+  assert.equal(calls.at(-1).init.method, 'DELETE');
+  assert.match(calls.at(-1).url, /permissions\/pA$/);
+  queue.push(res(200, { permissions: [] }));
+  assert.equal(await drive.isOpen('F'), false);
+});

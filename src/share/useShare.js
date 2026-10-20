@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { account, getAccessToken, keyStore, signIn, signOut } from './auth.js';
 import { trackChanges } from './doc.js';
+import { GOOGLE_CLIENT_ID } from './client.js';
 import { createDrive } from './drive.js';
 import { createGroup, rotateKey, syncOnce } from './engine.js';
 import { openFile } from './file.js';
@@ -43,7 +44,7 @@ export function useShare({ items, setItems, ready }) {
       const g = await readGroup();
       if (!g) return;
       const s = st.current;
-      s.group = { fileId: g.fileId, name: g.name, role: g.role, clientId: g.clientId, me: g.me };
+      s.group = { fileId: g.fileId, name: g.name, role: g.role, clientId: g.clientId, me: g.me, open: g.open };
       s.meta = g.meta ?? {}; s.version = g.version ?? null; s.dirty = !!g.dirty; s.keys = await keyStore.get();
       s.snap = st.current.items; s.primed = true;
       setGroup(s.group); setStatus('idle');
@@ -108,11 +109,14 @@ export function useShare({ items, setItems, ready }) {
   const actions = {
     /** Właściciel: logowanie do Google, utworzenie zaszyfrowanego pliku na jego Dysku. */
     create: ({ name, clientId }) => guard(async () => {
-      const me = await signIn(clientId.trim());
+      clientId = (clientId || GOOGLE_CLIENT_ID).trim();
+      if (!clientId) { const e = new Error('NO_CLIENT'); e.code = 'NO_CLIENT'; throw e; }
+      const me = await signIn(clientId);
       const now = Date.now();
       const meta0 = trackChanges([], st.current.items, {}, now);
       const g = await createGroup({ drive, name, items: st.current.items, meta: meta0, now });
-      await activate({ fileId: g.fileId, name, role: 'owner', clientId: clientId.trim(), me }, [g.key], g.meta, g.version, false);
+      await drive.shareAnyone(g.fileId); // domyślnie: zaproszenie samym kodem, bez wpisywania e-maili
+      await activate({ fileId: g.fileId, name, role: 'owner', clientId, me, open: true }, [g.key], g.meta, g.version, false);
     }),
     /** Nowa osoba: kod zaproszenia → logowanie → pobranie i scalenie z jej listą. */
     join: (text, { signInFirst = true } = {}) => guard(async () => {
@@ -126,15 +130,34 @@ export function useShare({ items, setItems, ready }) {
       st.current.snap = r.items; st.current.items = r.items; setItems(r.items);
       await activate({ fileId: inv.fileId, name: inv.name, role: 'member', clientId: inv.clientId, me }, r.keys, r.meta, r.version, false);
     }),
+    hasBuiltInClient: !!GOOGLE_CLIENT_ID,
     syncNow: () => { st.current.pauseUntil = 0; return tick(); },
     inviteCode: () => encodeInvite({ fileId: st.current.group.fileId, key: st.current.keys[0], clientId: st.current.group.clientId, name: st.current.group.name }),
-    /** Udostępnia plik Google'owi adresowi e-mail (Google wyśle powiadomienie) i zwraca kod zaproszenia. */
+    /** Zwraca kod zaproszenia. W trybie „tylko wskazane osoby” wymaga e-maila i udostępnia plik tej osobie. */
     invite: (email, message) => guard(async () => {
-      await drive.share(st.current.group.fileId, email.trim(), message);
+      if (!st.current.group.open && !email?.trim()) { const e = new Error('BAD_EMAIL'); e.code = 'BAD_EMAIL'; throw e; }
+      if (!st.current.group.open || email?.trim()) await drive.share(st.current.group.fileId, email.trim(), message);
       return actions.inviteCode();
     }),
+    /** Przełącznik: każdy z kodem może dołączyć (łatwo) ↔ tylko osoby dodane e-mailem (zmiana klucza odcina dotychczasowe linki). */
+    setOpen: (open) => guard(async () => {
+      const s = st.current;
+      if (open) await drive.shareAnyone(s.group.fileId);
+      else {
+        await drive.unshareAnyone(s.group.fileId);
+        const r = await rotateKey({ drive, fileId: s.group.fileId, keys: s.keys, items: s.items, meta: s.meta });
+        s.keys = r.keys; s.version = r.version; s.meta = r.meta; s.dirty = false;
+      }
+      s.group = { ...s.group, open }; setGroup(s.group);
+      await persist(); await actions.loadMembers();
+    }),
     loadMembers: async () => {
-      try { setMembers(await drive.permissions(st.current.group.fileId)); } catch { setMembers([]); }
+      try {
+        const all = await drive.permissionsAll(st.current.group.fileId);
+        setMembers(all.filter((p) => p.type === 'user'));
+        const open = all.some((p) => p.type === 'anyone');
+        if (open !== !!st.current.group.open) { st.current.group = { ...st.current.group, open }; setGroup(st.current.group); persist(); }
+      } catch { setMembers([]); }
     },
     /** Właściciel: cofa dostęp do pliku i zmienia klucz szyfrujący (pozostali przechodzą na nowy automatycznie). */
     removeMember: (permissionId) => guard(async () => {

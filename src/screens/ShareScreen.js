@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, ScrollView, Share, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Share, Switch, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge, Button, Card, Icon, IconButton, SectionLabel } from '../components/ui.js';
 import { decodeInvite } from '../share/invite.js';
@@ -19,6 +19,7 @@ export default function ShareScreen({ visible, onClose, c, t, share, pendingInvi
   const [busy, setBusy] = useState(false);
   const [shownCode, setShownCode] = useState('');
   const [msg, setMsg] = useState('');
+  const [advanced, setAdvanced] = useState(false);
 
   useEffect(() => { if (visible && pendingInvite) { setMode('join'); setCode(pendingInvite); } }, [visible, pendingInvite]);
   useEffect(() => { if (visible && group) actions.loadMembers(); }, [visible, group?.fileId]);
@@ -67,10 +68,16 @@ export default function ShareScreen({ visible, onClose, c, t, share, pendingInvi
       {mode === 'create' && (
         <Card c={c} style={{ gap: space.md }}>
           <TextInput value={name} onChangeText={setName} placeholder={t('shGroupName')} placeholderTextColor={c.mut} style={input} />
-          <TextInput value={clientId} onChangeText={setClientId} autoCapitalize="none" autoCorrect={false} placeholder="Client ID: ….apps.googleusercontent.com" placeholderTextColor={c.mut} style={input} />
-          <Text style={{ color: c.mut, ...type.small }}>{t('shClientHelp')}</Text>
-          <Button c={c} icon="lock" label={t('shSignCreate')} disabled={busy || !name.trim() || !/\.apps\.googleusercontent\.com$/.test(clientId.trim())}
+          {(!actions.hasBuiltInClient || advanced) && (
+            <>
+              <TextInput value={clientId} onChangeText={setClientId} autoCapitalize="none" autoCorrect={false} placeholder="Client ID: ….apps.googleusercontent.com" placeholderTextColor={c.mut} style={input} />
+              <Text style={{ color: c.mut, ...type.small }}>{actions.hasBuiltInClient ? '' : `${t('shNoClient')} `}{t('shClientHelp')}</Text>
+            </>
+          )}
+          <Button c={c} icon="lock" label={t('shSignGoogle')} disabled={busy || !name.trim() || (!actions.hasBuiltInClient && !/\.apps\.googleusercontent\.com$/.test(clientId.trim()))}
             onPress={() => run(async () => { await actions.create({ name: name.trim(), clientId }); setMode('menu'); })} />
+          <Text style={{ color: c.mut, ...type.small }}>{t('shCreateStep')}</Text>
+          {actions.hasBuiltInClient && !advanced && <Pressable onPress={() => setAdvanced(true)}><Text style={{ color: c.mut, ...type.small, textDecorationLine: 'underline' }}>{t('shAdvanced')}</Text></Pressable>}
           <Button c={c} variant="ghost" label={t('editCancel')} onPress={() => setMode('menu')} />
         </Card>
       )}
@@ -80,7 +87,7 @@ export default function ShareScreen({ visible, onClose, c, t, share, pendingInvi
           <TextInput value={code} onChangeText={setCode} multiline autoCapitalize="none" autoCorrect={false} placeholder={t('shCodePh')} placeholderTextColor={c.mut} style={[input, { minHeight: 90, textAlignVertical: 'top' }]} />
           {code && decodeInvite(code) ? <Badge c={c} tone="success" icon="check" label={decodeInvite(code).name || t('shTitle')} /> : null}
           <Text style={{ color: c.mut, ...type.small }}>{t('shJoinMerge')}</Text>
-          <Button c={c} icon="users" label={t('shJoinBtn')} disabled={busy || !decodeInvite(code)}
+          <Button c={c} icon="lock" label={t('shJoinSign')} disabled={busy || !decodeInvite(code)}
             onPress={() => run(async () => { await actions.join(code); setMode('menu'); setCode(''); })} />
           <Button c={c} variant="ghost" label={t('editCancel')} onPress={() => setMode('menu')} />
         </Card>
@@ -129,9 +136,27 @@ export default function ShareScreen({ visible, onClose, c, t, share, pendingInvi
 
       <SectionLabel c={c}>{t('shInvite')}</SectionLabel>
       <Card c={c} style={{ gap: space.md }}>
-        <TextInput value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoCorrect={false} placeholder={t('shInviteEmail')} placeholderTextColor={c.mut} style={input} />
-        <Button c={c} icon="send" label={t('shInviteBtn')} disabled={busy || !email.trim()} onPress={sendInvite} />
-        <Text style={{ color: c.mut, ...type.small }}>{t('shInviteNote')}</Text>
+        {group.open && <Button c={c} icon="send" label={t('shSendInvite')} disabled={busy} onPress={() => run(async () => {
+          const codeText = await actions.invite('', t('shMailMsg', { name: group.name }));
+          await Share.share({ message: t('shShareMsg', { name: group.name, code: codeText }) });
+        })} />}
+        {!group.open && (
+          <>
+            <TextInput value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoCorrect={false} placeholder={t('shInviteEmail')} placeholderTextColor={c.mut} style={input} />
+            <Button c={c} icon="send" label={t('shInviteBtn')} disabled={busy || !email.trim()} onPress={sendInvite} />
+          </>
+        )}
+        <Text style={{ color: c.mut, ...type.small }}>{group.open ? t('shOpenOn') : t('shInviteNote')}</Text>
+        {group.role === 'owner' && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, borderTopWidth: 1, borderTopColor: c.line, paddingTop: space.md }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: c.fg, ...type.strong }}>{t('shOpenToggle')}</Text>
+              {!group.open && <Text style={{ color: c.mut, ...type.small }}>{t('shOpenOff')}</Text>}
+            </View>
+            <Switch value={!!group.open} disabled={busy} trackColor={{ true: c.primary }}
+              onValueChange={(v) => (v ? run(() => actions.setOpen(true)) : confirm(t('shOpenToggle'), t('shOpenOff'), t('shRemove'), () => actions.setOpen(false)))} />
+          </View>
+        )}
         <Button c={c} small variant="neutral" icon="copy" label={t('shShowCode')} onPress={() => setShownCode(actions.inviteCode())} />
         {shownCode ? <Text selectable style={{ color: c.ink2, fontSize: 12, backgroundColor: c.surfaceAlt, borderRadius: radius.sm, padding: space.sm }}>{shownCode}</Text> : null}
       </Card>

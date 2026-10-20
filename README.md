@@ -196,15 +196,19 @@ serwera: każdy telefon rozmawia bezpośrednio z Dyskiem Google.
   pozostali członkowie przechodzą na niego automatycznie). Osoba usunięta zachowuje tylko to, co już miała na telefonie.
 - **Opuszczenie grupy** odłącza telefon (lista zostaje); właściciel może też rozwiązać grupę (usuwa plik).
 
-**Jednorazowa konfiguracja Google (właściciel, ~5 min)**
+**Dla użytkownika: tylko logowanie do Google.** Tworzenie grupy to nazwa + „Kontynuuj z Google”; dołączanie to dotknięcie
+linku z zaproszeniem + logowanie do Google. Zaproszenie domyślnie działa samym kodem („każdy z kodem może dołączyć” –
+plik ma dostęp „każdy z linkiem”, ale jest zaszyfrowany, więc link niczego nie ujawnia); nie trzeba wpisywać e-maili.
+Przełącznik w oknie grupy przełącza na tryb „tylko osoby dodane e-mailem” (zmienia klucz szyfrujący).
+
+**Jednorazowo dla Ciebie jako twórcy aplikacji (~5 min, potem nikt już nic nie konfiguruje)**
 1. console.cloud.google.com → nowy projekt → *APIs & Services* → włącz **Google Drive API**.
-2. *OAuth consent screen* → External; dodaj zakres `.../auth/drive`; dodaj e-maile rodziny jako *Test users* **albo**
-   ustaw *Publishing status: In production* (aplikacja „niezweryfikowana” – dla kilku osób to normalne; w trybie Testing
-   Google unieważnia logowanie co 7 dni).
-3. *Credentials* → *Create OAuth client ID* → typ **Android**, pakiet `com.hanaortega.korting`, SHA-1 wypisany na końcu
-   sprawdzania klucza przez `./deploy/aplikacja.sh`; w *Advanced settings* włącz **Custom URI scheme**.
-4. Client ID (`…apps.googleusercontent.com`) wklejasz raz przy tworzeniu grupy; członkowie dostają go w kodzie zaproszenia.
-Wszyscy muszą mieć **ten sam plik APK** (podpisany Twoim kluczem), bo Google weryfikuje podpis aplikacji.
+2. *OAuth consent screen* → External; dodaj zakres `.../auth/drive`; ustaw *Publishing status: In production*
+   (aplikacja „niezweryfikowana” – dla rodziny to tylko jeden dodatkowy ekran; w trybie Testing Google wylogowuje co 7 dni).
+3. *Credentials* → *Create OAuth client ID* → typ **Android**, pakiet `com.hanaortega.korting`, SHA-1 wypisany przez
+   `./deploy/aplikacja.sh`; w *Advanced settings* włącz **Custom URI scheme**.
+4. `./deploy/aplikacja.sh` zapyta o Client ID (raz; zapisze w `.google-client-id`, poza repozytorium) i wbuduje go w
+   aplikację. Wszyscy instalują ten sam APK (podpisany Twoim kluczem – Google sprawdza podpis).
 
 **Zakres `drive`:** pozwala otworzyć plik udostępniony przez właściciela (węższy `drive.file` nie dotyka plików
 udostępnionych przez kogoś innego). Aplikacja używa wyłącznie pliku, którego id zna z zaproszenia.

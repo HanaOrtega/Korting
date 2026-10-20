@@ -47,10 +47,24 @@ export function createDrive(getToken, doFetch = (...a) => fetch(...a)) {
       return { fileId: m.id, version: String(m.version) };
     },
     async remove(fileId) { await call(`${API}/files/${fileId}`, { method: 'DELETE' }); },
-    async permissions(fileId) {
+    async permissionsAll(fileId) {
       const m = await json(`${API}/files/${fileId}/permissions?fields=permissions(id,type,role,emailAddress,displayName)`);
-      return (m.permissions ?? []).filter((p) => p.type === 'user');
+      return m.permissions ?? [];
     },
+    async permissions(fileId) { return (await this.permissionsAll(fileId)).filter((p) => p.type === 'user'); },
+    /** „Każdy z linkiem może edytować” – plik jest zaszyfrowany, więc sam link niczego nie ujawnia; zaproszenie nie wymaga e-maila. */
+    async shareAnyone(fileId) {
+      const existing = (await this.permissionsAll(fileId)).find((p) => p.type === 'anyone');
+      if (existing) return existing.id;
+      return (await json(`${API}/files/${fileId}/permissions?fields=id`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'anyone', role: 'writer', allowFileDiscovery: false }),
+      })).id;
+    },
+    async unshareAnyone(fileId) {
+      const existing = (await this.permissionsAll(fileId)).find((p) => p.type === 'anyone');
+      if (existing) await call(`${API}/files/${fileId}/permissions/${existing.id}`, { method: 'DELETE' });
+    },
+    async isOpen(fileId) { return (await this.permissionsAll(fileId)).some((p) => p.type === 'anyone'); },
     /** Udostępnia plik osobie (rola: edytor); Google wyśle jej e-mail z powiadomieniem. */
     async share(fileId, email, message) {
       const q = `sendNotificationEmail=true&emailMessage=${encodeURIComponent(message ?? '')}`;

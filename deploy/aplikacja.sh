@@ -54,6 +54,21 @@ fi
 sha1="$(keytool -list -v -keystore "$KEYSTORE" -storepass:env KORTING_KEY_PASSWORD -alias korting 2>/dev/null | sed -n 's/^ *SHA1: *//p' | head -1)"
 [ -n "$sha1" ] && echo "==> SHA-1 certyfikatu (do klienta OAuth 'Android' w Google Cloud - Wspolna lista): $sha1"
 
+# Client ID Google wbudowany w aplikacje: uzytkownicy Wspolnej listy tylko loguja sie do Google, nic nie konfiguruja.
+CLIENT_FILE=.google-client-id
+if [ -z "${EXPO_PUBLIC_GOOGLE_CLIENT_ID:-}" ] && [ -f "$CLIENT_FILE" ]; then
+    EXPO_PUBLIC_GOOGLE_CLIENT_ID="$(tr -d ' \r\n' < "$CLIENT_FILE")"
+fi
+if [ -z "${EXPO_PUBLIC_GOOGLE_CLIENT_ID:-}" ]; then
+    echo "==> Wspolna lista (Dysk Google): jednorazowo potrzebny Client ID. Console.cloud.google.com -> projekt -> wlacz Google Drive API"
+    echo "    -> OAuth consent screen (zakres .../auth/drive, 'In production') -> Credentials -> OAuth client ID typu Android:"
+    echo "    pakiet com.hanaortega.korting, SHA-1 jak wyzej, w Advanced wlacz 'Custom URI scheme'. Szczegoly: README."
+    read -r -p "Client ID Google (Enter = pomin; wtedy Wspolna lista poprosi o wpisanie): " cid || cid=""
+    cid="$(printf '%s' "$cid" | tr -d ' \r\n')"
+    if [ -n "$cid" ]; then printf '%s\n' "$cid" > "$CLIENT_FILE"; EXPO_PUBLIC_GOOGLE_CLIENT_ID="$cid"; fi
+fi
+export EXPO_PUBLIC_GOOGLE_CLIENT_ID="${EXPO_PUBLIC_GOOGLE_CLIENT_ID:-}"
+
 echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 echo "==> Buduje aplikacje (pierwszy raz kilkanascie minut - pobiera Gradle, biblioteki i kompiluje kod natywny)"
 if ! (cd android && ./gradlew -q --no-daemon :app:bundleRelease :app:assembleRelease); then
