@@ -211,3 +211,14 @@ udostępnionych przez kogoś innego). Aplikacja używa wyłącznie pliku, które
 
 **Niesprawdzone na żywo:** logowanie OAuth, wywołania Dysku i rotacja klucza zostały sprawdzone testami z atrapą Dysku,
 ale nie z prawdziwym kontem Google (w środowisku budowania nie ma dostępu do Google).
+
+## Historia listy i „Cofnij”
+
+- Każda zmiana listy (usunięcie, dodanie, edycja, odhaczenie, import przepisu, „Usuń kupione”) zapisuje w historii stan
+  *sprzed* zmiany; zmiany w ciągu 10 s łączą się w jeden wpis (do 40 wpisów, zapamiętane w telefonie).
+- Po usunięciu pozycji albo wklejeniu przepisu na dole pojawia się pasek **Cofnij** (7 s).
+- Ikona historii w nagłówku: dla każdego wpisu **Przywróć usunięte** (dokłada tylko brakujące pozycje, nowsze zmiany
+  zostają) albo **Przywróć całą listę**. Przywrócenie samo trafia do historii, więc też można je cofnąć.
+- Zmiany przychodzące od grupy (wspólna lista) nie trafiają do „cofania” tego telefonu; przywrócone pozycje wracają do
+  grupy jako nowsza zmiana. Napisy wspólnej listy i historii są we wszystkich 12 językach (test `tests/i18n.test.js`
+  pilnuje kompletności i zmiennych `{n}`, `{name}`…).

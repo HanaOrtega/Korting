@@ -11,7 +11,9 @@ import { LANG_CODES, LANG_NAMES, makeT, pickLanguage } from './src/i18n.js';
 import { buildVocab } from './src/match.js';
 import { favoriteChains } from './src/stores.js';
 import DealsScreen from './src/screens/DealsScreen.js';
+import HistoryScreen from './src/screens/HistoryScreen.js';
 import ShareScreen from './src/screens/ShareScreen.js';
+import { useHistory } from './src/useHistory.js';
 import { useShare } from './src/share/useShare.js';
 import ListScreen from './src/screens/ListScreen.js';
 import StoresScreen from './src/screens/StoresScreen.js';
@@ -51,7 +53,10 @@ function Root() {
   const t = useMemo(() => makeT(lang), [lang]);
   const [shareOpen, setShareOpen] = useState(false);
   const [pendingInvite, setPendingInvite] = useState('');
-  const share = useShare({ items, setItems, ready });
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const history = useHistory({ items, setItems, ready });
+  const setItemsExternal = useCallback((next) => { history.markExternal(next); setItems(next); }, [history.markExternal]); // zmiany z grupy nie trafiają do „cofania”
+  const share = useShare({ items, setItems: setItemsExternal, ready });
 
   // link zaproszenia (korting://join/…) otwiera okno dołączania
   useEffect(() => {
@@ -136,6 +141,7 @@ function Root() {
             <Text style={{ color: c.fg, ...type.title }}>Korting</Text>
             {subtitle ? <Text numberOfLines={1} style={{ color: c.mut, ...type.caption }}>{subtitle}</Text> : null}
           </View>
+          {!needStores && <IconButton c={c} icon="history" label={t('hTitle')} onPress={() => setHistoryOpen(true)} />}
           {!needStores && (
             <View>
               <IconButton c={c} icon="users" label={t('shTitle')} onPress={() => setShareOpen(true)} />
@@ -180,6 +186,18 @@ function Root() {
         )}
       </View>
 
+      {history.toast && !needStores && (
+        <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 78 + insets.bottom, paddingHorizontal: space.lg, zIndex: 20 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: c === dark ? '#f5f2ea' : '#1d1b17', borderRadius: radius.md, paddingLeft: space.lg, paddingRight: space.sm, paddingVertical: space.sm, ...elevation(c, 2) }}>
+            <Text style={{ color: c === dark ? '#1d1b17' : '#f5f2ea', ...type.small, flex: 1 }} numberOfLines={2}>{t(history.toast.label.key, { n: history.toast.label.n, name: history.toast.label.name })}</Text>
+            <Pressable onPress={history.undo} hitSlop={8} style={{ paddingHorizontal: space.md, paddingVertical: space.sm }}>
+              <Text style={{ color: c === dark ? '#b8430a' : '#ff9d66', fontWeight: '800', fontSize: 14 }}>{t('hUndo')}</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
+      <HistoryScreen visible={historyOpen} onClose={() => setHistoryOpen(false)} c={c} t={t} lang={lang} history={history} />
       <ShareScreen visible={shareOpen} onClose={() => { setShareOpen(false); setPendingInvite(''); }} c={c} t={t} lang={lang} share={share} pendingInvite={pendingInvite} />
 
       {!needStores && <TabBar c={c} t={t} tab={tab} setTab={setTab} badge={{ list: onList || 0 }} />}
