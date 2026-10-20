@@ -1,4 +1,7 @@
-import { Alert, Modal, ScrollView, Text, View } from 'react-native';
+import { Alert, Modal, ScrollView, View } from 'react-native';
+import Text from '../components/Text.js';
+import { useContext } from 'react';
+import { ComfortContext } from '../comfortContext.js';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge, Button, Card, EmptyState, IconButton } from '../components/ui.js';
 import { space, type } from '../theme.js';
@@ -6,6 +9,7 @@ import { space, type } from '../theme.js';
 /** Historia listy: wpisy od najnowszego; można przywrócić całą listę albo tylko usunięte pozycje. */
 export default function HistoryScreen({ visible, onClose, c, t, lang, history }) {
   const insets = useSafeAreaInsets();
+  const { animated } = useContext(ComfortContext);
   const { entries } = history;
   const when = (ms) => {
     const d = new Date(ms);
@@ -20,7 +24,7 @@ export default function HistoryScreen({ visible, onClose, c, t, lang, history })
   ]);
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType={animated ? 'slide' : 'none'} onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.md }}>
           <Text style={{ color: c.fg, ...type.title, flex: 1 }}>{t('hTitle')}</Text>

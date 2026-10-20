@@ -2,7 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, AppState, Image, Linking, Modal, Pressable, Text, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Alert, AppState, Image, Linking, Modal, Pressable, useColorScheme, View } from 'react-native';
+import Text from './src/components/Text.js';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, IconButton, Segmented, TabBar } from './src/components/ui.js';
 import WebViewHost from './src/components/WebViewHost.js';
@@ -18,7 +19,13 @@ import { useShare } from './src/share/useShare.js';
 import ListScreen from './src/screens/ListScreen.js';
 import StoresScreen from './src/screens/StoresScreen.js';
 import VocabScreen from './src/screens/VocabScreen.js';
-import { dark, elevation, light, radius, space, type } from './src/theme.js';
+import { calmPalette, mergeComfort, SCALES } from './src/comfort.js';
+import { ComfortContext } from './src/comfortContext.js';
+import { syncReminders } from './src/reminders.js';
+import ComfortScreen from './src/screens/ComfortScreen.js';
+import { elevation, light, dark, radius, space, type } from './src/theme.js';
+import { setStill } from './src/components/ui.js';
+import { matchDeals, resolve, forConcept } from './src/match.js';
 
 const store = {
   async get(key, fallback) {
@@ -39,7 +46,11 @@ function Root() {
   const insets = useSafeAreaInsets();
   const system = useColorScheme(); // kolor ustawiony w telefonie (jasny/ciemny), reaguje na bieżąco
   const [themePref, setThemePref] = useState('auto'); // auto | light | dark
-  const c = (themePref === 'auto' ? system : themePref) === 'dark' ? dark : light;
+  const [comfort, setComfort] = useState(mergeComfort(null));
+  const isDark = (themePref === 'auto' ? system : themePref) === 'dark';
+  const c = comfort.calm ? calmPalette(isDark ? dark : light, isDark) : isDark ? dark : light;
+  setStill(comfort.still);
+  const ctx = useMemo(() => ({ comfort, scale: SCALES[comfort.scale] ?? 1, animated: !comfort.still }), [comfort]);
   const [lang, setLang] = useState(() => pickLanguage(getLocales()[0]?.languageCode));
   const [items, setItems] = useState([]);
   const [ready, setReady] = useState(false);
@@ -54,7 +65,9 @@ function Root() {
   const [shareOpen, setShareOpen] = useState(false);
   const [pendingInvite, setPendingInvite] = useState('');
   const [historyOpen, setHistoryOpen] = useState(false);
-  const history = useHistory({ items, setItems, ready });
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [comfortOpen, setComfortOpen] = useState(false);
+  const history = useHistory({ items, setItems, ready, sticky: comfort.still });
   const setItemsExternal = useCallback((next) => { history.markExternal(next); setItems(next); }, [history.markExternal]); // zmiany z grupy nie trafiają do „cofania”
   const share = useShare({ items, setItems: setItemsExternal, ready });
 
@@ -76,9 +89,10 @@ function Root() {
       // kto miał już wybrane sklepy (starsza wersja), nie musi wybierać drugi raz
       setConfirmed(await store.get('korting.confirmed', favs.length > 0));
       const v = await store.get('korting.view', 'items');
+      setComfort(mergeComfort(await store.get('korting.comfort', null)));
       const tp = await store.get('korting.theme', 'auto');
       if (['auto', 'light', 'dark'].includes(tp)) setThemePref(tp);
-      setView(v === 'stores' ? 'stores' : 'items'); // widok porównania został usunięty
+      setView(['stores', 'aisles'].includes(v) ? v : 'items');
       setReady(true);
     })();
   }, []);
@@ -86,6 +100,7 @@ function Root() {
   useEffect(() => { if (ready) store.set('korting.favorites', favorites); }, [favorites, ready]);
   useEffect(() => { if (ready) store.set('korting.view', view); }, [view, ready]);
   useEffect(() => { if (ready) store.set('korting.theme', themePref); }, [themePref, ready]);
+  useEffect(() => { if (ready) store.set('korting.comfort', comfort); }, [comfort, ready]);
   useEffect(() => { if (ready) store.set('korting.confirmed', confirmed); }, [confirmed, ready]);
 
   // Promocje tylko z wybranych sklepów – pozostałych nawet nie pobieramy.
@@ -119,6 +134,19 @@ function Root() {
   }, [ready, refresh]);
 
   const vocab = useMemo(() => buildVocab(deals), [deals]);
+
+  // przypomnienia (ADHD): tygodniowe i „jutro kończy się promocja” – ustawiane w tle po zmianie listy, promocji albo opcji
+  useEffect(() => {
+    if (!ready || needStores) return undefined;
+    const id = setTimeout(() => {
+      const rows = comfort.expiry.on ? items.map((item) => {
+        const r = item.pick != null ? forConcept(item.pick, item.text) : resolve(item.text, vocab, null, lang);
+        return { item, hits: matchDeals(r.terms, deals, r.ci) };
+      }) : [];
+      syncReminders({ comfort, t, items, rows, lang });
+    }, 1500);
+    return () => clearTimeout(id);
+  }, [ready, needStores, comfort.weekly, comfort.expiry, items, deals, lang]);
   const changeLang = (code) => { setLang(code); store.set('korting.lang', code); setPickLang(false); };
   const addFromDeal = (deal) => {
     setItems((prev) => [{ id: `${Date.now()}-${deal.id}`, text: deal.name, done: false }, ...prev]);
@@ -130,16 +158,16 @@ function Root() {
   const subtitle = chains.length ? chains.join(' · ') + (data.at ? ` · ${t('updated', { t: fmtTime(data.at) })}` : '') : '';
 
   return (
+    <ComfortContext.Provider value={ctx}>
     <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top }}>
-      <StatusBar style={c === dark ? 'light' : 'dark'} />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <View style={{ paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.md, gap: space.sm }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
           <Image source={require('./assets/logo-circle.png')} style={{ width: 42, height: 42 }} accessibilityLabel="Kortinglijst" />
           <View style={{ flex: 1 }}>
-            <Text style={{ color: c.fg, ...type.title }}>Kortinglijst</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit style={{ color: c.fg, ...type.title }}>Kortinglijst</Text>
             {subtitle ? <Text numberOfLines={1} style={{ color: c.mut, ...type.caption }}>{subtitle}</Text> : null}
           </View>
-          {!needStores && <IconButton c={c} icon="history" label={t('hTitle')} onPress={() => setHistoryOpen(true)} />}
           {!needStores && (
             <View>
               <IconButton c={c} icon="users" label={t('shTitle')} onPress={() => setShareOpen(true)} />
@@ -147,6 +175,7 @@ function Root() {
                 backgroundColor: share.status === 'ok' || share.status === 'syncing' ? c.success : share.status === 'offline' || share.status === 'idle' ? c.mut : c.danger }} /> : null}
             </View>
           )}
+          {!needStores && <IconButton c={c} icon="menu" label={t('mnTitle')} onPress={() => setMenuOpen(true)} />}
           <Pressable onPress={() => setPickLang(true)} accessibilityRole="button" accessibilityLabel="language"
             style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 40, borderRadius: 20, backgroundColor: c.chip }}>
             <Icon name="globe" size={16} color={c.ink2} />
@@ -186,15 +215,34 @@ function Root() {
 
       {history.toast && !needStores && (
         <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 78 + insets.bottom, paddingHorizontal: space.lg, zIndex: 20 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: c === dark ? '#f5f2ea' : '#1d1b17', borderRadius: radius.md, paddingLeft: space.lg, paddingRight: space.sm, paddingVertical: space.sm, ...elevation(c, 2) }}>
-            <Text style={{ color: c === dark ? '#1d1b17' : '#f5f2ea', ...type.small, flex: 1 }} numberOfLines={2}>{t(history.toast.label.key, { n: history.toast.label.n, name: history.toast.label.name })}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: isDark ? '#f5f2ea' : '#1d1b17', borderRadius: radius.md, paddingLeft: space.lg, paddingRight: space.sm, paddingVertical: space.sm, ...elevation(c, 2) }}>
+            <Text style={{ color: isDark ? '#1d1b17' : '#f5f2ea', ...type.small, flex: 1 }} numberOfLines={2}>{t(history.toast.label.key, { n: history.toast.label.n, name: history.toast.label.name })}</Text>
             <Pressable onPress={history.undo} hitSlop={8} style={{ paddingHorizontal: space.md, paddingVertical: space.sm }}>
-              <Text style={{ color: c === dark ? '#b8430a' : '#ff9d66', fontWeight: '800', fontSize: 14 }}>{t('hUndo')}</Text>
+              <Text style={{ color: isDark ? '#b8430a' : '#ff9d66', fontWeight: '800', fontSize: 14 }}>{t('hUndo')}</Text>
             </Pressable>
+            {comfort.still && <Pressable onPress={history.dismissToast} hitSlop={8} accessibilityLabel={t('cfClose')}><Icon name="x" size={18} color={isDark ? '#1d1b17' : '#f5f2ea'} /></Pressable>}
           </View>
         </View>
       )}
 
+      <Modal visible={menuOpen} transparent animationType={comfort.still ? 'none' : 'fade'} onRequestClose={() => setMenuOpen(false)}>
+        <Pressable onPress={() => setMenuOpen(false)} style={{ flex: 1, backgroundColor: c.overlay, justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: c.surface, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: space.md, paddingBottom: Math.max(insets.bottom, space.md) + space.sm, gap: 2 }}>
+            {[['sliders', t('mnComfort'), t('mnComfortSub'), () => setComfortOpen(true)], ['history', t('hTitle'), '', () => setHistoryOpen(true)], ['users', t('shTitle'), '', () => setShareOpen(true)]].map(([icon, title, sub, fn]) => (
+              <Pressable key={title} onPress={() => { setMenuOpen(false); fn(); }} accessibilityRole="button" style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.md, backgroundColor: pressed ? c.chip : 'transparent' })}>
+                <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: c.primaryTint, alignItems: 'center', justifyContent: 'center' }}><Icon name={icon} size={20} color={c.primary} /></View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: c.fg, ...type.strong }}>{title}</Text>
+                  {sub ? <Text style={{ color: c.mut, ...type.small }}>{sub}</Text> : null}
+                </View>
+                <Icon name="arrow" size={18} color={c.mut} />
+              </Pressable>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
+
+      <ComfortScreen visible={comfortOpen} onClose={() => setComfortOpen(false)} c={c} t={t} lang={lang} comfort={comfort} setComfort={setComfort} />
       <HistoryScreen visible={historyOpen} onClose={() => setHistoryOpen(false)} c={c} t={t} lang={lang} history={history} />
       <ShareScreen visible={shareOpen} onClose={() => { setShareOpen(false); setPendingInvite(''); }} c={c} t={t} lang={lang} share={share} pendingInvite={pendingInvite} />
 
@@ -220,5 +268,6 @@ function Root() {
 
       <WebViewHost />
     </View>
+    </ComfortContext.Provider>
   );
 }

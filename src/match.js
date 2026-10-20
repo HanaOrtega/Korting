@@ -70,6 +70,8 @@ for (const [child, parent] of Object.entries(PARENT_OF)) {
   if (k != null && p != null) parentId.set(k, p);
 }
 /** Czy `anc` jest przodkiem `ci` (bezpośrednim lub dalszym). */
+/** Id pojęcia nadrzędnego (np. olej rzepakowy → olej) albo undefined. */
+export const parentOf = (ci) => parentId.get(ci);
 const isChildOf = (ci, anc) => { for (let x = parentId.get(ci); x != null; x = parentId.get(x)) if (x === anc) return true; return false; };
 const descendants = (anc) => concepts.map((c) => c.id).filter((id) => isChildOf(id, anc));
 export const nlTerms = (ci) => [...new Set([ci, ...descendants(ci)].flatMap((id) => concepts[id].names.nl).map(norm).filter(Boolean))];

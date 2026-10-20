@@ -271,3 +271,15 @@ spareribs|ribs;spare ribs|pork ribs;żeberka|żeberka wieprzowe;spareribs|rippch
 `;
 
 export const ROWS = RAW.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));
+
+/** Nagłówek sekcji (`# --- … ---`) każdego wiersza – posłuży do przypisania działu sklepu. */
+export const SECTIONS = (() => {
+  let current = '';
+  const out = [];
+  for (const l of RAW.split('\n').map((x) => x.trim())) {
+    const m = /^# --- (.*) ---$/.exec(l);
+    if (m) current = m[1];
+    else if (l && !l.startsWith('#')) out.push(current);
+  }
+  return out;
+})();

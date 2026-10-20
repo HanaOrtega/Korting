@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Modal, ScrollView, Text, TextInput, View } from 'react-native';
+import { Modal, ScrollView, TextInput, View } from 'react-native';
+import Text from './Text.js';
+import { useContext } from 'react';
+import { ComfortContext } from '../comfortContext.js';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { REGIONS, REGION_IDS, buildGroups, fmtAmounts, keyOfItem, resolveRegion } from '../recipe.js';
 import { elevation, radius, space, type } from '../theme.js';
@@ -10,6 +13,7 @@ const STEP = 0.5;
 /** Wklej składniki przepisu → podgląd listy zakupów (zsumowane, bez duplikatów) → dodaj do listy. */
 export default function RecipeModal({ visible, onClose, c, t, lang, vocab, items, onAdd }) {
   const insets = useSafeAreaInsets();
+  const { animated } = useContext(ComfortContext);
   const [text, setText] = useState('');
   const [mult, setMult] = useState(1);
   const [regionChoice, setRegionChoice] = useState('auto');
@@ -22,7 +26,7 @@ export default function RecipeModal({ visible, onClose, c, t, lang, vocab, items
   const add = () => { onAdd(groups); setText(''); setMult(1); setRegionChoice('auto'); onClose(); };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType={animated ? 'slide' : 'none'} onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.md }}>
           <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: c.primaryTint, alignItems: 'center', justifyContent: 'center' }}>

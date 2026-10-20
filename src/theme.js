@@ -4,7 +4,7 @@ export const ACCENT = '#e8590c';
 const shared = { danger: '#c92a2a', accent: ACCENT };
 
 export const light = {
-  ...shared,
+  ...shared, isDark: false,
   bg: '#f7f4ef', surface: '#ffffff', surfaceAlt: '#f1ede6', card: '#ffffff', chip: '#efebe4',
   fg: '#1d1b17', ink2: '#57524a', mut: '#857f74', border: '#e7e1d6', line: '#ece6db',
   primary: ACCENT, primaryInk: '#ffffff', primaryTint: '#fff0e6', primaryDeep: '#b8430a',
@@ -13,7 +13,7 @@ export const light = {
 };
 
 export const dark = {
-  ...shared, danger: '#ff8787',
+  ...shared, isDark: true, danger: '#ff8787',
   bg: '#12110f', surface: '#1d1b18', surfaceAlt: '#27241f', card: '#1d1b18', chip: '#2a2621',
   fg: '#f5f2ea', ink2: '#cbc5b8', mut: '#9a9488', border: '#35312b', line: '#2c2823',
   primary: '#ff7a33', primaryInk: '#1a0e05', primaryTint: '#3a2314', primaryDeep: '#ffb184',
@@ -35,7 +35,7 @@ export const type = {
 };
 
 /** Cień kart: w jasnym motywie miękki, w ciemnym rezygnujemy z cienia na rzecz obrysu. */
-export const elevation = (c, level = 1) => (c === dark
+export const elevation = (c, level = 1) => (c.isDark
   ? { borderWidth: 1, borderColor: c.border }
   : { shadowColor: c.shadow, shadowOpacity: level === 2 ? 0.14 : 0.07, shadowRadius: level === 2 ? 16 : 8, shadowOffset: { width: 0, height: level === 2 ? 6 : 2 }, elevation: level === 2 ? 5 : 2 });
 

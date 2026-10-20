@@ -7,7 +7,7 @@ import { diffItems, record, restoreAll, restoreMissing } from './history.js';
 const KEY = 'korting.history.v1';
 const TOAST_MS = 7000;
 
-export function useHistory({ items, setItems, ready }) {
+export function useHistory({ items, setItems, ready, sticky = false }) {
   const [entries, setEntries] = useState([]);
   const [toast, setToast] = useState(null); // { entryId, label }
   const prev = useRef(null);
@@ -34,7 +34,7 @@ export function useHistory({ items, setItems, ready }) {
         if (next[0] && big) {
           clearTimeout(timer.current);
           setToast({ entryId: next[0].id, label: next[0].label });
-          timer.current = setTimeout(() => setToast(null), TOAST_MS);
+          if (!sticky) timer.current = setTimeout(() => setToast(null), TOAST_MS); // tryb „bez znikających komunikatów”: zostaje do zamknięcia
         }
       }
       return next;

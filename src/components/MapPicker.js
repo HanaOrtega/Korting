@@ -1,9 +1,12 @@
 import * as Location from 'expo-location';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, TextInput, View } from 'react-native';
+import Text from './Text.js';
 import { WebView } from 'react-native-webview';
 import { mapHtml } from '../mapHtml.js';
 import { fmtDistance, findNearbyStores, geocode } from '../stores.js';
+import { useContext } from 'react';
+import { ComfortContext } from '../comfortContext.js';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { elevation, radius, space, type } from '../theme.js';
 import { Button, IconButton } from './ui.js';
@@ -13,6 +16,7 @@ const MAX_RADIUS = 6000; // m – większy obszar Overpass odrzuca albo zwraca z
 /** Pełnoekranowa mapa: przesuń do dowolnego miasta, wyszukaj sklepy i zaznacz konkretne pinezki. */
 export default function MapPicker({ visible, onClose, c, t, favorites, setFavorites }) {
   const insets = useSafeAreaInsets();
+  const { animated } = useContext(ComfortContext);
   const web = useRef(null);
   const ready = useRef(false);
   const [view, setView] = useState(null);
@@ -99,7 +103,7 @@ export default function MapPicker({ visible, onClose, c, t, favorites, setFavori
     : [...prev, { id: s.id, chain: s.chain, name: s.name, address: s.address, lat: s.lat, lon: s.lon }]));
   const isSel = (s) => favorites.some((f) => f.id === s.id);
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType={animated ? 'slide' : 'none'} onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: c.bg }}>
         <View style={{ paddingTop: insets.top + space.sm, paddingHorizontal: space.md, paddingBottom: space.sm, gap: space.sm, backgroundColor: c.surface, zIndex: 2, ...elevation(c, 1) }}>
           <View style={{ flexDirection: 'row', gap: space.sm, alignItems: 'center' }}>

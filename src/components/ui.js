@@ -1,5 +1,6 @@
 // Wspólne klocki interfejsu: ikony, karta, przyciski, chipy, przełącznik segmentowy, znaczki, dolny pasek zakładek.
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import Text from './Text.js';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { elevation, radius, space, storeColor, type } from '../theme.js';
@@ -30,6 +31,11 @@ const P = {
   send: ['M22 2L11 13', 'M22 2l-7 20-4-9-9-4z'],
   history: ['M3 12a9 9 0 1 0 3-6.7L3 8', 'M3 3v5h5', 'M12 7v5l4 2'],
   undo: ['M9 14L4 9l5-5', 'M4 9h10a6 6 0 0 1 0 12h-3'],
+  menu: ['M4 6h16M4 12h16M4 18h16'],
+  sliders: ['M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6'],
+  bell: ['M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9', 'M13.7 21a2 2 0 0 1-3.4 0'],
+  target: [['c', 12, 12, 9], ['c', 12, 12, 5], ['c', 12, 12, 1]],
+  arrow: ['M5 12h14M13 6l6 6-6 6'],
   clock: [['c', 12, 12, 9], 'M12 7v5l3 2'],
 };
 
@@ -46,7 +52,10 @@ export function Icon({ name, size = 22, color = '#000', stroke = 2, fill = 'none
   );
 }
 
-const press = ({ pressed }) => ({ opacity: pressed ? 0.72 : 1, transform: [{ scale: pressed ? 0.985 : 1 }] });
+let still = false;
+/** Tryb „bez animacji”: przyciski nie „sprężynują” przy dotyku. */
+export const setStill = (v) => { still = v; };
+const press = ({ pressed }) => ({ opacity: pressed ? 0.72 : 1, transform: [{ scale: pressed && !still ? 0.985 : 1 }] });
 
 export function Card({ c, style, children, pad = space.lg, level = 1 }) {
   return <View style={[{ backgroundColor: c.surface, borderRadius: radius.lg, padding: pad }, elevation(c, level), style]}>{children}</View>;
@@ -101,7 +110,7 @@ export function Segmented({ c, options, value, onChange }) {
             style={[{ flex: 1, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', paddingVertical: 9, borderRadius: radius.md - 3 },
               on && { backgroundColor: c.surface, ...elevation(c, 1) }]}>
             {o.icon ? <Icon name={o.icon} size={16} color={on ? c.primary : c.mut} /> : null}
-            <Text style={{ color: on ? c.fg : c.mut, fontSize: 14, fontWeight: on ? '700' : '600' }}>{o.label}</Text>
+            <Text numberOfLines={1} style={{ color: on ? c.fg : c.mut, fontSize: 14, fontWeight: on ? '700' : '600', flexShrink: 1 }}>{o.label}</Text>
           </Pressable>
         );
       })}

@@ -1,6 +1,7 @@
 import * as Location from 'expo-location';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
+import Text from '../components/Text.js';
 import { Badge, Button, Card, Icon, IconButton, SectionLabel, StoreTag } from '../components/ui.js';
 import MapPicker from '../components/MapPicker.js';
 import { CHAINS, chainFavoriteId, findNearbyStores, fmtDistance } from '../stores.js';

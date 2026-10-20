@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Image, Linking, Pressable, Text, View } from 'react-native';
+import { Image, Linking, Pressable, View } from 'react-native';
+import Text from './Text.js';
 import { fmtUnit, saving, unitPrice } from '../pricing.js';
 import { UA } from '../providers/util.js';
 import { radius, space, type } from '../theme.js';

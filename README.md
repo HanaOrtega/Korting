@@ -233,3 +233,26 @@ Nazwa aplikacji to **Kortinglijst** („Slimme Boodschappen”). Ikona (wózek z
 grafiki: `assets/source/logo-circle-crop.png`; wszystkie rozmiary (ikona Expo, adaptacyjna, monochromatyczna, ekran startowy,
 mipmapy Androida) generuje `python3 deploy/generuj_ikony.py` (Pillow + numpy). Identyfikator pakietu (`com.hanaortega.korting`)
 i klucz podpisu zostają bez zmian, więc aktualizacja instaluje się na istniejącej aplikacji.
+
+## Komfort i skupienie (ADHD / autyzm)
+
+Menu (☰ w nagłówku) → **Komfort i skupienie**. Wszystko jest opcjonalne i domyślnie wyłączone; ustawienia są zapamiętane.
+
+**Skupienie i planowanie**
+- **Tryb zakupów:** jeden produkt naraz, duże „Kupione” / „Później”, pasek postępu, podgląd następnego produktu. Najpierw
+  wybierasz sklep („Dokąd jedziesz?” – produkty tylko tego sklepu + te bez promocji) albo „Gdziekolwiek”.
+- **Lista „przed wyjściem”** (torba, portfel i telefon, klucze, słuchawki – edytowalna) przed startem trybu zakupów.
+- **Sortowanie wg działów sklepu:** warzywa → pieczywo → mięso → nabiał → suche → mrożonki → napoje → dom, czyli
+  w kolejności marszruty po sklepie (dział wynika ze słownika, produkty szczegółowe dziedziczą dział po nadrzędnym).
+- **Prosta lista:** szczegóły promocji pod pozycją są zwinięte (jedna linia „Promocji: 3 · €1,59”).
+
+**Komfort sensoryczny**
+- **Spokojne kolory** (przygaszona zieleń/szarość zamiast jaskrawej pomarańczy; kontrast sprawdzany testem WCAG AA),
+  **większy tekst** (normalny / duży / bardzo duży w całej aplikacji), **bez animacji i znikających komunikatów**
+  (ekrany pojawiają się od razu, „Cofnij” zostaje do zamknięcia).
+
+**Przypomnienia** (lokalne powiadomienia systemu, bez serwera i internetu, działają przy zamkniętej aplikacji)
+- cotygodniowe „czas na zakupy” w wybrany dzień i o wybranej godzinie (z liczbą pozycji na liście),
+- „jutro kończy się promocja” dzień przed końcem najwcześniej kończącej się promocji na produkt z listy (godzina do wyboru),
+  przeliczane po każdej zmianie listy i odświeżeniu promocji.
+Przy pierwszym włączeniu Android poprosi o zgodę na powiadomienia.

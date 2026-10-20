@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, Share, Text, View } from 'react-native';
+import { Pressable, ScrollView, Share, View } from 'react-native';
+import Text from '../components/Text.js';
 import { listStats, vocabHealth } from '../health.js';
 import { displayName, resolve } from '../match.js';
 import { clearTranslations, listTranslations } from '../translate.js';

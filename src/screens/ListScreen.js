@@ -1,11 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Pressable, ScrollView, TextInput, View } from 'react-native';
+import Text from '../components/Text.js';
+import AisleView from '../components/AisleView.js';
 import ByStoreView from '../components/ByStoreView.js';
+import FocusScreen from './FocusScreen.js';
+import { ComfortContext } from '../comfortContext.js';
 import DealRow from '../components/DealRow.js';
 import RecipeModal from '../components/RecipeModal.js';
 import { dutchName, displayName, forConcept, matchDeals, resolve, suggest } from '../match.js';
 import { planShopping } from '../plan.js';
 import { amountsToText, fmtAmounts, mergeIntoItems, parseAmounts } from '../recipe.js';
+import { fmtPrice } from '../format.js';
 import { bestUnitId } from '../pricing.js';
 import { favoriteChains } from '../stores.js';
 import { translateToDutch } from '../translate.js';
@@ -16,6 +21,8 @@ import { Badge, Button, Card, Chip, EmptyState, Icon, IconButton, Segmented } fr
 const PREVIEW = 3;
 
 export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, view, setView, favorites }) {
+  const { comfort } = useContext(ComfortContext);
+  const [focusOpen, setFocusOpen] = useState(false);
   const [text, setText] = useState('');
   const [open, setOpen] = useState({});
   const [recipeOpen, setRecipeOpen] = useState(false);
@@ -119,15 +126,15 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
         )}
       </Card>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
-        {rows.length > 0 && (
-          <View style={{ flex: 1 }}>
-            <Segmented c={c} value={view} onChange={setView}
-              options={[{ id: 'items', label: t('viewItems'), icon: 'list' }, { id: 'stores', label: t('viewStores'), icon: 'store' }]} />
-          </View>
-        )}
-        <Button c={c} small variant="soft" icon="clip" label={t('recipeBtn')} onPress={() => setRecipeOpen(true)} />
+      {rows.length > 0 && (
+        <Segmented c={c} value={view} onChange={setView}
+          options={[{ id: 'items', label: t('viewItems'), icon: 'list' }, { id: 'stores', label: t('viewStores'), icon: 'store' }, ...(comfort.aisles ? [{ id: 'aisles', label: t('viewAisles'), icon: 'map' }] : [])]} />
+      )}
+      <View style={{ flexDirection: 'row', gap: space.sm }}>
+        {comfort.focus && rows.length > 0 && <Button c={c} icon="target" label={t('cfStart')} onPress={() => setFocusOpen(true)} style={{ flex: 1 }} />}
+        <Button c={c} variant="soft" icon="clip" label={t('recipeBtn')} onPress={() => setRecipeOpen(true)} style={{ flex: 1 }} />
       </View>
+      <FocusScreen visible={focusOpen} onClose={() => setFocusOpen(false)} c={c} t={t} lang={lang} rows={rows} plan={plan} comfort={comfort} onToggleDone={toggleDone} />
 
       <RecipeModal visible={recipeOpen} onClose={() => setRecipeOpen(false)} c={c} t={t} lang={lang} vocab={vocab} items={items}
         onAdd={(groups) => setItems((prev) => mergeIntoItems(prev, groups, { lang, vocab, makeId: () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}` }).items)} />
@@ -154,7 +161,11 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
         <ByStoreView plan={plan} c={c} t={t} lang={lang} favorites={favorites} onToggleDone={toggleDone} />
       )}
 
-      {view !== 'stores' && rows.map(({ item, r, r0, hits }) => {
+      {view === 'aisles' && comfort.aisles && rows.length > 0 && (
+        <AisleView rows={rows} c={c} t={t} onToggleDone={toggleDone} />
+      )}
+
+      {(view === 'items' || (view === 'aisles' && !comfort.aisles)) && rows.map(({ item, r, r0, hits }) => {
         const expanded = !!open[item.id];
         const shown = expanded ? hits : hits.slice(0, PREVIEW);
         const bestId = bestUnitId(hits);
@@ -216,7 +227,14 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
               {r.status === 'unknown' && <Text style={{ color: c.mut, ...type.small }}>{t('unknownItem')}</Text>}
             </View>
 
-            {!item.done && (
+            {!item.done && comfort.simple && !expanded && hits.length > 0 && (
+              <Pressable onPress={() => setOpen((o) => ({ ...o, [item.id]: true }))} accessibilityRole="button"
+                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: c.line, padding: space.lg }}>
+                <Text style={{ color: c.primary, fontWeight: '700' }}>{t('promoCount', { n: hits.length })}{hits[0]?.price != null ? ` · ${fmtPrice(hits[0].price)}` : ''}</Text>
+                <Icon name="chevron" size={18} color={c.primary} />
+              </Pressable>
+            )}
+            {!item.done && !(comfort.simple && !expanded && hits.length > 0) && (
               <View style={{ borderTopWidth: 1, borderTopColor: c.line, paddingHorizontal: space.lg }}>
                 {hits.length === 0 ? (
                   <Text style={{ color: c.mut, fontStyle: 'italic', paddingVertical: space.md }}>{t('noPromo')}</Text>

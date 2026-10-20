@@ -1,4 +1,5 @@
-import { Linking, Platform, Pressable, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, View } from 'react-native';
+import Text from './Text.js';
 import { fmtPrice } from '../format.js';
 import { fmtAmounts } from '../recipe.js';
 import { navigationUrl } from '../stores.js';

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { FlatList, ScrollView, Text, TextInput, View } from 'react-native';
+import { FlatList, ScrollView, TextInput, View } from 'react-native';
+import Text from '../components/Text.js';
 import DealRow from '../components/DealRow.js';
 import { Card, Chip, EmptyState, Icon } from '../components/ui.js';
 import { norm } from '../match.js';

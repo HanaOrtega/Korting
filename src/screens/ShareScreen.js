@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Share, Switch, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Share, Switch, TextInput, View } from 'react-native';
+import Text from '../components/Text.js';
+import { useContext } from 'react';
+import { ComfortContext } from '../comfortContext.js';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge, Button, Card, Icon, IconButton, SectionLabel } from '../components/ui.js';
 import { decodeInvite } from '../share/invite.js';
@@ -10,6 +13,7 @@ const initials = (p) => (p.displayName || p.emailAddress || '?').trim().slice(0,
 /** Okno „Wspólna lista”: tworzenie grupy, dołączanie z kodu, członkowie, zaproszenia, status synchronizacji. */
 export default function ShareScreen({ visible, onClose, c, t, share, pendingInvite, lang }) {
   const insets = useSafeAreaInsets();
+  const { animated } = useContext(ComfortContext);
   const { group, status, error, lastSync, members, actions } = share;
   const [mode, setMode] = useState('menu'); // menu | create | join
   const [name, setName] = useState('');
@@ -174,7 +178,7 @@ export default function ShareScreen({ visible, onClose, c, t, share, pendingInvi
   );
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType={animated ? 'slide' : 'none'} onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.md }}>
           <Text style={{ color: c.fg, ...type.title, flex: 1 }}>{t('shTitle')}</Text>

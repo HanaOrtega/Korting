@@ -13,7 +13,8 @@
         {
           "locationWhenInUsePermission": "Kortinglijst używa lokalizacji tylko do znalezienia sklepów w Twojej okolicy."
         }
-      ]
+      ],
+      "expo-notifications"
     ],
     "ios": {
       "supportsTablet": false,
