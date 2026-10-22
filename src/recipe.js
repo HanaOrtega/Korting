@@ -353,7 +353,7 @@ export function keyOfItem(it, { lang, vocab }) {
 }
 
 /** Dodaje grupy do listy: ten sam produkt, który już jest na liście, dostaje zsumowane ilości zamiast duplikatu. */
-export function mergeIntoItems(items, groups, { lang, vocab, makeId }) {
+export function mergeIntoItems(items, groups, { lang, vocab, makeId, recipe }) {
   const out = items.map((it) => ({ ...it }));
   const keyOf = (it) => keyOfItem(it, { lang, vocab });
   const index = new Map(out.map((it, i) => [keyOf(it), i]));
@@ -363,9 +363,10 @@ export function mergeIntoItems(items, groups, { lang, vocab, makeId }) {
     if (i !== undefined) {
       for (const a of g.amounts) out[i].amounts = addAmount(out[i].amounts ?? [], a);
       out[i].done = false;
+      if (recipe && !(out[i].recipes ?? []).includes(recipe)) out[i].recipes = [...(out[i].recipes ?? []), recipe];
       merged++;
     } else {
-      out.unshift({ id: makeId(), text: g.text, done: false, amounts: g.amounts });
+      out.unshift({ id: makeId(), text: g.text, done: false, amounts: g.amounts, ...(recipe ? { recipes: [recipe] } : {}) });
       index.clear(); out.forEach((it, j) => index.set(keyOf(it), j));
     }
   }

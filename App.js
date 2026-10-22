@@ -23,6 +23,11 @@ import { calmPalette, mergeComfort, SCALES } from './src/comfort.js';
 import { ComfortContext } from './src/comfortContext.js';
 import { syncReminders } from './src/reminders.js';
 import ComfortScreen from './src/screens/ComfortScreen.js';
+import RecipeDetail from './src/screens/RecipeDetail.js';
+import RecipeEditor from './src/screens/RecipeEditor.js';
+import RecipesScreen from './src/screens/RecipesScreen.js';
+import { useRecipes } from './src/useRecipes.js';
+import { mergeIntoItems } from './src/recipe.js';
 import { elevation, light, dark, radius, space, type } from './src/theme.js';
 import { setStill } from './src/components/ui.js';
 import { matchDeals, resolve, forConcept } from './src/match.js';
@@ -67,6 +72,10 @@ function Root() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [comfortOpen, setComfortOpen] = useState(false);
+  const book = useRecipes();
+  const [openRecipe, setOpenRecipe] = useState(null); // przepis otwarty w podglądzie
+  const [editor, setEditor] = useState(null); // { recipe? , prefill? } albo null
+  const [undoDelete, setUndoDelete] = useState(false);
   const history = useHistory({ items, setItems, ready, sticky: comfort.still });
   const setItemsExternal = useCallback((next) => { history.markExternal(next); setItems(next); }, [history.markExternal]); // zmiany z grupy nie trafiają do „cofania”
   const share = useShare({ items, setItems: setItemsExternal, ready });
@@ -153,6 +162,13 @@ function Root() {
     setTab('list');
   };
 
+  const addRecipeToList = (groups, title) => {
+    setItems((prev) => mergeIntoItems(prev, groups, { lang, vocab, makeId: () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, recipe: title }).items);
+    setOpenRecipe(null); setTab('list');
+  };
+  const deleteRecipe = (id) => { book.remove(id); setUndoDelete(true); setTimeout(() => setUndoDelete(false), 8000); };
+  const saveRecipe = (fields) => (editor?.recipe ? book.update(editor.recipe.id, fields) : book.add(fields));
+
   const onList = items.filter((i) => !i.done).length;
   const fmtTime = (ms) => new Date(ms).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
   const subtitle = chains.length ? chains.join(' · ') + (data.at ? ` · ${t('updated', { t: fmtTime(data.at) })}` : '') : '';
@@ -205,9 +221,11 @@ function Root() {
           <VocabScreen c={c} t={t} lang={lang} items={items} deals={deals} vocab={vocab} />
         ) : tab === 'stores' ? (
           <StoresScreen c={c} t={t} favorites={favorites} setFavorites={setFavorites} />
+        ) : tab === 'recipes' ? (
+          <RecipesScreen c={c} t={t} recipes={book.recipes} onOpen={setOpenRecipe} onNew={() => setEditor({})} onFav={(id, fav) => book.update(id, { fav })} undo={undoDelete ? () => { book.restore(); setUndoDelete(false); } : null} />
         ) : tab === 'list' ? (
           <ListScreen c={c} t={t} lang={lang} items={items} setItems={setItems} deals={deals} vocab={vocab}
-            view={view} setView={setView} favorites={favorites} />
+            view={view} setView={setView} favorites={favorites} onSaveToBook={(text) => { setTab('recipes'); setEditor({ prefill: text }); }} />
         ) : (
           <DealsScreen c={c} t={t} lang={lang} deals={deals} onAdd={addFromDeal} refreshing={loading} onRefresh={() => refresh(true)} />
         )}
@@ -241,6 +259,11 @@ function Root() {
           </View>
         </Pressable>
       </Modal>
+
+      <RecipeDetail recipe={book.recipes.find((r) => r.id === openRecipe?.id) ?? null} visible={!!openRecipe} onClose={() => setOpenRecipe(null)} c={c} t={t} lang={lang} vocab={vocab} items={items}
+        onAddToList={addRecipeToList} onFav={(id, fav) => book.update(id, { fav })} onDelete={deleteRecipe} onDuplicate={(id) => book.duplicate(id, t('rcCopy'))}
+        onEdit={(r) => { setOpenRecipe(null); setEditor({ recipe: r }); }} />
+      <RecipeEditor visible={!!editor} onClose={() => setEditor(null)} c={c} t={t} lang={lang} vocab={vocab} recipe={editor?.recipe} prefill={editor?.prefill} onSave={saveRecipe} />
 
       <ComfortScreen visible={comfortOpen} onClose={() => setComfortOpen(false)} c={c} t={t} lang={lang} comfort={comfort} setComfort={setComfort} />
       <HistoryScreen visible={historyOpen} onClose={() => setHistoryOpen(false)} c={c} t={t} lang={lang} history={history} />

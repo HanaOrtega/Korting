@@ -20,7 +20,7 @@ import { Badge, Button, Card, Chip, EmptyState, Icon, IconButton, Segmented } fr
 
 const PREVIEW = 3;
 
-export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, view, setView, favorites }) {
+export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, view, setView, favorites, onSaveToBook }) {
   const { comfort } = useContext(ComfortContext);
   const [focusOpen, setFocusOpen] = useState(false);
   const [text, setText] = useState('');
@@ -136,7 +136,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
       </View>
       <FocusScreen visible={focusOpen} onClose={() => setFocusOpen(false)} c={c} t={t} lang={lang} rows={rows} plan={plan} comfort={comfort} onToggleDone={toggleDone} />
 
-      <RecipeModal visible={recipeOpen} onClose={() => setRecipeOpen(false)} c={c} t={t} lang={lang} vocab={vocab} items={items}
+      <RecipeModal visible={recipeOpen} onClose={() => setRecipeOpen(false)} onSaveToBook={onSaveToBook} c={c} t={t} lang={lang} vocab={vocab} items={items}
         onAdd={(groups) => setItems((prev) => mergeIntoItems(prev, groups, { lang, vocab, makeId: () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}` }).items)} />
 
       {rows.length === 0 && (
@@ -222,6 +222,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
                 </View>
               )}
 
+              {item.recipes?.length ? <Text style={{ color: c.mut, ...type.small }}>{t('rcFromRecipe', { names: item.recipes.join(', ') })}</Text> : null}
               {searching ? <Text style={{ color: c.mut, ...type.small }}>{searching}</Text> : null}
               {r.partial && <Text style={{ color: c.warnFg, ...type.small }}>{t('partialHint', { w: r.extra.join(' ') })}</Text>}
               {r.status === 'unknown' && <Text style={{ color: c.mut, ...type.small }}>{t('unknownItem')}</Text>}

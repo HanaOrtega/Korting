@@ -11,7 +11,7 @@ import { Badge, Button, Card, Chip, Icon, IconButton, SectionLabel } from './ui.
 const STEP = 0.5;
 
 /** Wklej składniki przepisu → podgląd listy zakupów (zsumowane, bez duplikatów) → dodaj do listy. */
-export default function RecipeModal({ visible, onClose, c, t, lang, vocab, items, onAdd }) {
+export default function RecipeModal({ visible, onClose, c, t, lang, vocab, items, onAdd, onSaveToBook }) {
   const insets = useSafeAreaInsets();
   const { animated } = useContext(ComfortContext);
   const [text, setText] = useState('');
@@ -97,6 +97,7 @@ export default function RecipeModal({ visible, onClose, c, t, lang, vocab, items
 
         <View style={{ padding: space.lg, paddingBottom: Math.max(insets.bottom, space.lg), backgroundColor: c.surface, borderTopWidth: 1, borderTopColor: c.line, ...elevation(c, 2) }}>
           <Button c={c} icon="plus" label={t('recipeAdd', { n: groups.length })} onPress={add} disabled={groups.length === 0} />
+          {onSaveToBook && <Button c={c} variant="soft" icon="chef" label={t('rcSaveBook')} onPress={() => { const txt = text; setText(''); setMult(1); setRegionChoice('auto'); onClose(); onSaveToBook(txt); }} disabled={groups.length === 0} style={{ marginTop: space.sm }} />}
         </View>
       </View>
     </Modal>

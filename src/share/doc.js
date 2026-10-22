@@ -1,7 +1,7 @@
 // Model współdzielonej listy: rekordy pozycji z czasem modyfikacji (ostatni zapis wygrywa dla każdej pozycji) i znaczniki
 // usunięcia. Scalanie jest przemienne, łączne i idempotentne, więc urządzenia zbiegają się do tego samego stanu niezależnie
 // od kolejności synchronizacji – nikt nie musi „wygrywać” całej listy.
-const FIELDS = ['text', 'amounts', 'done', 'pick'];
+const FIELDS = ['text', 'amounts', 'done', 'pick', 'recipes'];
 export const TOMBSTONE_TTL = 30 * 24 * 3600 * 1000;
 
 const content = (it) => JSON.stringify(FIELDS.map((f) => it?.[f] ?? null));

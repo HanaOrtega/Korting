@@ -31,6 +31,7 @@ const P = {
   send: ['M22 2L11 13', 'M22 2l-7 20-4-9-9-4z'],
   history: ['M3 12a9 9 0 1 0 3-6.7L3 8', 'M3 3v5h5', 'M12 7v5l4 2'],
   undo: ['M9 14L4 9l5-5', 'M4 9h10a6 6 0 0 1 0 12h-3'],
+  chef: ['M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 9.18 0A4 4 0 0 1 18 13.87V21H6z', 'M6 17h12'],
   menu: ['M4 6h16M4 12h16M4 18h16'],
   sliders: ['M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6'],
   bell: ['M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9', 'M13.7 21a2 2 0 0 1-3.4 0'],
@@ -161,7 +162,7 @@ export function EmptyState({ c, icon, title, hint, action }) {
   );
 }
 
-const TABS = [['list', 'cart', 'tabList'], ['deals', 'tag', 'tabDeals'], ['stores', 'pin', 'tabStores'], ['vocab', 'book', 'tabVocab']];
+const TABS = [['list', 'cart', 'tabList'], ['recipes', 'chef', 'tabRecipes'], ['deals', 'tag', 'tabDeals'], ['stores', 'pin', 'tabStores'], ['vocab', 'book', 'tabVocab']];
 
 /** Dolny pasek zakładek z ikonami; uwzględnia pasek nawigacji systemu. */
 export function TabBar({ c, t, tab, setTab, badge }) {
@@ -172,7 +173,7 @@ export function TabBar({ c, t, tab, setTab, badge }) {
         const on = tab === id;
         return (
           <Pressable key={id} onPress={() => setTab(id)} accessibilityRole="tab" accessibilityState={{ selected: on }} style={{ flex: 1, alignItems: 'center', gap: 2, paddingVertical: 4 }}>
-            <View style={{ width: 56, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? c.primaryTint : 'transparent' }}>
+            <View style={{ width: 52, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? c.primaryTint : 'transparent' }}>
               <Icon name={icon} size={22} color={on ? c.primary : c.mut} stroke={on ? 2.2 : 1.9} />
               {badge?.[id] ? (
                 <View style={{ position: 'absolute', top: 0, right: 6, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>

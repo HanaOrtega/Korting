@@ -256,3 +256,14 @@ Menu (☰ w nagłówku) → **Komfort i skupienie**. Wszystko jest opcjonalne i 
 - „jutro kończy się promocja” dzień przed końcem najwcześniej kończącej się promocji na produkt z listy (godzina do wyboru),
   przeliczane po każdej zmianie listy i odświeżeniu promocji.
 Przy pierwszym włączeniu Android poprosi o zgodę na powiadomienia.
+
+## Książka przepisów
+
+Zakładka **Przepisy**: zapisane przepisy (tytuł, porcje, składniki, przygotowanie, link do źródła) z wyszukiwaniem po tytule,
+składnikach i krokach oraz ulubionymi; dane tylko w telefonie.
+- **Dodawanie:** „Nowy przepis” albo „Z przepisu” na liście → **Zapisz w książce przepisów** (tytuł z pierwszej linii
+  wklejonego tekstu i składniki trafiają do formularza). Wklejanie ze stron działa tak samo jak przy imporcie na listę.
+- **Z przepisu do listy zakupów jednym dotknięciem:** w przepisie ustawiasz **porcje** (ilości przeliczają się, także
+  jednostki regionalne), odznaczasz to, co **masz w domu**, i „Dodaj do listy zakupów (n)”. Składniki sumują się z tym, co już
+  jest na liście, a pozycje dostają podpis „Z przepisu: …” (także przy wspólnej liście).
+- **Dalej:** edycja, duplikowanie, udostępnianie jako tekst, usuwanie z „Cofnij”, otwarcie źródła.
