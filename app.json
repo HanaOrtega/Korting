@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Kortinglijst",
+    "slug": "korting",
+    "version": "0.2.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-localization",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Kortinglijst używa lokalizacji tylko do znalezienia sklepów w Twojej okolicy."
+        }
+      ],
+      "expo-notifications"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.hanaortega.korting"
+    },
+    "android": {
+      "package": "com.hanaortega.korting",
+      "adaptiveIcon": {
+        "backgroundColor": "#e8590c",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "scheme": [
+      "korting",
+      "com.hanaortega.korting"
+    ]
+  }
+}
