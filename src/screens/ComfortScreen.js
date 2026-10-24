@@ -51,6 +51,11 @@ export default function ComfortScreen({ visible, onClose, c, t, lang, comfort, s
         <ScrollView contentContainerStyle={{ paddingHorizontal: space.lg, paddingBottom: Math.max(insets.bottom, space.lg) + space.lg, gap: space.md }}>
           <Text style={{ color: c.ink2, ...type.body }}>{t('cfIntro')}</Text>
 
+          <SectionLabel c={c}>{t('cfSecView')}</SectionLabel>
+          <Card c={c} pad={space.lg}>
+            <Row c={c} title={t('cfShowSearch')} hint={lang === 'nl' ? t('cfShowSearchNl') : t('cfShowSearchD')} value={lang !== 'nl' && comfort.showSearch} disabled={lang === 'nl'} onChange={(v) => set({ showSearch: v })} />
+          </Card>
+
           <SectionLabel c={c}>{t('cfSecFocus')}</SectionLabel>
           <Card c={c} pad={space.lg}>
             <Row c={c} title={t('cfFocus')} hint={t('cfFocusD')} value={comfort.focus} onChange={(v) => set({ focus: v })} />

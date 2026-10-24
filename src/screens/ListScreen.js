@@ -178,7 +178,8 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
           ? [r0.ci, ...r0.alts].map((ci) => ({ key: ci, label: `${displayName(ci, lang)} → ${dutchName(ci)}`, apply: displayName(ci, lang), pick: ci }))
           : r.status === 'dutch-fuzzy' ? [{ key: r.word, label: r.word, apply: r.word }] : [];
         const chosen = item.pick ?? r0.ci;
-        const searching = r.status === 'translated' ? `${t('translated')} ${r.word}` : r.ci != null ? `${t('searchingFor')} ${dutchName(r.ci)}` : '';
+        const showSearch = lang !== 'nl' && comfort.showSearch; // po holendersku „Szukam: melk” to oczywistość
+        const searching = !showSearch ? '' : r.status === 'translated' ? `${t('translated')} ${r.word}` : r.ci != null ? `${t('searchingFor')} ${dutchName(r.ci)}` : '';
         return (
           <Card key={item.id} c={c} pad={0} style={{ opacity: item.done ? 0.55 : 1 }}>
             <View style={{ padding: space.lg, gap: space.sm }}>

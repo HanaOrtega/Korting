@@ -2,6 +2,7 @@
 export const SCALES = [1, 1.15, 1.3];
 
 export const DEFAULTS = {
+  showSearch: true, // pod pozycją pokazuj „Szukam: melk” (nazwa holenderska); po holendersku zawsze ukryte
   focus: false, // przycisk „Tryb zakupów” (jeden produkt naraz)
   aisles: false, // widok wg działów sklepu
   simple: false, // prosta lista: bez podglądu promocji pod pozycją
