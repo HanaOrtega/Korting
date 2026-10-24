@@ -55,7 +55,7 @@ export default function ByStoreView({ plan, c, t, lang, favorites, onToggleDone 
                 </View>
                 <Button c={c} small variant="soft" icon="nav" label={t('navigate')} onPress={() => openNavigation(g.store, favorites)} />
               </View>
-              {g.entries.map(({ item, deal, others }) => (
+              {[...g.entries].sort((a, b) => Number(a.item.done) - Number(b.item.done)).map(({ item, deal, others }) => (
                 <View key={item.id} style={{ borderTopWidth: 1, borderTopColor: c.line, paddingTop: space.md, opacity: item.done ? 0.45 : 1 }}>
                   <ItemLine item={item} c={c} t={t} onToggle={onToggleDone} />
                   <DealRow deal={deal} c={c} t={t} lang={lang} compact />
@@ -73,7 +73,7 @@ export default function ByStoreView({ plan, c, t, lang, favorites, onToggleDone 
             <Text style={{ color: c.fg, ...type.h2 }}>{t('noPromoSection')}</Text>
             <Text style={{ color: c.mut, ...type.small }}>{t('products', { n: plan.none.length })} · {t('noPromoHint')}</Text>
           </View>
-          {plan.none.map((item) => (
+          {[...plan.none].sort((a, b) => Number(a.done) - Number(b.done)).map((item) => (
             <View key={item.id} style={{ paddingVertical: space.sm + 2, borderTopWidth: 1, borderTopColor: c.line, opacity: item.done ? 0.45 : 1 }}>
               <ItemLine item={item} c={c} t={t} onToggle={onToggleDone} />
             </View>

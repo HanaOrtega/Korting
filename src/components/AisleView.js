@@ -19,7 +19,7 @@ export default function AisleView({ rows, c, t, onToggleDone }) {
             <Text style={{ color: c.fg, ...type.h2, flex: 1 }}>{t(`aisle_${g.aisle}`)}</Text>
             <Badge c={c} label={String(g.entries.length)} />
           </View>
-          {g.entries.map(({ item }) => (
+          {[...g.entries].sort((a, b) => Number(a.item.done) - Number(b.item.done)).map(({ item }) => (
             <Pressable key={item.id} onPress={() => onToggleDone(item.id)} accessibilityRole="checkbox" accessibilityState={{ checked: item.done }}
               style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, borderTopWidth: 1, borderTopColor: c.line, opacity: item.done ? 0.5 : 1 }}>
               <View style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: item.done ? c.primary : c.border, backgroundColor: item.done ? c.primary : 'transparent', alignItems: 'center', justifyContent: 'center' }}>

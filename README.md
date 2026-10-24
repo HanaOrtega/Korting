@@ -267,3 +267,11 @@ składnikach i krokach oraz ulubionymi; dane tylko w telefonie.
   jednostki regionalne), odznaczasz to, co **masz w domu**, i „Dodaj do listy zakupów (n)”. Składniki sumują się z tym, co już
   jest na liście, a pozycje dostają podpis „Z przepisu: …” (także przy wspólnej liście).
 - **Dalej:** edycja, duplikowanie, udostępnianie jako tekst, usuwanie z „Cofnij”, otwarcie źródła.
+
+## Lista jak w Google Keep i dolne menu
+
+- Odhaczona pozycja **przechodzi na dół** do zwijanej sekcji „Kupione · n” (przekreślona, z możliwością cofnięcia
+  odhaczenia dotknięciem kółka i usunięcia); odznaczona wraca na swoje miejsce. W widokach „Wg sklepów” i „Działy”
+  odhaczone lądują na końcu swojej grupy. Przejście jest animowane (wyłączone w trybie „bez animacji”).
+- Dolne menu: większe pola dotyku (min. 56 px), ikony 24 px w „pigułce” zaznaczenia, plakietka z liczbą pozycji do kupienia
+  na „Liście”, etykiety dopasowują rozmiar (nie rosną z opcją „większy tekst”), pasek chowa się, gdy otwarta jest klawiatura.

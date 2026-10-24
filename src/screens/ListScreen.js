@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, TextInput, View } from 'react-native';
+import { LayoutAnimation, Pressable, ScrollView, TextInput, View } from 'react-native';
 import Text from '../components/Text.js';
 import AisleView from '../components/AisleView.js';
 import ByStoreView from '../components/ByStoreView.js';
@@ -23,6 +23,8 @@ const PREVIEW = 3;
 export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, view, setView, favorites, onSaveToBook }) {
   const { comfort } = useContext(ComfortContext);
   const [focusOpen, setFocusOpen] = useState(false);
+  const [doneOpen, setDoneOpen] = useState(true); // sekcja „Kupione” (jak „Zaznaczone elementy” w Google Keep)
+  const smooth = () => { if (!comfort.still) LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); };
   const [text, setText] = useState('');
   const [open, setOpen] = useState({});
   const [recipeOpen, setRecipeOpen] = useState(false);
@@ -53,7 +55,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
     ]);
     setText('');
   };
-  const update = (id, patch) => setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)));
+  const update = (id, patch) => { if ('done' in patch) smooth(); setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it))); };
   const remove = (id) => setItems((prev) => prev.filter((it) => it.id !== id));
 
   const rows = useMemo(() => items.map((item) => {
@@ -65,7 +67,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
   const chains = useMemo(() => favoriteChains(favorites), [favorites]);
   const plan = useMemo(() => planShopping(rows, chains), [rows, chains]);
 
-  const toggleDone = (id) => setItems((prev) => prev.map((it) => (it.id === id ? { ...it, done: !it.done } : it)));
+  const toggleDone = (id) => { smooth(); setItems((prev) => prev.map((it) => (it.id === id ? { ...it, done: !it.done } : it))); };
 
   // słowa, z którymi słownik miał problem, trafiają do dziennika (widać je w zakładce Słownik – nie na tej stronie)
   const logged = useRef(new Set());
@@ -93,6 +95,8 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
     }
   }, [rows]);
 
+  const showItems = view === 'items' || (view === 'aisles' && !comfort.aisles);
+  const doneRows = rows.filter((x) => x.item.done);
   const lastPart = text.split(/[,;\n]/).pop();
   const suggestions = useMemo(() => suggest(lastPart, lang), [lastPart, lang]);
   const doneCount = items.filter((i) => i.done).length;
@@ -165,7 +169,7 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
         <AisleView rows={rows} c={c} t={t} onToggleDone={toggleDone} />
       )}
 
-      {(view === 'items' || (view === 'aisles' && !comfort.aisles)) && rows.map(({ item, r, r0, hits }) => {
+      {showItems && rows.filter((x) => !x.item.done).map(({ item, r, r0, hits }) => {
         const expanded = !!open[item.id];
         const shown = expanded ? hits : hits.slice(0, PREVIEW);
         const bestId = bestUnitId(hits);
@@ -259,6 +263,31 @@ export default function ListScreen({ c, t, lang, items, setItems, deals, vocab, 
           </Card>
         );
       })}
+
+      {showItems && doneRows.length > 0 && (
+        <View style={{ gap: space.sm, marginTop: space.sm }}>
+          <Pressable onPress={() => { smooth(); setDoneOpen((v) => !v); }} accessibilityRole="button" accessibilityState={{ expanded: doneOpen }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.sm, paddingHorizontal: space.xs }}>
+            <View style={{ transform: [{ rotate: doneOpen ? '0deg' : '-90deg' }] }}><Icon name="chevron" size={18} color={c.mut} /></View>
+            <Text style={{ color: c.ink2, ...type.strong, flex: 1 }}>{t('doneSection', { n: doneRows.length })}</Text>
+          </Pressable>
+          {doneOpen && (
+            <Card c={c} pad={0}>
+              {doneRows.map(({ item }, i) => (
+                <View key={item.id} style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.sm, paddingLeft: space.lg, paddingRight: space.sm, borderTopWidth: i ? 1 : 0, borderTopColor: c.line }}>
+                  <Pressable onPress={() => update(item.id, { done: false })} hitSlop={8} accessibilityRole="checkbox" accessibilityState={{ checked: true }} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="check" size={16} color={c.primaryInk} stroke={3} />
+                  </Pressable>
+                  <Text style={{ flex: 1, color: c.mut, ...type.body, textDecorationLine: 'line-through' }} numberOfLines={2}>
+                    {item.text}{item.amounts?.length ? `  ${fmtAmounts(item.amounts, t)}` : ''}
+                  </Text>
+                  <IconButton c={c} icon="x" tone="ghost" size={36} iconSize={18} label="✕" onPress={() => remove(item.id)} />
+                </View>
+              ))}
+            </Card>
+          )}
+        </View>
+      )}
     </ScrollView>
   );
 }

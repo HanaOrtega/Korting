@@ -1,5 +1,6 @@
 // Wspólne klocki interfejsu: ikony, karta, przyciski, chipy, przełącznik segmentowy, znaczki, dolny pasek zakładek.
-import { Pressable, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Keyboard, Pressable, StyleSheet, Text as RNText, View } from 'react-native';
 import Text from './Text.js';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
@@ -164,24 +165,35 @@ export function EmptyState({ c, icon, title, hint, action }) {
 
 const TABS = [['list', 'cart', 'tabList'], ['recipes', 'chef', 'tabRecipes'], ['deals', 'tag', 'tabDeals'], ['stores', 'pin', 'tabStores'], ['vocab', 'book', 'tabVocab']];
 
-/** Dolny pasek zakładek z ikonami; uwzględnia pasek nawigacji systemu. */
+/** Dolny pasek zakładek: ikony 24 px w „pigułce” zaznaczenia, duże pola dotyku, plakietka z liczbą na liście;
+ *  chowa się, gdy otwarta jest klawiatura (nie zabiera miejsca przy pisaniu) i uwzględnia pasek nawigacji systemu. */
 export function TabBar({ c, t, tab, setTab, badge }) {
   const insets = useSafeAreaInsets();
+  const [kb, setKb] = useState(false);
+  useEffect(() => {
+    const a = Keyboard.addListener('keyboardDidShow', () => setKb(true));
+    const b = Keyboard.addListener('keyboardDidHide', () => setKb(false));
+    return () => { a.remove(); b.remove(); };
+  }, []);
+  if (kb) return null;
   return (
-    <View style={{ backgroundColor: c.surface, borderTopWidth: 1, borderTopColor: c.line, paddingBottom: Math.max(insets.bottom, 8), paddingTop: 6, flexDirection: 'row', ...elevation(c, 2) }}>
+    <View accessibilityRole="tablist" style={{ backgroundColor: c.surface, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border, paddingBottom: Math.max(insets.bottom, 6), paddingTop: 6, flexDirection: 'row', ...elevation(c, 2) }}>
       {TABS.map(([id, icon, key]) => {
         const on = tab === id;
+        const n = badge?.[id];
         return (
-          <Pressable key={id} onPress={() => setTab(id)} accessibilityRole="tab" accessibilityState={{ selected: on }} style={{ flex: 1, alignItems: 'center', gap: 2, paddingVertical: 4 }}>
-            <View style={{ width: 52, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? c.primaryTint : 'transparent' }}>
-              <Icon name={icon} size={22} color={on ? c.primary : c.mut} stroke={on ? 2.2 : 1.9} />
-              {badge?.[id] ? (
-                <View style={{ position: 'absolute', top: 0, right: 6, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
-                  <Text style={{ color: c.primaryInk, fontSize: 10, fontWeight: '800' }}>{badge[id]}</Text>
+          <Pressable key={id} onPress={() => setTab(id)} accessibilityRole="tab" accessibilityLabel={n ? `${t(key)}, ${n}` : t(key)} accessibilityState={{ selected: on }}
+            android_ripple={{ color: c.primaryTint, borderless: true, radius: 40 }} style={{ flex: 1, minHeight: 56, alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+            <View style={{ width: 56, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? c.primaryTint : 'transparent' }}>
+              <Icon name={icon} size={24} color={on ? c.primary : c.mut} stroke={on ? 2.3 : 1.8} />
+              {n ? (
+                <View style={{ position: 'absolute', top: -2, right: 2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: c.primary, borderWidth: 2, borderColor: c.surface, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
+                  <RNText maxFontSizeMultiplier={1} style={{ color: c.primaryInk, fontSize: 10, fontWeight: '800' }}>{n > 99 ? '99+' : n}</RNText>
                 </View>
               ) : null}
             </View>
-            <Text numberOfLines={1} style={{ color: on ? c.primary : c.mut, fontSize: 11.5, fontWeight: on ? '800' : '600' }}>{t(key)}</Text>
+            <RNText numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.1}
+              style={{ color: on ? c.primary : c.mut, fontSize: 11.5, fontWeight: '700', letterSpacing: 0.1, maxWidth: '96%' }}>{t(key)}</RNText>
           </Pressable>
         );
       })}
