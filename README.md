@@ -293,3 +293,21 @@ składnikach i krokach oraz ulubionymi; dane tylko w telefonie.
   (z identyfikatorami produkcyjnymi grozi to blokadą konta) – do testów zostaw reklamy testowe.
 - Niesprawdzone na urządzeniu: w środowisku budowania nie ma telefonu ani dostępu do AdMob; sprawdzono pakowanie (bundle)
   i regułę, gdzie baner wolno pokazać (`tests/ads.test.js`).
+
+## Płatność za usunięcie reklam
+
+- Jednorazowy zakup w aplikacji **„Usuń reklamy”** (Google Play Billing przez `expo-iap`, bez subskrypcji): link „Usuń reklamy”
+  przy podpisie „Reklama” oraz wiersz w menu ☰ (z ceną z Google Play, „Przywróć zakup”). Po zakupie baner znika, a SDK reklam
+  nie jest już inicjalizowany ani nie pyta o zgodę.
+- Prawo do wersji bez reklam wynika z konta Google (zakup wraca po reinstalacji i na innym telefonie z tym kontem). Stan
+  jest pamiętany lokalnie (bez mignięcia reklam offline); po połączeniu decyduje sklep – zwrot środków odbiera prawo.
+  Oczekująca płatność (np. gotówką) liczy się dopiero po zaksięgowaniu. Zakup jest potwierdzany (acknowledge) od razu,
+  inaczej Google zwróciłby pieniądze po 3 dniach.
+- **Konfiguracja w Google Play Console (raz):** Monetyzacja → *Produkty* → *Produkty w aplikacji* → utwórz produkt o ID
+  **`remove_ads`** (zarządzany, jednorazowy), ustaw cenę i aktywuj; profil płatności musi być uzupełniony. Zakupy działają
+  dopiero w aplikacji wgranej do Play (wystarczy ścieżka testów wewnętrznych) i zainstalowanej z Play – APK zainstalowany
+  przez USB nie kupi („Zakupy działają tylko w wersji z Google Play”). Do testów dodaj konta w *Testerzy licencji*.
+  Inne ID produktu: zmienna `EXPO_PUBLIC_REMOVE_ADS_SKU` przy budowaniu.
+- Weryfikacja odbywa się na telefonie (bez serwera), więc na zrootowanym urządzeniu da się ją obejść – to typowy kompromis
+  aplikacji bez backendu. Niesprawdzone na żywo (brak Play Store w środowisku budowania); sprawdzono logikę uprawnień
+  (`tests/ads.test.js`) i pakowanie.

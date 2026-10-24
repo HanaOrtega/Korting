@@ -7,6 +7,7 @@ import Text from './src/components/Text.js';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AdBanner from './src/components/AdBanner.js';
 import { shouldShowAd, useAds } from './src/ads.js';
+import { usePro } from './src/purchase.js';
 import { Icon, IconButton, Segmented, TabBar } from './src/components/ui.js';
 import WebViewHost from './src/components/WebViewHost.js';
 import { loadDeals, needsRefresh, readCache } from './src/deals.js';
@@ -75,7 +76,12 @@ function Root() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [comfortOpen, setComfortOpen] = useState(false);
   const book = useRecipes();
-  const ads = useAds();
+  const pro = usePro();
+  const ads = useAds({ disabled: pro.owned });
+  const askRemoveAds = () => Alert.alert(t('proRemove'), t('proWhy'), [
+    { text: t('editCancel'), style: 'cancel' }, { text: t('proRestore'), onPress: pro.restore }, { text: pro.price ? t('proBuy', { price: pro.price }) : t('proRemove'), onPress: pro.buy },
+  ]);
+  useEffect(() => { if (pro.message) { Alert.alert(t('proRemove'), t(`pro_${pro.message}`)); pro.clearMessage(); } }, [pro.message]);
   const [kb, setKb] = useState(false);
   useEffect(() => {
     const a = Keyboard.addListener('keyboardDidShow', () => setKb(true));
@@ -255,7 +261,7 @@ function Root() {
       <Modal visible={menuOpen} transparent animationType={comfort.still ? 'none' : 'fade'} onRequestClose={() => setMenuOpen(false)}>
         <Pressable onPress={() => setMenuOpen(false)} style={{ flex: 1, backgroundColor: c.overlay, justifyContent: 'flex-end' }}>
           <View style={{ backgroundColor: c.surface, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: space.md, paddingBottom: Math.max(insets.bottom, space.md) + space.sm, gap: 2 }}>
-            {[['sliders', t('mnComfort'), t('mnComfortSub'), () => setComfortOpen(true)], ['history', t('hTitle'), '', () => setHistoryOpen(true)], ['users', t('shTitle'), '', () => setShareOpen(true)], ...(ads.privacyOptions ? [['lock', t('mnAdPrivacy'), '', ads.showPrivacyOptions]] : [])].map(([icon, title, sub, fn]) => (
+            {[['sliders', t('mnComfort'), t('mnComfortSub'), () => setComfortOpen(true)], ['history', t('hTitle'), '', () => setHistoryOpen(true)], ['users', t('shTitle'), '', () => setShareOpen(true)], [pro.owned ? 'check' : 'star', pro.owned ? t('proOwned') : t('proRemove'), pro.owned ? '' : (pro.price ? t('proBuy', { price: pro.price }) : t('proWhy')), pro.owned ? () => {} : askRemoveAds], ...(ads.privacyOptions && !pro.owned ? [['lock', t('mnAdPrivacy'), '', ads.showPrivacyOptions]] : [])].map(([icon, title, sub, fn]) => (
               <Pressable key={title} onPress={() => { setMenuOpen(false); fn(); }} accessibilityRole="button" style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.md, backgroundColor: pressed ? c.chip : 'transparent' })}>
                 <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: c.primaryTint, alignItems: 'center', justifyContent: 'center' }}><Icon name={icon} size={20} color={c.primary} /></View>
                 <View style={{ flex: 1 }}>
@@ -278,7 +284,7 @@ function Root() {
       <HistoryScreen visible={historyOpen} onClose={() => setHistoryOpen(false)} c={c} t={t} lang={lang} history={history} />
       <ShareScreen visible={shareOpen} onClose={() => { setShareOpen(false); setPendingInvite(''); }} c={c} t={t} lang={lang} share={share} pendingInvite={pendingInvite} />
 
-      {shouldShowAd({ tab, needStores, keyboard: kb, consent: ads.consent }) && <AdBanner c={c} t={t} />}
+      {shouldShowAd({ tab, needStores, keyboard: kb, consent: ads.consent, adFree: pro.owned }) && <AdBanner c={c} t={t} onRemove={askRemoveAds} />}
       {!needStores && <TabBar c={c} t={t} tab={tab} setTab={setTab} badge={{ list: onList || 0 }} />}
 
       <Modal visible={pickLang} transparent animationType="fade" onRequestClose={() => setPickLang(false)}>

@@ -9,9 +9,10 @@ export { shouldShowAd } from './adsRules.js';
 export const USING_TEST_ADS = !process.env.EXPO_PUBLIC_ADMOB_BANNER_ID;
 
 /** Zgoda UMP + inicjalizacja SDK. `consent` = można żądać reklam; `privacyOptions` = pokaż w menu „Prywatność reklam”. */
-export function useAds() {
+export function useAds({ disabled = false } = {}) {
   const [state, setState] = useState({ consent: false, privacyOptions: false });
   useEffect(() => {
+    if (disabled) return undefined; // wersja bez reklam: bez zgody i bez inicjalizacji SDK
     let alive = true;
     (async () => {
       try {
@@ -24,7 +25,7 @@ export function useAds() {
       } catch { /* bez reklam: aplikacja działa normalnie */ }
     })();
     return () => { alive = false; };
-  }, []);
+  }, [disabled]);
   const showPrivacyOptions = useCallback(async () => { try { await AdsConsent.showPrivacyOptionsForm(); } catch { /* brak formularza */ } }, []);
   return { ...state, showPrivacyOptions };
 }
