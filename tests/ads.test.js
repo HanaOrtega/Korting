@@ -32,3 +32,14 @@ test('zakup „Usuń reklamy”: tylko opłacony zakup daje prawo, oczekujący n
   assert.equal(reconcile(true, null), true); // sklep niedostępny → ostatni znany stan
   assert.equal(reconcile(false, true), true);
 });
+
+import { consentGate } from '../src/adsRules.js';
+
+test('bramka zgody: bez zgody na reklamy aplikacja jest zablokowana, chyba że wykupiono wersję bez reklam', () => {
+  assert.equal(consentGate({ proReady: false, owned: false, status: 'ok' }), 'loading'); // właściciel nie widzi bramki, zanim wczytamy zakup
+  assert.equal(consentGate({ proReady: true, owned: true, status: 'needs' }), 'open');
+  assert.equal(consentGate({ proReady: true, owned: false, status: 'ok' }), 'open');
+  assert.equal(consentGate({ proReady: true, owned: false, status: 'needs' }), 'blocked');
+  assert.equal(consentGate({ proReady: true, owned: false, status: 'error' }), 'blocked');
+  assert.equal(consentGate({ proReady: true, owned: false, status: 'loading' }), 'loading');
+});

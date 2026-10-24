@@ -9,6 +9,7 @@ const KEY = 'korting.noads';
 
 export function usePro() {
   const [owned, setOwned] = useState(false);
+  const [ready, setReady] = useState(false); // zapamiętany stan zakupu wczytany (żeby właściciel nie zobaczył bramki)
   const [price, setPrice] = useState('');
   const [available, setAvailable] = useState(false); // sklep dostępny i produkt znaleziony
   const [pending, setPending] = useState(false);
@@ -32,6 +33,7 @@ export function usePro() {
     let subs = [];
     (async () => {
       try { const c = await AsyncStorage.getItem(KEY); if (alive.current) setOwned(c === '1'); } catch { /* brak pamięci */ }
+      if (alive.current) setReady(true);
       try {
         await initConnection();
         const products = await fetchProducts({ skus: [REMOVE_ADS_SKU], type: 'in-app' });
@@ -60,5 +62,5 @@ export function usePro() {
     setMessage(own === null ? 'unavailable' : own ? 'restored' : 'nothing');
   }, [refresh]);
 
-  return { owned, price, available, pending, message, clearMessage: () => setMessage(null), buy, restore };
+  return { owned, ready, price, available, pending, message, clearMessage: () => setMessage(null), buy, restore };
 }

@@ -311,3 +311,15 @@ składnikach i krokach oraz ulubionymi; dane tylko w telefonie.
 - Weryfikacja odbywa się na telefonie (bez serwera), więc na zrootowanym urządzeniu da się ją obejść – to typowy kompromis
   aplikacji bez backendu. Niesprawdzone na żywo (brak Play Store w środowisku budowania); sprawdzono logikę uprawnień
   (`tests/ads.test.js`) i pakowanie.
+
+## Bramka zgody na reklamy („zgoda albo wersja bez reklam”)
+
+Bez zgody na reklamy aplikacja nie działa: zamiast ekranów pojawia się bramka z trzema wyjściami – **„Akceptuję i przechodzę
+dalej”** (ponownie pokazuje formularz zgody Google), **„Usuń reklamy · cena”** (jednorazowy zakup) i **„Przywróć zakup”**.
+- Bramka dotyczy tylko miejsc, gdzie prawo wymaga zgody (EOG/UMP); poza nimi Google nie pokazuje formularza i aplikacja działa
+  od razu. Właściciel wersji bez reklam nie widzi bramki (stan zakupu jest pamiętany lokalnie, żeby nie mignęła).
+- Jeśli zgoda była już udzielona, brak internetu nie blokuje aplikacji; przy pierwszym uruchomieniu offline bramka prosi
+  o połączenie („Spróbuj ponownie”).
+- **Uwaga prawna:** model „zgoda albo zapłać” jest stosowany przez wiele aplikacji, ale organy ochrony danych w UE oceniają go
+  różnie; zgoda jest uznawana za dobrowolną tylko przy realnej, rozsądnie wycenionej alternatywie bez reklam (tu: jednorazowy
+  zakup). Ustaw cenę proporcjonalną i opisz to w polityce prywatności; w razie wątpliwości skonsultuj się z prawnikiem.

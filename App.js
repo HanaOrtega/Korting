@@ -6,7 +6,8 @@ import { ActivityIndicator, Alert, AppState, Image, Keyboard, Linking, Modal, Pr
 import Text from './src/components/Text.js';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AdBanner from './src/components/AdBanner.js';
-import { shouldShowAd, useAds } from './src/ads.js';
+import ConsentGate from './src/components/ConsentGate.js';
+import { consentGate, shouldShowAd, useAds } from './src/ads.js';
 import { usePro } from './src/purchase.js';
 import { Icon, IconButton, Segmented, TabBar } from './src/components/ui.js';
 import WebViewHost from './src/components/WebViewHost.js';
@@ -187,6 +188,16 @@ function Root() {
   const onList = items.filter((i) => !i.done).length;
   const fmtTime = (ms) => new Date(ms).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
   const subtitle = chains.length ? chains.join(' · ') + (data.at ? ` · ${t('updated', { t: fmtTime(data.at) })}` : '') : '';
+
+  const gate = consentGate({ proReady: pro.ready, owned: pro.owned, status: ads.status });
+  if (gate !== 'open') {
+    return (
+      <ComfortContext.Provider value={ctx}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <ConsentGate c={c} t={t} loading={gate === 'loading'} status={ads.status} pro={pro} ads={ads} onBuy={askRemoveAds} />
+      </ComfortContext.Provider>
+    );
+  }
 
   return (
     <ComfortContext.Provider value={ctx}>
