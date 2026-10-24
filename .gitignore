@@ -4,3 +4,6 @@ dist/
 *.apk
 
 .google-client-id
+.admob-app-id
+.admob-banner-id
+app.json.korting-bak

@@ -275,3 +275,21 @@ składnikach i krokach oraz ulubionymi; dane tylko w telefonie.
   odhaczone lądują na końcu swojej grupy. Przejście jest animowane (wyłączone w trybie „bez animacji”).
 - Dolne menu: większe pola dotyku (min. 56 px), ikony 24 px w „pigułce” zaznaczenia, plakietka z liczbą pozycji do kupienia
   na „Liście”, etykiety dopasowują rozmiar (nie rosną z opcją „większy tekst”), pasek chowa się, gdy otwarta jest klawiatura.
+
+## Reklamy (Google AdMob)
+
+- Jeden **baner adaptacyjny z podpisem „Reklama”** nad dolnym menu, tylko na zakładkach Lista, Przepisy i Promocje. Nie ma go
+  w trybie zakupów, w oknach (przepis, historia, wspólna lista, komfort), na Sklepach i w Słowniku, ani przy otwartej
+  klawiaturze; gdy reklama się nie załaduje, nie zostaje puste miejsce. Treść listy zakupów nie jest wysyłana do reklamodawców.
+- **Zgoda (RODO/UMP):** przy pierwszym uruchomieniu Google pokazuje formularz zgody tam, gdzie prawo tego wymaga (EOG);
+  reklamy ładują się dopiero po zgodzie. W EOG w menu ☰ pojawia się „Prywatność reklam” (zmiana zgody). Reklamy mają
+  ograniczenie treści do „G” (ogólne).
+- **Domyślnie reklamy TESTOWE Google** (bezpieczne, nic nie zarabiają). Żeby zarabiać: konto na admob.google.com → dodaj
+  aplikację Android → skopiuj *ID aplikacji* (`ca-app-pub-…~…`) i utwórz blok **Baner** (`ca-app-pub-…/…`); wpisz je, gdy
+  `./deploy/aplikacja.sh` zapyta (zapisują się w `.admob-app-id` i `.admob-banner-id`, poza repozytorium). W AdMob →
+  *Privacy & messaging* utwórz formularz zgody dla EOG (UMP) i włącz go dla aplikacji.
+- **Przed publikacją w Google Play:** polityka prywatności z informacją o reklamach (identyfikator reklamowy, dane
+  urządzenia), wypełniona sekcja *Data safety* i deklaracja „aplikacja zawiera reklamy”. Nie klikaj własnych reklam
+  (z identyfikatorami produkcyjnymi grozi to blokadą konta) – do testów zostaw reklamy testowe.
+- Niesprawdzone na urządzeniu: w środowisku budowania nie ma telefonu ani dostępu do AdMob; sprawdzono pakowanie (bundle)
+  i regułę, gdzie baner wolno pokazać (`tests/ads.test.js`).

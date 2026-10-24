@@ -69,6 +69,27 @@ if [ -z "${EXPO_PUBLIC_GOOGLE_CLIENT_ID:-}" ]; then
 fi
 export EXPO_PUBLIC_GOOGLE_CLIENT_ID="${EXPO_PUBLIC_GOOGLE_CLIENT_ID:-}"
 
+# Reklamy (AdMob): bez wlasnych identyfikatorow wyswietlaja sie reklamy TESTOWE Google. Identyfikatory zapisuja sie w
+# .admob-app-id i .admob-banner-id (poza repozytorium); wpisz 'test' lub Enter, aby zostac przy reklamach testowych.
+ask_id() { # plik, pytanie
+    if [ ! -f "$1" ]; then
+        read -r -p "$2" v || v=""
+        v="$(printf '%s' "$v" | tr -d ' \r\n')"; printf '%s\n' "${v:-test}" > "$1"
+    fi
+    tr -d ' \r\n' < "$1"
+}
+admob_app="$(ask_id .admob-app-id "AdMob: ID aplikacji (ca-app-pub-XXXX~YYYY; Enter = reklamy testowe): ")"
+admob_banner="$(ask_id .admob-banner-id "AdMob: ID banera (ca-app-pub-XXXX/ZZZZ; Enter = testowy): ")"
+if printf '%s' "$admob_app" | grep -qE '^ca-app-pub-[0-9]+~[0-9]+$' && printf '%s' "$admob_banner" | grep -qE '^ca-app-pub-[0-9]+/[0-9]+$'; then
+    cp app.json app.json.korting-bak
+    trap 'mv -f app.json.korting-bak app.json 2>/dev/null || true' EXIT
+    node -e "const fs=require('fs');const a=JSON.parse(fs.readFileSync('app.json','utf8'));a['react-native-google-mobile-ads'].android_app_id=process.argv[1];fs.writeFileSync('app.json',JSON.stringify(a,null,2))" "$admob_app"
+    export EXPO_PUBLIC_ADMOB_BANNER_ID="$admob_banner"
+    echo "==> Reklamy: wlasne identyfikatory AdMob"
+else
+    echo "==> Reklamy: testowe (podaj ID w .admob-app-id i .admob-banner-id, zeby zarabiac)"
+fi
+
 echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 echo "==> Buduje aplikacje (pierwszy raz kilkanascie minut - pobiera Gradle, biblioteki i kompiluje kod natywny)"
 if ! (cd android && ./gradlew -q --no-daemon :app:bundleRelease :app:assembleRelease); then

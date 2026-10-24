@@ -2,9 +2,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, AppState, Image, Linking, Modal, Pressable, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Alert, AppState, Image, Keyboard, Linking, Modal, Pressable, useColorScheme, View } from 'react-native';
 import Text from './src/components/Text.js';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import AdBanner from './src/components/AdBanner.js';
+import { shouldShowAd, useAds } from './src/ads.js';
 import { Icon, IconButton, Segmented, TabBar } from './src/components/ui.js';
 import WebViewHost from './src/components/WebViewHost.js';
 import { loadDeals, needsRefresh, readCache } from './src/deals.js';
@@ -73,6 +75,13 @@ function Root() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [comfortOpen, setComfortOpen] = useState(false);
   const book = useRecipes();
+  const ads = useAds();
+  const [kb, setKb] = useState(false);
+  useEffect(() => {
+    const a = Keyboard.addListener('keyboardDidShow', () => setKb(true));
+    const b = Keyboard.addListener('keyboardDidHide', () => setKb(false));
+    return () => { a.remove(); b.remove(); };
+  }, []);
   const [openRecipe, setOpenRecipe] = useState(null); // przepis otwarty w podglądzie
   const [editor, setEditor] = useState(null); // { recipe? , prefill? } albo null
   const [undoDelete, setUndoDelete] = useState(false);
@@ -246,7 +255,7 @@ function Root() {
       <Modal visible={menuOpen} transparent animationType={comfort.still ? 'none' : 'fade'} onRequestClose={() => setMenuOpen(false)}>
         <Pressable onPress={() => setMenuOpen(false)} style={{ flex: 1, backgroundColor: c.overlay, justifyContent: 'flex-end' }}>
           <View style={{ backgroundColor: c.surface, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: space.md, paddingBottom: Math.max(insets.bottom, space.md) + space.sm, gap: 2 }}>
-            {[['sliders', t('mnComfort'), t('mnComfortSub'), () => setComfortOpen(true)], ['history', t('hTitle'), '', () => setHistoryOpen(true)], ['users', t('shTitle'), '', () => setShareOpen(true)]].map(([icon, title, sub, fn]) => (
+            {[['sliders', t('mnComfort'), t('mnComfortSub'), () => setComfortOpen(true)], ['history', t('hTitle'), '', () => setHistoryOpen(true)], ['users', t('shTitle'), '', () => setShareOpen(true)], ...(ads.privacyOptions ? [['lock', t('mnAdPrivacy'), '', ads.showPrivacyOptions]] : [])].map(([icon, title, sub, fn]) => (
               <Pressable key={title} onPress={() => { setMenuOpen(false); fn(); }} accessibilityRole="button" style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.md, backgroundColor: pressed ? c.chip : 'transparent' })}>
                 <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: c.primaryTint, alignItems: 'center', justifyContent: 'center' }}><Icon name={icon} size={20} color={c.primary} /></View>
                 <View style={{ flex: 1 }}>
@@ -269,6 +278,7 @@ function Root() {
       <HistoryScreen visible={historyOpen} onClose={() => setHistoryOpen(false)} c={c} t={t} lang={lang} history={history} />
       <ShareScreen visible={shareOpen} onClose={() => { setShareOpen(false); setPendingInvite(''); }} c={c} t={t} lang={lang} share={share} pendingInvite={pendingInvite} />
 
+      {shouldShowAd({ tab, needStores, keyboard: kb, consent: ads.consent }) && <AdBanner c={c} t={t} />}
       {!needStores && <TabBar c={c} t={t} tab={tab} setTab={setTab} badge={{ list: onList || 0 }} />}
 
       <Modal visible={pickLang} transparent animationType="fade" onRequestClose={() => setPickLang(false)}>
