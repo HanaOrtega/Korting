@@ -28,7 +28,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="korting"/>
-        <data android:scheme="com.hanaortega.korting"/>
+        <data android:scheme="com.gokhstudio.kortinglijst"/>
       </intent-filter>
     </activity>
   </application>

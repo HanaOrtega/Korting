@@ -1,4 +1,4 @@
-package com.hanaortega.korting
+package com.gokhstudio.kortinglijst
 
 import android.app.Application
 import android.content.res.Configuration

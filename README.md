@@ -205,7 +205,7 @@ Przełącznik w oknie grupy przełącza na tryb „tylko osoby dodane e-mailem�
 1. console.cloud.google.com → nowy projekt → *APIs & Services* → włącz **Google Drive API**.
 2. *OAuth consent screen* → External; dodaj zakres `.../auth/drive`; ustaw *Publishing status: In production*
    (aplikacja „niezweryfikowana” – dla rodziny to tylko jeden dodatkowy ekran; w trybie Testing Google wylogowuje co 7 dni).
-3. *Credentials* → *Create OAuth client ID* → typ **Android**, pakiet `com.hanaortega.korting`, SHA-1 wypisany przez
+3. *Credentials* → *Create OAuth client ID* → typ **Android**, pakiet `com.gokhstudio.kortinglijst`, SHA-1 wypisany przez
    `./deploy/aplikacja.sh`; w *Advanced settings* włącz **Custom URI scheme**.
 4. `./deploy/aplikacja.sh` zapyta o Client ID (raz; zapisze w `.google-client-id`, poza repozytorium) i wbuduje go w
    aplikację. Wszyscy instalują ten sam APK (podpisany Twoim kluczem – Google sprawdza podpis).
@@ -231,7 +231,7 @@ ale nie z prawdziwym kontem Google (w środowisku budowania nie ma dostępu do G
 
 Nazwa aplikacji to **Kortinglijst** („Slimme Boodschappen”). Ikona (wózek z listą i metką %) pochodzi z dostarczonej
 grafiki: `assets/source/logo-circle-crop.png`; wszystkie rozmiary (ikona Expo, adaptacyjna, monochromatyczna, ekran startowy,
-mipmapy Androida) generuje `python3 deploy/generuj_ikony.py` (Pillow + numpy). Identyfikator pakietu (`com.hanaortega.korting`)
+mipmapy Androida) generuje `python3 deploy/generuj_ikony.py` (Pillow + numpy). Identyfikator pakietu (`com.gokhstudio.kortinglijst`)
 i klucz podpisu zostają bez zmian, więc aktualizacja instaluje się na istniejącej aplikacji.
 
 ## Komfort i skupienie

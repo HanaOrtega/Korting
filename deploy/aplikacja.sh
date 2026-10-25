@@ -35,7 +35,7 @@ if [ ! -f "$KEYSTORE" ]; then
     echo "==> Klucz podpisu aplikacji (jednorazowo)."
     echo "    Wymysl haslo (min. 6 znakow) i ZAPAMIETAJ je - bez klucza i hasla nie zrobisz aktualizacji."
     keytool -genkeypair -keystore "$KEYSTORE" -alias korting -keyalg RSA -keysize 4096 \
-        -validity 10000 -dname "CN=Korting"
+        -validity 10000 -dname "CN=GOKH Studio, O=GOKH Studio"
     chmod 600 "$KEYSTORE"
 fi
 read -r -s -p "Haslo klucza ($KEYSTORE): " KORTING_KEY_PASSWORD; echo
@@ -62,7 +62,7 @@ fi
 if [ -z "${EXPO_PUBLIC_GOOGLE_CLIENT_ID:-}" ]; then
     echo "==> Wspolna lista (Dysk Google): jednorazowo potrzebny Client ID. Console.cloud.google.com -> projekt -> wlacz Google Drive API"
     echo "    -> OAuth consent screen (zakres .../auth/drive, 'In production') -> Credentials -> OAuth client ID typu Android:"
-    echo "    pakiet com.hanaortega.korting, SHA-1 jak wyzej, w Advanced wlacz 'Custom URI scheme'. Szczegoly: README."
+    echo "    pakiet com.gokhstudio.kortinglijst, SHA-1 jak wyzej, w Advanced wlacz 'Custom URI scheme'. Szczegoly: README."
     read -r -p "Client ID Google (Enter = pomin; wtedy Wspolna lista poprosi o wpisanie): " cid || cid=""
     cid="$(printf '%s' "$cid" | tr -d ' \r\n')"
     if [ -n "$cid" ]; then printf '%s\n' "$cid" > "$CLIENT_FILE"; EXPO_PUBLIC_GOOGLE_CLIENT_ID="$cid"; fi

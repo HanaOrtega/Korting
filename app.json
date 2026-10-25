@@ -18,10 +18,10 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.hanaortega.korting"
+      "bundleIdentifier": "com.gokhstudio.kortinglijst"
     },
     "android": {
-      "package": "com.hanaortega.korting",
+      "package": "com.gokhstudio.kortinglijst",
       "adaptiveIcon": {
         "backgroundColor": "#e8590c",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -31,7 +31,7 @@
     },
     "scheme": [
       "korting",
-      "com.hanaortega.korting"
+      "com.gokhstudio.kortinglijst"
     ]
   },
   "react-native-google-mobile-ads": {

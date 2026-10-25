@@ -8,7 +8,7 @@ import { b64u, randomBytes, setRandom } from './crypto.js';
 
 setRandom((n) => Crypto.getRandomBytes(n));
 
-export const REDIRECT_URI = 'com.hanaortega.korting:/oauth2redirect';
+export const REDIRECT_URI = 'com.gokhstudio.kortinglijst:/oauth2redirect';
 const SCOPES = 'openid email profile https://www.googleapis.com/auth/drive';
 const KEY = 'korting.google';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
