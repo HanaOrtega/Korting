@@ -282,6 +282,7 @@ function Root() {
                 <Icon name="arrow" size={18} color={c.mut} />
               </Pressable>
             ))}
+            <Text style={{ color: c.mut, ...type.caption, textAlign: 'center', paddingTop: space.md }}>© GOKH Studio · Kortinglijst</Text>
           </View>
         </Pressable>
       </Modal>

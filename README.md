@@ -323,3 +323,9 @@ dalej”** (ponownie pokazuje formularz zgody Google), **„Usuń reklamy · cen
 - **Uwaga prawna:** model „zgoda albo zapłać” jest stosowany przez wiele aplikacji, ale organy ochrony danych w UE oceniają go
   różnie; zgoda jest uznawana za dobrowolną tylko przy realnej, rozsądnie wycenionej alternatywie bez reklam (tu: jednorazowy
   zakup). Ustaw cenę proporcjonalną i opisz to w polityce prywatności; w razie wątpliwości skonsultuj się z prawnikiem.
+
+## Wydawca i pakiet
+
+Wydawca: **GOKH Studio**. Identyfikator pakietu (Android `applicationId`, schemat logowania Google, AdMob, Play Console):
+`com.gokhstudio.kortinglijst`. Po publikacji w Google Play nie można go zmienić. Nowy klucz podpisu tworzony przez
+`./deploy/aplikacja.sh` ma w certyfikacie `CN=GOKH Studio`.
