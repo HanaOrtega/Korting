@@ -90,6 +90,16 @@ else
     echo "==> Reklamy: testowe (podaj ID w .admob-app-id i .admob-banner-id, zeby zarabiac)"
 fi
 
+# Po zmianie nazwy pakietu w android/app/build zostaja stare, wygenerowane pliki (np. autolinking z poprzednim pakietem)
+# i kompilacja konczy sie bledem "package ... does not exist" - czyscimy je, gdy pakiet sie zmienil.
+pkg="$(sed -n "s/^[[:space:]]*applicationId '\(.*\)'/\1/p" android/app/build.gradle | head -1)"
+if [ -d android/app/build ] && [ "$(cat android/app/build/.korting-package 2>/dev/null || true)" != "$pkg" ]; then
+    echo "==> Zmienil sie pakiet ($pkg) - czyszcze stare pliki budowania"
+    rm -rf android/app/build android/.gradle
+fi
+rm -rf android/app/build/generated/autolinking  # zawsze odtwarzane od zera
+mkdir -p android/app/build && printf '%s' "$pkg" > android/app/build/.korting-package
+
 echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 echo "==> Buduje aplikacje (pierwszy raz kilkanascie minut - pobiera Gradle, biblioteki i kompiluje kod natywny)"
 if ! (cd android && ./gradlew -q --no-daemon :app:bundleRelease :app:assembleRelease); then
