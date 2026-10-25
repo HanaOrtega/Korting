@@ -351,3 +351,14 @@ Ikonę i grafikę funkcji odtworzysz poleceniem `python3 deploy/sklep_grafiki.py
   zmniejszają napis zamiast go ucinać.
 - **Językiem domyślnym jest holenderski** (nie język telefonu); inny język wybierasz przyciskiem w nagłówku, wybór jest
   zapamiętany. Brakujące klucze tłumaczeń spadają na holenderski, potem angielski.
+
+## Polityka prywatności (darmowy hosting)
+
+Plik `docs/index.html` zawiera politykę po holendersku, angielsku i polsku (opisuje dokładnie, co robi aplikacja: dane tylko w
+telefonie, winkels/tłumacz/OSM, Dysk Google, reklamy AdMob, zakup w Play, brak własnych serwerów).
+1. Podmień adres kontaktowy: `sed -i 's/kontakt@example.invalid/TWOJ@EMAIL/g' docs/index.html`.
+2. Opublikuj za darmo na **GitHub Pages**: repozytorium → *Settings → Pages → Deploy from a branch →* gałąź `main`, folder
+   `/docs`. Adres: `https://<użytkownik>.github.io/<repozytorium>/` (dla prywatnego repozytorium Pages wymaga płatnego planu –
+   wtedy użyj Cloudflare Pages / Netlify Drop (przeciągnij folder `docs`) albo Google Sites, wklejając treść).
+3. Ten adres wpisz w Google Play Console (*Treść aplikacji → Polityka prywatności*) oraz w AdMob/Google Cloud (ekran zgody).
+Po zmianach w działaniu aplikacji (nowe usługi, dane) zaktualizuj politykę i datę.
