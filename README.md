@@ -356,7 +356,7 @@ Ikonę i grafikę funkcji odtworzysz poleceniem `python3 deploy/sklep_grafiki.py
 
 Plik `docs/index.html` zawiera politykę po holendersku, angielsku i polsku (opisuje dokładnie, co robi aplikacja: dane tylko w
 telefonie, winkels/tłumacz/OSM, Dysk Google, reklamy AdMob, zakup w Play, brak własnych serwerów).
-1. Adres kontaktowy w pliku: studiogokh@gmail.com (zmiana: podmień go w całym ).
+1. Adres kontaktowy w pliku: studiogokh@gmail.com (zmiana: podmień go w całym `docs/index.html`).
 2. Opublikuj za darmo na **GitHub Pages**: repozytorium → *Settings → Pages → Deploy from a branch →* gałąź `main`, folder
    `/docs`. Adres: `https://<użytkownik>.github.io/<repozytorium>/` (dla prywatnego repozytorium Pages wymaga płatnego planu –
    wtedy użyj Cloudflare Pages / Netlify Drop (przeciągnij folder `docs`) albo Google Sites, wklejając treść).
