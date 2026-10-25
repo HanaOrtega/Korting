@@ -75,7 +75,7 @@ export function Button({ c, label, onPress, icon, variant = 'primary', disabled,
       style={(s) => [press(s), { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: v.bg,
         borderRadius: radius.md, paddingHorizontal: small ? 14 : 18, paddingVertical: small ? 9 : 14, opacity: disabled ? 0.4 : 1 }, style]}>
       {icon ? <Icon name={icon} size={small ? 17 : 20} color={v.fg} /> : null}
-      {label ? <Text style={{ color: v.fg, fontSize: small ? 14 : 16, fontWeight: '700' }}>{label}</Text> : null}
+      {label ? <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: v.fg, fontSize: small ? 14 : 16, fontWeight: '700', flexShrink: 1, textAlign: 'center' }}>{label}</Text> : null}
     </Pressable>
   );
 }
@@ -112,7 +112,7 @@ export function Segmented({ c, options, value, onChange }) {
             style={[{ flex: 1, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', paddingVertical: 9, borderRadius: radius.md - 3 },
               on && { backgroundColor: c.surface, ...elevation(c, 1) }]}>
             {o.icon ? <Icon name={o.icon} size={16} color={on ? c.primary : c.mut} /> : null}
-            <Text numberOfLines={1} style={{ color: on ? c.fg : c.mut, fontSize: 14, fontWeight: on ? '700' : '600', flexShrink: 1 }}>{o.label}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: on ? c.fg : c.mut, fontSize: 14, fontWeight: on ? '700' : '600', flexShrink: 1 }}>{o.label}</Text>
           </Pressable>
         );
       })}

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Modal, ScrollView, TextInput, View } from 'react-native';
+import { Modal, ScrollView, View } from 'react-native';
+import TextInput from './TextInput.js';
 import Text from './Text.js';
 import { useContext } from 'react';
 import { ComfortContext } from '../comfortContext.js';

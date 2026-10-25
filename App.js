@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getLocales } from 'expo-localization';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, AppState, Image, Keyboard, Linking, Modal, Pressable, useColorScheme, View } from 'react-native';
@@ -12,7 +11,7 @@ import { usePro } from './src/purchase.js';
 import { Icon, IconButton, Segmented, TabBar } from './src/components/ui.js';
 import WebViewHost from './src/components/WebViewHost.js';
 import { loadDeals, needsRefresh, readCache } from './src/deals.js';
-import { LANG_CODES, LANG_NAMES, makeT, pickLanguage } from './src/i18n.js';
+import { DEFAULT_LANG, LANG_CODES, LANG_NAMES, makeT } from './src/i18n.js';
 import { buildVocab } from './src/match.js';
 import { favoriteChains } from './src/stores.js';
 import DealsScreen from './src/screens/DealsScreen.js';
@@ -60,7 +59,7 @@ function Root() {
   const c = comfort.calm ? calmPalette(isDark ? dark : light, isDark) : isDark ? dark : light;
   setStill(comfort.still);
   const ctx = useMemo(() => ({ comfort, scale: SCALES[comfort.scale] ?? 1, animated: !comfort.still }), [comfort]);
-  const [lang, setLang] = useState(() => pickLanguage(getLocales()[0]?.languageCode));
+  const [lang, setLang] = useState(DEFAULT_LANG);
   const [items, setItems] = useState([]);
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState('list');
@@ -207,8 +206,8 @@ function Root() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
           <Image source={require('./assets/logo-circle.png')} style={{ width: 42, height: 42 }} accessibilityLabel="Kortinglijst" />
           <View style={{ flex: 1 }}>
-            <Text numberOfLines={1} adjustsFontSizeToFit style={{ color: c.fg, ...type.title }}>Kortinglijst</Text>
-            {subtitle ? <Text numberOfLines={1} style={{ color: c.mut, ...type.caption }}>{subtitle}</Text> : null}
+            <Text fixed numberOfLines={1} adjustsFontSizeToFit style={{ color: c.fg, ...type.title }}>Kortinglijst</Text>
+            {subtitle ? <Text fixed numberOfLines={1} style={{ color: c.mut, ...type.caption }}>{subtitle}</Text> : null}
           </View>
           {!needStores && (
             <View>

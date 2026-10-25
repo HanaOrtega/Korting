@@ -1,6 +1,7 @@
-// Teksty interfejsu w 12 językach. Brakujący klucz spada na angielski.
+// Teksty interfejsu w 12 językach. Brakujący klucz spada na holenderski, potem angielski.
+export const DEFAULT_LANG = 'nl'; // aplikacja na rynek holenderski: domyślnie holenderski, inny język wybierasz w nagłówku
 export const LANG_NAMES = {
-  pl: 'Polski', en: 'English', nl: 'Nederlands', de: 'Deutsch', fr: 'Français', es: 'Español',
+  nl: 'Nederlands', pl: 'Polski', en: 'English', de: 'Deutsch', fr: 'Français', es: 'Español',
   it: 'Italiano', pt: 'Português', tr: 'Türkçe', uk: 'Українська', ro: 'Română', ru: 'Русский',
 };
 
@@ -74,13 +75,13 @@ export const T = {
     recipeSkipped: '{n} regel(s) niet gelezen – controleer:',
     partialHint: 'Zoek breed – exacte match voor “{w}” vraagt internet',
     regionLabel: 'Maten', regAuto: 'Auto', regMetric: 'Metrisch', regInfo: 'el {tbsp} ml · tl {tsp} ml · kop {cup} ml',
-    tabList: 'Lijst', tabDeals: 'Aanbiedingen', addPh: 'Voeg product toe (bijv. melk, brood)…', emptyTitle: 'Je lijst is leeg',
+    tabList: 'Lijst', tabDeals: 'Acties', addPh: 'Voeg product toe (bijv. melk, brood)…', emptyTitle: 'Je lijst is leeg',
     emptyHint: 'Typ producten in je eigen taal – ik zoek de aanbiedingen in Nederlandse supermarkten.',
     didYouMean: 'Bedoelde je:', noPromo: 'geen aanbieding deze week', more: 'Toon meer ({n})', less: 'Minder',
     until: 't/m', lastDay: 'laatste dag', unknownItem: 'Niet herkend – ik zoek letterlijk',
     searchPh: 'Zoek aanbiedingen…', allStores: 'Alle winkels', sortEnd: 'Bijna afgelopen', sortPrice: 'Prijs',
     sortName: 'Naam', loading: 'Aanbiedingen laden…', failed: 'Laden mislukt: {stores}', noResults: 'Geen resultaten',
-    clearDone: 'Gekochte items wissen', promoCount: '{n} aanbiedingen', products: '{n} producten', refresh: 'Vernieuwen',
+    clearDone: 'Gekochte items wissen', promoCount: 'Aanbiedingen: {n}', products: '{n} producten', refresh: 'Vernieuwen',
     updated: 'Bijgewerkt {t}', searchingFor: 'Zoeken naar:', translated: 'Vertaald:', details: 'Tik voor details', tabStores: 'Winkels', viewItems: 'Producten', viewStores: 'Per winkel', noPromoSection: 'Zonder aanbieding', noPromoHint: 'koop bij een willekeurige winkel', navigate: 'Navigeer', alsoAt: 'Ook bij:', estTotal: 'totaal ca. {sum}', sortStore: 'Winkel', favChains: 'Mijn ketens', favStores: 'Mijn winkels', findNearby: 'Zoek winkels in de buurt', locating: 'Winkels in de buurt zoeken…', locDenied: 'Geen toestemming voor locatie – kies favoriete ketens handmatig.', noStoresFound: 'Geen winkels in de buurt gevonden', storesError: 'Winkels laden mislukt: {err}', nearby: 'In de buurt', noFavs: 'Nog geen winkels gekozen.', language: 'Taal', pickTitle: 'Kies eerst je winkels', pickHint: 'Ik toon alleen aanbiedingen van de gekozen winkels – kies ketens of zoek winkels in de buurt. Je kunt dit altijd wijzigen op het tabblad Winkels.', selectAll: 'Alle ketens', continueBtn: 'Verder', pickOnMap: 'Kies op de kaart', searchPlace: 'Zoek stad of adres…', searchHere: 'Zoek winkels hier', mapHint: 'Verplaats de kaart naar de gewenste plek, tik op “Zoek winkels hier” en tik daarna op een winkelpin om hem toe te voegen.', addStore: 'Toevoegen aan mijn winkels', removeStore: 'Verwijderen uit mijn winkels', closeBtn: 'Klaar', selectedCount: 'Gekozen winkels: {n}', noPlace: 'Plaats niet gevonden', myLocation: 'Mijn locatie', viewCompare: 'Vergelijk', cmpNeed: 'Kies minstens twee winkels om prijzen te vergelijken.', cmpLoading: 'Gewone prijzen ophalen…', cmpCovered: '{n} van {m} producten met prijs', cmpPair: 'Dezelfde producten kosten {pct}% minder bij {cheaper} dan bij {other} ({n} gedeelde producten)', cmpSimilar: 'Prijzen bij {a} en {b} zijn vergelijkbaar ({n} gedeelde producten)', cmpBase: 'Alleen producten met een prijs in beide winkels worden vergeleken.', cmpRegular: 'Gewone prijzen (zonder aanbieding) hebben we alleen van: {stores}.', bestUnit: 'goedkoopst per kg/l', cmpPromoTag: 'aanbieding', cmpRegularTag: 'normaal', tabVocab: 'Woorden', vHint: 'Hoe het woordenboek omgaat met jouw woorden en de aanbiedingen van vandaag.', vSummary: 'Producten: {n} · woorden: {t} · talen: {l}', vYourList: 'Jouw lijst', vRecognized: 'Herkend: {n}', vFuzzy: 'Typfout gecorrigeerd: {n}', vTranslated: 'Online vertaald: {n}', vUnknown: 'Niet herkend: {n}', vNoDeals: 'Geen aanbiedingen deze week ({n})', vTooMany: 'Verdacht veel aanbiedingen ({n})', vAmbiguous: 'Dubbelzinnige woorden ({n})', vShared: 'Woorden die in meerdere talen voorkomen ({n})', vLearned: 'Geleerde vertalingen ({n})', vShare: 'Deel woordenlijst', vClear: 'Wissen', vNone: 'geen', vLog: 'Onlangs getypt maar niet herkend of gecorrigeerd', uPiece: 'st.', uClove: 'teentje', uCan: 'blik', uBunch: 'bos', uPack: 'pak', uPinch: 'snufje', uSlice: 'plak', uTbsp: 'eetlepel', uTsp: 'theelepel', uCup: 'kopje', uHandful: 'handvol', recipeBtn: 'Uit recept', recipeTitle: 'Ingrediënten uit een recept', recipePh: 'Plak ingrediënten, één per regel (meerdere recepten tegelijk mag)…', recipeHint: 'Gelijke ingrediënten worden opgeteld (bijv. 2 eieren + 3 eieren = 5 st.) en samengevoegd met wat al op je lijst staat.', recipeMult: 'Porties ×{n}', recipeAdd: 'Toevoegen aan lijst ({n})', recipeEmpty: 'Plak ingrediënten en ik toon een voorbeeld van de boodschappenlijst.', recipeLines: '{n} regels → {m} producten', recipeOnList: 'staat al op de lijst', toTaste: 'naar smaak',
   },
   de: {
@@ -322,11 +323,12 @@ export const T = {
 export const LANG_CODES = Object.keys(LANG_NAMES);
 
 export function makeT(lang) {
-  const dict = T[lang] ?? T.en;
+  const dict = T[lang] ?? T[DEFAULT_LANG];
   return (key, vars = {}) =>
-    (dict[key] ?? T.en[key] ?? key).replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ''));
+    (dict[key] ?? T[DEFAULT_LANG][key] ?? T.en[key] ?? key).replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ''));
 }
 
-export function pickLanguage(deviceCode) {
-  return LANG_CODES.includes(deviceCode) ? deviceCode : 'en';
+/** Język startowy: zapisany wybór użytkownika, a bez niego – holenderski (nie język telefonu). */
+export function pickLanguage(saved) {
+  return LANG_CODES.includes(saved) ? saved : DEFAULT_LANG;
 }

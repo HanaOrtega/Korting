@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
+import TextInput from '../components/TextInput.js';
 import Text from '../components/Text.js';
 import { Badge, Button, Card, Chip, EmptyState, Icon, IconButton } from '../components/ui.js';
 import { filterRecipes } from '../recipes.js';

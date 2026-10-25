@@ -1,5 +1,6 @@
 import { useContext, useState } from 'react';
-import { Alert, Modal, ScrollView, Switch, TextInput, View } from 'react-native';
+import { Alert, Modal, ScrollView, Switch, View } from 'react-native';
+import TextInput from '../components/TextInput.js';
 import Text from '../components/Text.js';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Card, Chip, IconButton, Segmented, SectionLabel, Icon } from '../components/ui.js';

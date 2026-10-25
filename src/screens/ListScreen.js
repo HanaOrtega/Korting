@@ -1,5 +1,6 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { LayoutAnimation, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { LayoutAnimation, Pressable, ScrollView, View } from 'react-native';
+import TextInput from '../components/TextInput.js';
 import Text from '../components/Text.js';
 import AisleView from '../components/AisleView.js';
 import ByStoreView from '../components/ByStoreView.js';

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Share, Switch, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Share, Switch, View } from 'react-native';
+import TextInput from '../components/TextInput.js';
 import Text from '../components/Text.js';
 import { useContext } from 'react';
 import { ComfortContext } from '../comfortContext.js';

@@ -41,3 +41,23 @@ test('przypomnienie o kończących się promocjach: dzień przed końcem, najwcz
   assert.deepEqual(r.entries.map((e) => e.text).sort(), ['masło', 'mleko']);
   assert.equal(expiryReminder([], now, 9), null);
 });
+
+import { effectiveScale, MAX_SCALE } from '../src/textScale.js';
+import { DEFAULT_LANG, makeT, pickLanguage, LANG_CODES } from '../src/i18n.js';
+
+test('skalowanie tekstu: system × opcja, z limitem góra/dół', () => {
+  assert.equal(effectiveScale(1, 1), 1);
+  assert.equal(effectiveScale(1.3, 1.15), 1.3 * 1.15);
+  assert.equal(effectiveScale(2, 1.3), MAX_SCALE); // nie rośnie bez końca
+  assert.equal(effectiveScale(0.5, 1), 0.85); // nie robi się nieczytelnie małe
+  assert.equal(effectiveScale(undefined, undefined), 1);
+});
+
+test('język domyślny to holenderski, niezależnie od języka telefonu', () => {
+  assert.equal(DEFAULT_LANG, 'nl');
+  assert.equal(pickLanguage(undefined), 'nl');
+  assert.equal(pickLanguage('xx'), 'nl');
+  assert.equal(pickLanguage('pl'), 'pl'); // zapisany wybór użytkownika
+  assert.equal(LANG_CODES[0], 'nl');
+  assert.equal(makeT('xx')('tabList'), makeT('nl')('tabList'));
+});

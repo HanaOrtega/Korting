@@ -1,6 +1,7 @@
 import * as Location from 'expo-location';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, View } from 'react-native';
+import TextInput from './TextInput.js';
 import Text from './Text.js';
 import { WebView } from 'react-native-webview';
 import { mapHtml } from '../mapHtml.js';
