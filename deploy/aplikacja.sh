@@ -95,9 +95,10 @@ fi
 pkg="$(sed -n "s/^[[:space:]]*applicationId '\(.*\)'/\1/p" android/app/build.gradle | head -1)"
 if [ -d android/app/build ] && [ "$(cat android/app/build/.korting-package 2>/dev/null || true)" != "$pkg" ]; then
     echo "==> Zmienil sie pakiet ($pkg) - czyszcze stare pliki budowania"
-    rm -rf android/app/build android/.gradle
+    rm -rf android/app/build android/build android/.gradle
 fi
-rm -rf android/app/build/generated/autolinking  # zawsze odtwarzane od zera
+# autolinking.json (w katalogu glownym android/build) zapamietuje nazwe pakietu z `react-native config` - zawsze odtwarzamy
+rm -rf android/app/build/generated/autolinking android/build/generated/autolinking
 mkdir -p android/app/build && printf '%s' "$pkg" > android/app/build/.korting-package
 
 echo "sdk.dir=$ANDROID_HOME" > android/local.properties
