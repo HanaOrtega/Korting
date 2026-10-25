@@ -329,3 +329,25 @@ dalej”** (ponownie pokazuje formularz zgody Google), **„Usuń reklamy · cen
 Wydawca: **GOKH Studio**. Identyfikator pakietu (Android `applicationId`, schemat logowania Google, AdMob, Play Console):
 `com.gokhstudio.kortinglijst`. Po publikacji w Google Play nie można go zmienić. Nowy klucz podpisu tworzony przez
 `./deploy/aplikacja.sh` ma w certyfikacie `CN=GOKH Studio`.
+
+## Grafiki do Google Play
+
+Folder `store/`: `icoon-512.png` (ikona 512×512), `feature-graphic.png` (1024×500) i `listing.md` (opis po holendersku –
+język domyślny – oraz angielsku i polsku, z limitami znaków). **Zrzuty ekranu muszą pochodzić z prawdziwej aplikacji**, więc
+robisz je telefonem, a skrypt tylko dokłada tło i napis (1080×1920):
+```
+pip install pillow
+python3 deploy/sklep_grafiki.py shots          # krok po kroku: ustawiasz ekran, Enter = zrzut przez adb
+python3 deploy/sklep_grafiki.py shots --from-dir ~/zrzuty   # albo z gotowych 01.png … 07.png
+```
+Wynik: `store/schermafbeeldingen/01-lijst.png` … (7 ekranów z holenderskimi podpisami). Przed zrzutami ustaw w aplikacji
+holenderski, dodaj kilka produktów i przepisów, a ekran odśwież (najlepiej z kilkoma aktualnymi promocjami).
+Ikonę i grafikę funkcji odtworzysz poleceniem `python3 deploy/sklep_grafiki.py all`.
+
+## Skalowanie tekstu i język domyślny
+
+- Rozmiar tekstu = rozmiar czcionki systemowej × opcja „Rozmiar tekstu” (menu ☰ → Komfort), z limitem 0,85–1,75×, żeby
+  układ się nie rozsypał; dotyczy tekstu i pól wpisywania. Logo i nazwa w nagłówku nie rosną; przyciski i przełączniki
+  zmniejszają napis zamiast go ucinać.
+- **Językiem domyślnym jest holenderski** (nie język telefonu); inny język wybierasz przyciskiem w nagłówku, wybór jest
+  zapamiętany. Brakujące klucze tłumaczeń spadają na holenderski, potem angielski.
