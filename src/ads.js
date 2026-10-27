@@ -9,6 +9,9 @@ export const BANNER_ID = process.env.EXPO_PUBLIC_ADMOB_BANNER_ID || TestIds.ADAP
 export { consentGate, shouldShowAd } from './adsRules.js';
 export const USING_TEST_ADS = !process.env.EXPO_PUBLIC_ADMOB_BANNER_ID;
 
+/** Natywne wywołania zgody potrafią zawisnąć (brak Usług Google Play, sieć) – po czasie traktujemy to jak błąd. */
+const withTimeout = (p, ms = 15000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+
 const CACHE = 'korting.adsOk'; // zgoda była już udzielona – offline nie blokujemy aplikacji
 
 /**
@@ -22,8 +25,8 @@ export function useAds({ disabled = false } = {}) {
   const run = useCallback(async () => {
     setState((s) => (s.status === 'ok' ? s : { ...s, status: 'loading' }));
     try {
-      await AdsConsent.gatherConsent();
-      const info = await AdsConsent.getConsentInfo();
+      await withTimeout(AdsConsent.gatherConsent(), 20000);
+      const info = await withTimeout(AdsConsent.getConsentInfo());
       if (!alive.current) return;
       if (!info.canRequestAds) {
         AsyncStorage.setItem(CACHE, '0').catch(() => {});
@@ -31,7 +34,7 @@ export function useAds({ disabled = false } = {}) {
         return;
       }
       await mobileAds().setRequestConfiguration({ maxAdContentRating: MaxAdContentRating.G, tagForChildDirectedTreatment: false, tagForUnderAgeOfConsent: false });
-      await mobileAds().initialize();
+      await withTimeout(mobileAds().initialize());
       AsyncStorage.setItem(CACHE, '1').catch(() => {});
       if (alive.current) setState({ status: 'ok', consent: true, privacyOptions: info.privacyOptionsRequirementStatus === AdsConsentPrivacyOptionsRequirementStatus.REQUIRED });
     } catch {

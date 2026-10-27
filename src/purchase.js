@@ -35,8 +35,9 @@ export function usePro() {
       try { const c = await AsyncStorage.getItem(KEY); if (alive.current) setOwned(c === '1'); } catch { /* brak pamięci */ }
       if (alive.current) setReady(true);
       try {
-        await initConnection();
-        const products = await fetchProducts({ skus: [REMOVE_ADS_SKU], type: 'in-app' });
+        const lim = (p) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 15000))]);
+        await lim(initConnection());
+        const products = await lim(fetchProducts({ skus: [REMOVE_ADS_SKU], type: 'in-app' }));
         if (alive.current) { setAvailable(!!products?.length); setPrice(products?.[0]?.displayPrice ?? ''); }
         await refresh();
         subs = [

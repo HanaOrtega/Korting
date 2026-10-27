@@ -5,6 +5,7 @@ import { ActivityIndicator, Alert, AppState, Image, Keyboard, Linking, Modal, Pr
 import Text from './src/components/Text.js';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AdBanner from './src/components/AdBanner.js';
+import ErrorBoundary from './src/components/ErrorBoundary.js';
 import ConsentGate from './src/components/ConsentGate.js';
 import { consentGate, shouldShowAd, useAds } from './src/ads.js';
 import { usePro } from './src/purchase.js';
@@ -44,9 +45,11 @@ const store = {
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <Root />
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <Root />
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
 
