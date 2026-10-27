@@ -19,13 +19,15 @@ const CACHE = 'korting.adsOk'; // zgoda była już udzielona – offline nie blo
  * `consent` = można żądać reklam; `privacyOptions` = pokaż w menu „Prywatność reklam”.
  */
 export function useAds({ disabled = false } = {}) {
-  const [state, setState] = useState({ status: 'loading', consent: false, privacyOptions: false });
+  const [state, setState] = useState({ status: 'loading', consent: false, privacyOptions: false, error: '' });
   const alive = useRef(true);
 
   const run = useCallback(async () => {
-    setState((s) => (s.status === 'ok' ? s : { ...s, status: 'loading' }));
+    setState((s) => (s.status === 'ok' ? s : { ...s, status: 'loading', error: '' }));
+    let step = 'gatherConsent';
     try {
       await withTimeout(AdsConsent.gatherConsent(), 20000);
+      step = 'getConsentInfo';
       const info = await withTimeout(AdsConsent.getConsentInfo());
       if (!alive.current) return;
       if (!info.canRequestAds) {
@@ -33,13 +35,16 @@ export function useAds({ disabled = false } = {}) {
         setState({ status: 'needs', consent: false, privacyOptions: info.privacyOptionsRequirementStatus === AdsConsentPrivacyOptionsRequirementStatus.REQUIRED });
         return;
       }
+      step = 'setRequestConfiguration';
       await mobileAds().setRequestConfiguration({ maxAdContentRating: MaxAdContentRating.G, tagForChildDirectedTreatment: false, tagForUnderAgeOfConsent: false });
+      step = 'initialize';
       await withTimeout(mobileAds().initialize());
       AsyncStorage.setItem(CACHE, '1').catch(() => {});
       if (alive.current) setState({ status: 'ok', consent: true, privacyOptions: info.privacyOptionsRequirementStatus === AdsConsentPrivacyOptionsRequirementStatus.REQUIRED });
-    } catch {
+    } catch (e) {
+      const detail = `${step}: ${e?.code ? e.code + ' – ' : ''}${e?.message || e}`;
       const cached = await AsyncStorage.getItem(CACHE).catch(() => null);
-      if (alive.current) setState((s) => ({ ...s, status: cached === '1' ? 'ok' : 'error' }));
+      if (alive.current) setState((s) => ({ ...s, status: cached === '1' ? 'ok' : 'error', error: detail }));
     }
   }, []);
 

@@ -16,6 +16,7 @@ export default function ConsentGate({ c, t, loading, status, pro, ads, onBuy }) 
         <Image source={require('../../assets/logo-circle.png')} style={{ width: 84, height: 84, alignSelf: 'center' }} accessibilityLabel="Kortinglijst" />
         <Text style={{ color: c.fg, ...type.title, textAlign: 'center' }}>{t('gateTitle')}</Text>
         <Text style={{ color: c.ink2, ...type.body, textAlign: 'center' }}>{status === 'error' ? t('gateOffline') : t('gateBody')}</Text>
+        {status === 'error' && ads.error ? <Text style={{ color: c.mut, ...type.caption, textAlign: 'center' }} selectable>{ads.error}</Text> : null}
         {status === 'error'
           ? <Button c={c} icon="refresh" label={t('gateRetry')} onPress={ads.retry} />
           : <Button c={c} icon="check" label={t('gateAccept')} onPress={ads.reopen} />}
