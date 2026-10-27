@@ -337,8 +337,10 @@ język domyślny – oraz angielsku i polsku, z limitami znaków). **Zrzuty ekra
 robisz je telefonem, a skrypt tylko dokłada tło i napis (1080×1920):
 ```
 pip install pillow
-python3 deploy/sklep_grafiki.py shots          # krok po kroku: ustawiasz ekran, Enter = zrzut przez adb
-python3 deploy/sklep_grafiki.py shots --from-dir ~/zrzuty   # albo z gotowych 01.png … 07.png
+./deploy/emulator.sh --zrzuty                  # wersja BEZ reklam (tylko do zrzutów; do sklepu wysyłasz zwykły build z aplikacja.sh)
+python3 deploy/sklep_grafiki.py shots          # 3 rozmiary: telefon 1080x1920, tablet 7" 1200x1920, tablet 10" 1600x2560 (emulator sam zmienia rozdzielczość)
+python3 deploy/sklep_grafiki.py shots --profile tablet-7   # tylko jeden rozmiar
+python3 deploy/sklep_grafiki.py shots --from-dir ~/zrzuty  # albo z gotowych: ~/zrzuty/<rozmiar>/01.png … 07.png
 ```
 Wynik: `store/schermafbeeldingen/01-lijst.png` … (7 ekranów z holenderskimi podpisami). Przed zrzutami ustaw w aplikacji
 holenderski, dodaj kilka produktów i przepisów, a ekran odśwież (najlepiej z kilkoma aktualnymi promocjami).

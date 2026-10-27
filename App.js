@@ -79,7 +79,9 @@ function Root() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [comfortOpen, setComfortOpen] = useState(false);
   const book = useRecipes();
-  const pro = usePro();
+  const pro0 = usePro();
+  // Wersja do zrzutów sklepowych (./deploy/emulator.sh --zrzuty): bez reklam i bez bramki zgody.
+  const pro = process.env.EXPO_PUBLIC_STORE_SHOTS === '1' ? { ...pro0, owned: true, ready: true } : pro0;
   const ads = useAds({ disabled: pro.owned });
   const askRemoveAds = () => Alert.alert(t('proRemove'), t('proWhy'), [
     { text: t('editCancel'), style: 'cancel' }, { text: t('proRestore'), onPress: pro.restore }, { text: pro.price ? t('proBuy', { price: pro.price }) : t('proRemove'), onPress: pro.buy },

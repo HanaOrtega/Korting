@@ -3,8 +3,11 @@
 
   python3 deploy/sklep_grafiki.py icon          # ikona 512x512 -> store/icoon-512.png
   python3 deploy/sklep_grafiki.py feature       # grafika funkcji 1024x500 -> store/feature-graphic.png
-  python3 deploy/sklep_grafiki.py shots         # prawdziwe zrzuty z telefonu przez adb -> store/schermafbeeldingen/
-  python3 deploy/sklep_grafiki.py shots --from-dir DIR   # to samo z gotowych zrzutów (01.png … 07.png w DIR)
+  python3 deploy/sklep_grafiki.py shots         # prawdziwe zrzuty przez adb w 3 rozmiarach -> store/schermafbeeldingen/{telefon,tablet-7,tablet-10}/
+  python3 deploy/sklep_grafiki.py shots --profile telefon      # tylko jeden rozmiar (telefon | tablet-7 | tablet-10)
+  python3 deploy/sklep_grafiki.py shots --from-dir DIR   # z gotowych zrzutów (DIR/<rozmiar>/01.png … 07.png albo DIR/01.png dla telefonu)
+
+Zrzuty bez reklam: zbuduj emulatorową wersję poleceniem ./deploy/emulator.sh --zrzuty (reklamy i bramka zgody są w niej wyłączone).
   python3 deploy/sklep_grafiki.py all           # icon + feature (zrzuty osobno)
 
 Zrzuty są PRAWDZIWE: robi je telefon (`adb exec-out screencap`); skrypt tylko dokłada tło i napis (1080x1920, 9:16).
@@ -27,6 +30,16 @@ SHOTS = [
     ('06-acties', 'Zakładka Acties z wpisanym wyszukiwaniem (np. „kaas”)', 'Alle aanbiedingen op één plek'),
     ('07-donker', 'Lista w ciemnym motywie (system w trybie ciemnym)', 'Licht en donker thema'),
 ]
+
+
+# rozmiary wymagane przez Google Play: telefon, tablet 7", tablet 10". Ekran emulatora jest zmieniany przez `adb shell wm size/density`,
+# więc aplikacja naprawdę układa się pod dany ekran (to nie jest przeskalowany zrzut z telefonu).
+# nazwa: (szerokość grafiki, wysokość grafiki, ekran emulatora WxH albo None, gęstość)
+PROFILES = {
+    'telefon': (1080, 1920, None, None),
+    'tablet-7': (1200, 1920, '1200x1920', 240),
+    'tablet-10': (1600, 2560, '1600x2560', 280),
+}
 
 
 def font(size, bold=True):
@@ -94,18 +107,18 @@ def feature():
     print('store/feature-graphic.png (1024x500)')
 
 
-def compose(shot, caption, path):
-    W, H = 1080, 1920
+def compose(shot, caption, path, W=1080, H=1920):
+    k = W / 1080
     bg = gradient(W, H).convert('RGBA')
     d = ImageDraw.Draw(bg)
-    f = font(66)
-    lines = wrap(d, caption, f, 900)
-    y = 120
+    f = font(round(66 * k))
+    lines = wrap(d, caption, f, round(W * 0.83))
+    y = round(120 * k)
     for ln in lines:
         d.text(((W - d.textlength(ln, font=f)) / 2, y), ln, font=f, fill='white')
-        y += 84
-    top = max(y + 50, 380)
-    sw = 860
+        y += round(84 * k)
+    top = max(y + round(50 * k), round(380 * k))
+    sw = round(W * 0.8)
     s = shot.convert('RGBA')
     s = s.resize((sw, round(s.height * sw / s.width)), Image.LANCZOS)
     mask = Image.new('L', s.size, 0)
@@ -121,26 +134,58 @@ def compose(shot, caption, path):
     bg.convert('RGB').save(path)
 
 
+def adb(*a):
+    return subprocess.run(['adb', *a], check=False, capture_output=True)
+
+
 def adb_shot():
     raw = subprocess.check_output(['adb', 'exec-out', 'screencap', '-p'])
     return Image.open(io.BytesIO(raw))
 
 
-def shots(from_dir=None):
-    out = os.path.join(OUT, 'schermafbeeldingen')
-    os.makedirs(out, exist_ok=True)
-    for i, (name, step, caption) in enumerate(SHOTS, 1):
-        if from_dir:
-            cand = [os.path.join(from_dir, f'{i:02d}.png'), os.path.join(from_dir, f'{name}.png')]
-            src = next((c for c in cand if os.path.exists(c)), None)
-            if not src:
-                print(f'brak pliku dla kroku {i} ({name}) – pomijam'); continue
-            img = Image.open(src)
-        else:
-            input(f'\n[{i}/{len(SHOTS)}] Ustaw na telefonie: {step}\n    Enter = zrób zrzut… ')
-            img = adb_shot()
-        compose(img, caption, os.path.join(out, name + '.png'))
-        print('store/schermafbeeldingen/' + name + '.png')
+def clean_statusbar(on):
+    """Tryb demo Androida: stała godzina, pełna bateria, brak powiadomień na pasku (jak w zrzutach ze sklepu)."""
+    if on:
+        adb('shell', 'settings', 'put', 'global', 'sysui_demo_allowed', '1')
+        for cmd in (['enter'], ['clock', '-e', 'hhmm', '1000'], ['battery', '-e', 'level', '100', '-e', 'plugged', 'false'],
+                    ['network', '-e', 'wifi', 'show', '-e', 'level', '4'], ['notifications', '-e', 'visible', 'false']):
+            adb('shell', 'am', 'broadcast', '-a', 'com.android.systemui.demo', '-e', 'command', *cmd)
+    else:
+        adb('shell', 'am', 'broadcast', '-a', 'com.android.systemui.demo', '-e', 'command', 'exit')
+
+
+def shots(from_dir=None, only=None):
+    base = os.path.join(OUT, 'schermafbeeldingen')
+    names = [only] if only else list(PROFILES)
+    for prof in names:
+        W, H, wm, dpi = PROFILES[prof]
+        out = os.path.join(base, prof)
+        os.makedirs(out, exist_ok=True)
+        if not from_dir:
+            print(f'\n=== Rozmiar: {prof} ({W}x{H}) ===')
+            if wm:
+                adb('shell', 'wm', 'size', wm); adb('shell', 'wm', 'density', str(dpi))
+            else:
+                adb('shell', 'wm', 'size', 'reset'); adb('shell', 'wm', 'density', 'reset')
+            clean_statusbar(True)
+        try:
+            for i, (name, step, caption) in enumerate(SHOTS, 1):
+                if from_dir:
+                    dirs = [os.path.join(from_dir, prof)] + ([from_dir] if prof == 'telefon' else [])
+                    cand = [os.path.join(d, f) for d in dirs for f in (f'{i:02d}.png', f'{name}.png')]
+                    src = next((c for c in cand if os.path.exists(c)), None)
+                    if not src:
+                        print(f'[{prof}] brak pliku dla kroku {i} ({name}) – pomijam'); continue
+                    img = Image.open(src)
+                else:
+                    input(f'\n[{prof} {i}/{len(SHOTS)}] Ustaw w aplikacji: {step}\n    Enter = zrób zrzut… ')
+                    img = adb_shot()
+                compose(img, caption, os.path.join(out, name + '.png'), W, H)
+                print(f'store/schermafbeeldingen/{prof}/{name}.png')
+        finally:
+            if not from_dir:
+                clean_statusbar(False)
+                adb('shell', 'wm', 'size', 'reset'); adb('shell', 'wm', 'density', 'reset')
 
 
 if __name__ == '__main__':
@@ -148,4 +193,7 @@ if __name__ == '__main__':
     if cmd in ('icon', 'all'): icon()
     if cmd in ('feature', 'all'): feature()
     if cmd == 'shots':
-        shots(sys.argv[sys.argv.index('--from-dir') + 1] if '--from-dir' in sys.argv else None)
+        arg = lambda k: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else None
+        if arg('--profile') and arg('--profile') not in PROFILES:
+            sys.exit('--profile: ' + ' | '.join(PROFILES))
+        shots(arg('--from-dir'), arg('--profile'))

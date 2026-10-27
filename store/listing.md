@@ -89,6 +89,6 @@ Aplikacja nie jest powiązana z wymienionymi supermarketami. Promocje pochodzą 
 ## Pliki graficzne
 - `icoon-512.png` – ikona 512×512
 - `feature-graphic.png` – grafika funkcji 1024×500
-- `schermafbeeldingen/` – zrzuty ekranu 1080×1920 (powstają z prawdziwych zrzutów telefonu: `python3 deploy/sklep_grafiki.py shots`)
+- `schermafbeeldingen/` – zrzuty ekranu w podfolderach `telefon` (1080×1920), `tablet-7` (1200×1920), `tablet-10` (1600×2560) – prawdziwe zrzuty bez reklam (`./deploy/emulator.sh --zrzuty`, potem `python3 deploy/sklep_grafiki.py shots`)
 
 Kategoria: Zakupy (Shopping) · Ocena treści: dla wszystkich · Reklamy: tak · Zakupy w aplikacji: tak (`remove_ads`).
