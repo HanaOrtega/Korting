@@ -103,7 +103,11 @@ mkdir -p android/app/build && printf '%s' "$pkg" > android/app/build/.korting-pa
 
 echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 echo "==> Buduje aplikacje (pierwszy raz kilkanascie minut - pobiera Gradle, biblioteki i kompiluje kod natywny)"
-if ! (cd android && ./gradlew -q --no-daemon :app:bundleRelease :app:assembleRelease); then
+# Kod wersji musi rosnac przy kazdym wgraniu do Google Play: domyslnie liczba minut od 1970 (rosnie sam, miesci sie w limicie Play).
+# Wymus wlasny:  KORTING_VERSION_CODE=12 ./deploy/aplikacja.sh
+VERSION_CODE="${KORTING_VERSION_CODE:-$(( $(date +%s) / 60 ))}"
+echo "==> Kod wersji (versionCode): $VERSION_CODE"
+if ! (cd android && ./gradlew -q --no-daemon -PkortingVersionCode="$VERSION_CODE" :app:bundleRelease :app:assembleRelease); then
     echo "[!] Budowanie nieudane - przyczyna wyzej (\"What went wrong\"); przy"
     echo "    'Keystore was tampered with' / 'password was incorrect' to zle haslo klucza"
     exit 1

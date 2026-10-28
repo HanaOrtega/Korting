@@ -92,7 +92,7 @@ android {
         applicationId 'com.gokhstudio.kortinglijst'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        versionCode (project.findProperty('kortingVersionCode') ?: '1').toInteger()
         versionName "0.2.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
