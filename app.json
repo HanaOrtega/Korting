@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Kortinglijst",
+    "slug": "korting",
+    "version": "0.2.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-localization",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Kortinglijst używa lokalizacji tylko do znalezienia sklepów w Twojej okolicy."
+        }
+      ],
+      "expo-notifications"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.gokhstudio.kortinglijst"
+    },
+    "android": {
+      "package": "com.gokhstudio.kortinglijst",
+      "adaptiveIcon": {
+        "backgroundColor": "#e8590c",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "scheme": [
+      "korting",
+      "com.gokhstudio.kortinglijst"
+    ]
+  },
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-3940256099942544~3347511713",
+    "delay_app_measurement_init": true
+  }
+}
