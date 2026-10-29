@@ -105,7 +105,11 @@ echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 echo "==> Buduje aplikacje (pierwszy raz kilkanascie minut - pobiera Gradle, biblioteki i kompiluje kod natywny)"
 # Kod wersji musi rosnac przy kazdym wgraniu do Google Play: domyslnie liczba minut od 1970 (rosnie sam, miesci sie w limicie Play).
 # Wymus wlasny:  KORTING_VERSION_CODE=12 ./deploy/aplikacja.sh
-VERSION_CODE="${KORTING_VERSION_CODE:-$(( $(date +%s) / 60 ))}"
+VERSION_CODE="${KORTING_VERSION_CODE:-}"
+if ! [[ "$VERSION_CODE" =~ ^[1-9][0-9]{0,9}$ ]] || [ "$VERSION_CODE" -gt 2100000000 ]; then
+    [ -n "$VERSION_CODE" ] && echo "[!] KORTING_VERSION_CODE='$VERSION_CODE' to nie jest liczba calkowita (np. 12) - ignoruje, biore automatyczny kod"
+    VERSION_CODE="$(( $(date +%s) / 60 ))"
+fi
 echo "==> Kod wersji (versionCode): $VERSION_CODE"
 if ! (cd android && ./gradlew -q --no-daemon -PkortingVersionCode="$VERSION_CODE" :app:bundleRelease :app:assembleRelease); then
     echo "[!] Budowanie nieudane - przyczyna wyzej (\"What went wrong\"); przy"
